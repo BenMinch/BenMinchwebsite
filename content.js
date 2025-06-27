@@ -32,23 +32,12 @@ Viruses in the kingdom Bamfordvirae, specifically giant viruses (NCLDVs) in the 
     {
         id: 'my-first-post',
         type: 'blog',
-        title: 'My First Post: The Journey Begins',
-        date: '2025-06-27',
-        description: 'An introduction to my new website and what I plan to write about. Exploring topics from web development to creative hobbies.',
+        title: 'An introduction',
+        date: '2025-06-25',
+        description: 'An introduction to myself and what I research.',
         content: `
 ## Welcome!
-This is my first post on my new website. I'm excited to have a space to share my thoughts, projects, and discoveries.
-        `
-    },
-    {
-        id: 'understanding-ssg',
-        type: 'blog',
-        title: 'Understanding Static Site Generators',
-        date: '2025-07-02',
-        description: 'A deep dive into what Static Site Generators (SSGs) are, how they work, and why they are so powerful.',
-        content: `
-## What is a Static Site Generator?
-A Static Site Generator (SSG) is a tool that generates a full static HTML website based on raw data and a set of templates.
+Coming soon.
         `
     },
 
@@ -56,25 +45,19 @@ A Static Site Generator (SSG) is a tool that generates a full static HTML websit
     {
         id: 'episode-1-the-start',
         type: 'podcast',
-        title: 'Episode 1: The Start of Something New',
+        title: 'Viruses in a deep sea brine pool',
         date: '2025-06-28',
-        description: 'In the inaugural episode, I discuss the motivations behind starting this new project.',
-        audioUrl: 'https://archive.org/download/MIT18.06S05_L1_preview/MIT18_06S05_L1_300k.mp3',
+        description: 'An overview podcast (notebookLM) of one of my research papers on viruses in deep sea brine pools',
+        audioUrl: 'https://archive.org/download/brine-pool-viral-ecology-and-spatial-dynamics/Brine%20Pool%20Viral%20Ecology%20and%20Spatial%20Dynamics.mp3',
         showNotes: `
 ### In this episode:
-* Why I decided to start a podcast.
+* The diversity of both prokaryotic and eukaryotic viruses in deep sea brine pools.
+* The different life strategies that shape these viral communities.
+* How these viruses may be influencing the chemistry of the pools.
         `
     },
 
     // === INTERACTIVE PAGES ===
-    {
-        id: 'simple-color-picker',
-        type: 'interactive',
-        title: 'Interactive Color Picker',
-        date: '2025-06-25',
-        description: 'A simple, clean color picker tool built with HTML and JavaScript.',
-        htmlFile: 'interactive/color-picker.html'
-    },
     {
         id: 'Polinton-like-viruses',
         type: 'interactive',
@@ -82,6 +65,14 @@ A Static Site Generator (SSG) is a tool that generates a full static HTML websit
         date: '2025-06-24',
         description: 'An exploration of Preplasmiviricota viruses',
         htmlFile: 'interactive/Preplasmiviricota.html'
+    },
+    {
+        id: 'protist-defense',
+        type: 'interactive',
+        title: 'Protist and Giant Virus Arms race',
+        date: '2025-06-23',
+        description: 'An overview of giant virus entry mechanisms and protist defences.',
+        htmlFile: 'interactive/protist-defense.html'
     }
 ].sort((a, b) => new Date(b.date) - new Date(a.date));
 

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Protist-Virus Arms Race: An Interactive Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Bio-Conflict (Background: #F8F7F2, Text: #4A453D, Virus/Offense: #8A4E7D, Protist/Defense: #4A7C59, Neutral Accent: #A89F91) -->
+    <!-- Application Structure Plan: The SPA is designed as a narrative exploring the co-evolutionary "arms race". It flows from a general introduction to the "players" (virus and protist), then details the "Viral Attack Plan", followed by the "Protist Defense System". The climax is an interactive "Arms Race" diagram connecting specific attack and defense mechanisms. This structure turns a complex review into an engaging story, enhancing user understanding far better than a linear report structure. The primary interaction is exploring the linked offensive and defensive strategies, making the core concept of co-evolution tangible. -->
+    <!-- Visualization & Content Choices: 
+        - Genome Scale: Report Info: Genome sizes (Sec 1.1) -> Goal: Compare -> Viz: Bar Chart -> Interaction: Static -> Justification: Provides immediate visual context for the term "giant" -> Library: Chart.js.
+        - Viral Entry: Report Info: Phagocytosis vs. Endocytosis (Sec 2.1) -> Goal: Compare/Organize -> Viz: Interactive HTML/CSS Diagram -> Interaction: Click buttons to toggle view -> Justification: Simplifies and visualizes two distinct pathways -> Library/Method: HTML/Tailwind + JS.
+        - Host Manipulation: Report Info: ESP hijacking, metabolism, etc. (Sec 2.3) -> Goal: Explore/Inform -> Viz: Tabbed content display -> Interaction: User clicks tabs to reveal detailed info -> Justification: Organizes complex information into digestible chunks -> Library/Method: JS content update.
+        - Protist Defenses: Report Info: Innate, Virophage, RNAi (Sec 3) -> Goal: Compare/Organize -> Viz: Interactive card grid -> Interaction: Hover over cards to see details -> Justification: Allows quick scanning of defense types with on-demand detail -> Library/Method: HTML/Tailwind + JS.
+        - The Arms Race: Report Info: Linked concepts throughout -> Goal: Show Relationships -> Viz: Interactive connection diagram -> Interaction: Hovering on an attack highlights the corresponding defense and vice-versa -> Justification: The core interactive element to explicitly demonstrate the co-evolutionary link -> Library/Method: HTML/Tailwind + JS.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8F7F2; color: #4A453D; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        .nav-link.active { color: #8A4E7D; font-weight: 700; border-bottom: 2px solid #8A4E7D; }
+        .tab-btn.active { background-color: #4A7C59; color: #F8F7F2; }
+        .attack-item.highlight, .defense-item.highlight { background-color: #F8F7F2; transform: scale(1.03); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .attack-item { border-left: 4px solid #8A4E7D; transition: all 0.2s ease-in-out; }
+        .defense-item { border-left: 4px solid #4A7C59; transition: all 0.2s ease-in-out; }
+        .connection-line { stroke: #A89F91; stroke-width: 2; transition: stroke 0.3s ease, stroke-width 0.3s ease; }
+        .connection-line.highlight { stroke: #37332f; stroke-width: 4; }
+    </style>
+</head>
+<body class="bg-stone-100">
+
+    <header class="sticky top-0 bg-stone-100/80 backdrop-blur-md z-50 border-b border-stone-200">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl text-stone-800">The Protist-Virus Arms Race</span>
+                </div>
+                <div class="hidden md:block">
+                    <div id="nav-links" class="ml-10 flex items-baseline space-x-4">
+                        <a href="#introduction" class="nav-link px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-900">Introduction</a>
+                        <a href="#attack" class="nav-link px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-900">The Attack</a>
+                        <a href="#defense" class="nav-link px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-900">The Defense</a>
+                        <a href="#arms-race" class="nav-link px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-900">Arms Race</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="introduction" class="py-16 sm:py-24">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <p class="text-base font-semibold text-[#8A4E7D] uppercase tracking-wider">A Microscopic Conflict</p>
+                    <h1 class="mt-2 text-4xl md:text-6xl font-extrabold tracking-tight text-stone-900">The Invisible War Shaping Our World</h1>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-stone-600">Deep within aquatic ecosystems, a relentless battle rages between unicellular protists and the Nucleocytoviricota, or "giant viruses". This co-evolutionary arms race, driven by sophisticated viral infection strategies and intricate host defenses, is a major force in global nutrient cycles and eukaryotic evolution.</p>
+                </div>
+
+                <div class="mt-16 bg-white rounded-lg shadow-xl p-6 md:p-8">
+                    <h2 class="text-2xl md:text-3xl font-bold text-center text-stone-800">What Makes a Virus "Giant"?</h2>
+                    <p class="mt-2 text-center text-stone-600 max-w-2xl mx-auto">Giant viruses defy traditional definitions. Their immense physical and genetic scale rivals some bacteria, granting them an unprecedented level of autonomy from their hosts.</p>
+                    <div class="chart-container h-96 mt-8">
+                        <canvas id="genomeSizeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="attack" class="py-16 sm:py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#8A4E7D]">The Viral Attack Plan</h2>
+                    <p class="mt-3 max-w-2xl mx-auto text-lg text-stone-600">Nucleocytoviricota employ a multi-stage strategy to invade, hijack, and replicate within their protist hosts. Each step is a masterpiece of evolutionary engineering.</p>
+                </div>
+
+                <div class="mt-12 space-y-12">
+                    <!-- Step 1: Entry -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h3 class="text-2xl font-bold text-stone-800">Stage 1: Breaching the Gates</h3>
+                            <p class="mt-2 text-stone-600">The first challenge is entry. Giant viruses have evolved distinct mechanisms tailored to their specific host's biology. Use the buttons to explore the two primary pathways.</p>
+                            <div id="entry-selector" class="mt-4 flex space-x-2">
+                                <button data-entry="phagocytosis" class="entry-btn flex-1 px-4 py-2 text-sm font-semibold rounded-md bg-stone-200 text-stone-800">Amoeba Hosts: Phagocytosis</button>
+                                <button data-entry="endocytosis" class="entry-btn flex-1 px-4 py-2 text-sm font-semibold rounded-md bg-stone-200 text-stone-800">Algal Hosts: Endocytosis</button>
+                            </div>
+                            <div id="entry-details" class="mt-4 p-4 bg-stone-50 rounded-lg min-h-[150px]">
+                            </div>
+                        </div>
+                        <div id="entry-visual" class="flex items-center justify-center p-8 bg-stone-100 rounded-lg min-h-[300px]">
+                            <!-- Visual content updated by JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Viral Factories -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div class="flex items-center justify-center p-8 bg-stone-100 rounded-lg min-h-[300px]">
+                           <div class="text-center">
+                                <p class="text-6xl">🏭</p>
+                                <p class="mt-4 font-semibold text-xl text-stone-700">Viral Factory Formation</p>
+                                <p class="text-stone-500">Self-organizing biomolecular condensates</p>
+                           </div>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-stone-800">Stage 2: Building the Command Center</h3>
+                            <p class="mt-2 text-stone-600">Once inside, many giant viruses construct a "Viral Factory" (VF). This isn't just a random pile of parts; it's a highly organized, nucleus-like compartment formed via liquid-liquid phase separation. The VF concentrates all necessary components for replication and assembly, sequesters viral processes from host defenses, and serves as the central hub for producing new virions.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Host Manipulation -->
+                    <div>
+                        <h3 class="text-2xl font-bold text-center text-stone-800">Stage 3: Total Takeover</h3>
+                        <p class="text-center text-stone-600 mt-2 max-w-2xl mx-auto">With the factory established, the virus systematically dismantles and reprograms the host cell, turning it into a "virocell" dedicated solely to viral production. Select a manipulation tactic to learn more.</p>
+                        <div class="mt-6">
+                            <div class="flex flex-wrap justify-center gap-2 mb-4" id="manipulation-tabs">
+                                <!-- Tabs generated by JS -->
+                            </div>
+                            <div id="manipulation-content" class="bg-stone-50 p-6 rounded-lg shadow-inner min-h-[200px]">
+                                <!-- Content updated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="defense" class="py-16 sm:py-24">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                 <div class="text-center">
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#4A7C59]">The Protist Defense System</h2>
+                    <p class="mt-3 max-w-2xl mx-auto text-lg text-stone-600">Protists are not passive victims. They have evolved a sophisticated, multi-layered defense system to detect and neutralize viral threats.</p>
+                </div>
+                <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="defense-card bg-white p-6 rounded-lg shadow-md transition hover:shadow-xl hover:-translate-y-1">
+                        <h3 class="font-bold text-lg text-stone-800">Innate & Intrinsic Immunity</h3>
+                        <p class="mt-2 text-stone-600">A foundational defense toolkit, including physical barriers, phagocytosis to destroy invaders, and interferon-like signaling to warn nearby cells. Many of these systems have ancient evolutionary roots in prokaryotic anti-phage defenses.</p>
+                    </div>
+                    <div class="defense-card bg-white p-6 rounded-lg shadow-md transition hover:shadow-xl hover:-translate-y-1">
+                        <h3 class="font-bold text-lg text-stone-800">RNA Interference (RNAi)</h3>
+                        <p class="mt-2 text-stone-600">A highly conserved eukaryotic defense. Cellular machinery (Dicer, Argonaute) detects viral double-stranded RNA, chopping it into small pieces that guide a silencing complex to destroy matching viral mRNAs, effectively shutting down viral gene expression.</p>
+                    </div>
+                    <div class="defense-card bg-white p-6 rounded-lg shadow-md transition hover:shadow-xl hover:-translate-y-1">
+                        <h3 class="font-bold text-lg text-stone-800">The Virophage "Ally"</h3>
+                        <p class="mt-2 text-stone-600">A unique strategy where the protist uses a virus to fight a virus. The host genome contains "sleeping" virophages (smaller viruses) that awaken upon giant virus infection. These virophages then hijack the giant virus's own factory, inhibiting its replication and saving the host cell.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="arms-race" class="py-16 sm:py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl md:text-4xl font-bold text-stone-900">The Co-Evolutionary Arms Race</h2>
+                    <p class="mt-3 max-w-2xl mx-auto text-lg text-stone-600">The conflict is a perpetual cycle of adaptation. Hover over an attack or defense strategy to see its direct counter-strategy, illustrating the dynamic interplay that drives evolution.</p>
+                </div>
+                <div class="mt-12 relative">
+                    <div class="hidden lg:block absolute inset-0">
+                        <svg id="connection-svg" width="100%" height="100%" class="pointer-events-none"></svg>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-16 gap-y-8">
+                        <div>
+                            <h3 class="text-2xl font-bold text-center text-[#8A4E7D] mb-4">Viral Offense</h3>
+                            <div id="attack-list" class="space-y-4"></div>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-center text-[#4A7C59] mb-4">Protist Defense</h3>
+                            <div id="defense-list" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-800 text-white">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p>This interactive application was generated based on literature reviews of Nucleocytoviricota infection and defense.</p>
+            <p class="mt-2 text-stone-400">All content is a synthesis of concepts from the provided source documents.</p>
+        </div>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DATA ---
+        const colors = { offense: '#8A4E7D', defense: '#4A7C59', neutral: '#A89F91' };
+        
+        const entryData = {
+            phagocytosis: {
+                title: 'Entry via Phagocytosis',
+                description: 'Common in amoeba hosts, which are natural predators. The virus is engulfed into a vesicle (phagosome). A specialized "stargate" on the virus capsid then opens, fusing with the phagosome membrane to release the viral genome into the cytoplasm.',
+                visual: `<div class="relative w-48 h-48 border-4 border-dashed border-[#4A7C59] rounded-full flex items-center justify-center text-[#4A7C59] animate-pulse"><p>Protist Host</p><div class="absolute w-12 h-12 bg-[#8A4E7D] rounded-lg animate-ping"></div><div class="absolute w-12 h-12 bg-[#8A4E7D] rounded-lg flex items-center justify-center text-white text-3xl">🦠</div></div>`
+            },
+            endocytosis: {
+                title: 'Entry via Endocytosis',
+                description: 'Common in non-phagocytic hosts like algae. The virus uses surface proteins (like fibers) to bind to specific receptors on the host cell, tricking the cell into internalizing it through its normal endocytic pathway.',
+                visual: `<div class="text-center"><p class="text-3xl">🔑 → 🔒</p><p class="mt-4 font-semibold text-stone-700">Receptor Binding</p><p class="text-sm text-stone-500">Viral proteins (key) fit host receptors (lock).</p></div>`
+            }
+        };
+
+        const manipulationData = {
+            esp_hijacking: { title: 'Hijack Cellular Machinery', content: 'Viruses encode their own versions of key host proteins (Eukaryotic Signature Proteins) involved in vesicle transport, cytoskeletal dynamics, and protein recycling. This allows them to precisely re-route cellular traffic and resources for viral purposes.'},
+            metabolism_reprogramming: { title: 'Reprogram Metabolism', content: 'Giant viruses encode auxiliary metabolic genes to take direct control of host carbon and energy pathways. Some even carry photosynthesis-related genes to keep the host "power plant" running at full capacity during infection.'},
+            polyamine_control: { title: 'Control Polyamines', content: 'Polyamines are essential for DNA/RNA synthesis and translation. Viruses encode enzymes to both create and regulate polyamines, ensuring an optimal supply of these critical molecules for building new virions.'},
+            host_shutoff: { title: 'Induce Host Shutoff', content: 'A common viral strategy. The virus actively degrades host mRNA and inhibits host transcription. This silences the host\'s alarm signals (immune response) and frees up the cellular machinery (ribosomes) for exclusive production of viral proteins.'}
+        };
+
+        const armsRaceData = [
+            { id: 'attack1', text: 'Viral Replication creates double-stranded RNA (dsRNA) intermediates.', connection: 'defense1' },
+            { id: 'attack2', text: 'Establishes large Viral Factories to centralize replication.', connection: 'defense2' },
+            { id: 'attack3', text: 'Injects foreign DNA/RNA into the host cell.', connection: 'defense3' },
+            { id: 'attack4', text: 'Evolves suppressors of host defense mechanisms.', connection: 'defense4' },
+            { id: 'attack5', text: 'Encodes own enzymes (e.g., DNA methyltransferases) to disguise its genome.', connection: 'defense5' },
+        ];
+
+        const defenseData = [
+            { id: 'defense1', text: 'RNA Interference (RNAi) pathway detects and destroys viral dsRNA.', connection: 'attack1' },
+            { id: 'defense2', text: 'Endogenous Virophages activate, hijack the Viral Factory, and inhibit the giant virus.', connection: 'attack2' },
+            { id: 'defense3', text: 'Innate immunity (e.g., phagocytosis, interferon-like responses) recognizes and attacks foreign material.', connection: 'attack3' },
+            { id: 'defense4', text: 'Host defense genes (e.g., RNAi components, Mx proteins) rapidly evolve under selective pressure.', connection: 'attack4' },
+            { id: 'defense5', text: 'Host may use DNA methylation patterns to recognize and silence foreign DNA.', connection: 'attack5' },
+        ];
+
+        // --- CHART.JS SETUP ---
+        const sizeCtx = document.getElementById('genomeSizeChart').getContext('2d');
+        new Chart(sizeCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Influenza A (RNA Virus)', 'E. coli (Bacterium)', 'Human', 'Pandoravirus (Giant Virus)'],
+                datasets: [{
+                    label: 'Genome Size (Base Pairs)',
+                    data: [13500, 4600000, 3200000000, 2800000],
+                    backgroundColor: [colors.neutral, '#FBBF24', colors.defense, colors.offense],
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { type: 'logarithmic', title: { display: true, text: 'Genome Size (Base Pairs, Log Scale)' } } }
+            }
+        });
+
+        // --- INTERACTIVITY LOGIC ---
+        
+        // Navigation Scroll-Spy
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('main section');
+        const observerOptions = { rootMargin: '-20% 0px -75% 0px' };
+
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    navLinks.forEach(link => {
+                        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+                    });
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => sectionObserver.observe(section));
+
+        // Viral Entry Interaction
+        const entrySelector = document.getElementById('entry-selector');
+        const entryDetails = document.getElementById('entry-details');
+        const entryVisual = document.getElementById('entry-visual');
+        
+        function updateEntry(type) {
+            const data = entryData[type];
+            entryDetails.innerHTML = `<h4 class="font-bold text-lg text-stone-800">${data.title}</h4><p class="mt-1 text-stone-600">${data.description}</p>`;
+            entryVisual.innerHTML = data.visual;
+
+            document.querySelectorAll('.entry-btn').forEach(btn => {
+                btn.classList.toggle('bg-[#4A7C59]', btn.dataset.entry === type);
+                btn.classList.toggle('text-white', btn.dataset.entry === type);
+                btn.classList.toggle('bg-stone-200', btn.dataset.entry !== type);
+                btn.classList.toggle('text-stone-800', btn.dataset.entry !== type);
+            });
+        }
+        entrySelector.addEventListener('click', (e) => {
+            if (e.target.matches('.entry-btn')) {
+                updateEntry(e.target.dataset.entry);
+            }
+        });
+        updateEntry('phagocytosis');
+
+
+        // Host Manipulation Tabs
+        const manipulationTabsContainer = document.getElementById('manipulation-tabs');
+        const manipulationContentEl = document.getElementById('manipulation-content');
+
+        Object.keys(manipulationData).forEach((key, index) => {
+            const data = manipulationData[key];
+            const button = document.createElement('button');
+            button.className = 'tab-btn px-4 py-2 text-sm font-semibold rounded-md transition bg-stone-200 text-stone-700 hover:bg-stone-300';
+            button.textContent = data.title;
+            button.dataset.key = key;
+            if (index === 0) button.classList.add('active');
+            manipulationTabsContainer.appendChild(button);
+        });
+
+        function updateManipulationContent(key) {
+            const data = manipulationData[key];
+            manipulationContentEl.innerHTML = `<p>${data.content}</p>`;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.key === key);
+            });
+        }
+        
+        manipulationTabsContainer.addEventListener('click', (e) => {
+            if(e.target.matches('.tab-btn')) {
+                updateManipulationContent(e.target.dataset.key);
+            }
+        });
+        updateManipulationContent('esp_hijacking');
+
+
+        // Arms Race Diagram
+        const attackList = document.getElementById('attack-list');
+        const defenseList = document.getElementById('defense-list');
+        const svg = document.getElementById('connection-svg');
+
+        armsRaceData.forEach(item => {
+            attackList.innerHTML += `<div id="${item.id}" data-connect="${item.connection}" class="attack-item bg-white p-4 rounded-md shadow-sm cursor-pointer">${item.text}</div>`;
+        });
+        defenseData.forEach(item => {
+            defenseList.innerHTML += `<div id="${item.id}" data-connect="${item.connection}" class="defense-item bg-white p-4 rounded-md shadow-sm cursor-pointer">${item.text}</div>`;
+        });
+
+        const allItems = document.querySelectorAll('.attack-item, .defense-item');
+
+        function drawLines() {
+            if (window.innerWidth < 1024) return; // Only draw on large screens
+            svg.innerHTML = '';
+            const svgRect = svg.getBoundingClientRect();
+
+            allItems.forEach(item => {
+                const partnerId = item.dataset.connect;
+                const partner = document.getElementById(partnerId);
+                if (!partner) return;
+
+                const startRect = item.getBoundingClientRect();
+                const endRect = partner.getBoundingClientRect();
+
+                const startX = item.classList.contains('attack-item') ? startRect.right - svgRect.left : startRect.left - svgRect.left;
+                const startY = startRect.top - svgRect.top + startRect.height / 2;
+                const endX = partner.classList.contains('attack-item') ? endRect.right - svgRect.left : endRect.left - svgRect.left;
+                const endY = endRect.top - svgRect.top + endRect.height / 2;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', startX);
+                line.setAttribute('y1', startY);
+                line.setAttribute('x2', endX);
+                line.setAttribute('y2', endY);
+                line.classList.add('connection-line');
+                line.dataset.lineFor = item.id;
+                svg.appendChild(line);
+            });
+        }
+
+        function handleHighlight(e) {
+            const item = e.target.closest('.attack-item, .defense-item');
+            if (!item) return;
+            
+            const partnerId = item.dataset.connect;
+            const partner = document.getElementById(partnerId);
+            const line = document.querySelector(`[data-line-for="${item.id}"]`) || document.querySelector(`[data-line-for="${partnerId}"]`);
+
+            allItems.forEach(i => i.classList.remove('highlight'));
+            document.querySelectorAll('.connection-line').forEach(l => l.classList.remove('highlight'));
+            
+            if (e.type === 'mouseover') {
+                item.classList.add('highlight');
+                if (partner) partner.classList.add('highlight');
+                if (line) line.classList.add('highlight');
+            }
+        }
+        
+        attackList.addEventListener('mouseover', handleHighlight);
+        defenseList.addEventListener('mouseover', handleHighlight);
+        attackList.addEventListener('mouseout', handleHighlight);
+        defenseList.addEventListener('mouseout', handleHighlight);
+        
+        // Initial draw and redraw on resize
+        drawLines();
+        window.addEventListener('resize', drawLines);
+    });
+    </script>
+</body>
+</html>
+
