@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Polinton-like Supergroup: An Interactive Exploration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Scientific Calm -->
+    <!-- Application Structure Plan: The application uses a non-linear, thematic structure with a top navigation bar to facilitate user-driven exploration. The structure is organized into four main sections: 1) 'Meet the Players' for introduction and direct comparison using interactive tabs and a radar chart. 2) 'The Evolutionary Saga' which visualizes the history and relationships with an interactive timeline and a network diagram. 3) 'Genomic Blueprints' for a deep dive into the genetic architecture using interactive gene maps. 4) 'Ecological Impact & Open Questions' to summarize the broader context. This structure was chosen to break down the dense report into digestible, interactive modules, allowing users to compare, explore relationships, and drill down into details, which is more engaging and effective for learning than a linear text format. -->
+    <!-- Visualization & Content Choices:
+    - Comparison of 3 Groups: Report Info -> Key features of Polintons, Virophages, PLVs. Goal -> Compare. Viz/Method -> Chart.js Radar Chart & JS-powered Tabs. Interaction -> Click tabs to switch content, chart updates to reflect data. Justification -> Radar chart provides a quick multi-dimensional comparison, while tabs allow for detailed side-by-side reading. Library -> Chart.js.
+    - Evolutionary History: Report Info -> Timeline of discoveries (Table 2). Goal -> Change. Viz/Method -> Interactive vertical timeline (HTML/CSS/JS). Interaction -> Click event to expand details. Justification -> Visualizes progression of knowledge effectively.
+    - Evolutionary Relationships: Report Info -> 'Polinton-first' hypothesis, HGT, Tectivirus link. Goal -> Relationships. Viz/Method -> HTML/CSS/JS network diagram. Interaction -> Hover over nodes to show info tooltips. Justification -> Simplifies the complex network concept without SVG/heavy libraries.
+    - Genomic Architecture: Report Info -> Conserved morphogenesis module vs. variable replication genes. Goal -> Organize/Compare. Viz/Method -> Interactive gene maps (HTML/CSS). Interaction -> Toggles highlight conserved gene sets across all diagrams. Justification -> Makes the concept of modular, mosaic genomes intuitive.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        .nav-link {
+            transition: color 0.3s ease, border-bottom-color 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #0d9488; /* teal-600 */
+            border-bottom-color: #0d9488; /* teal-600 */
+        }
+        .tab-button.active {
+            background-color: #0d9488; /* teal-600 */
+            color: white;
+        }
+        .timeline-item-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .timeline-item.active .timeline-item-content {
+            max-height: 500px;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .gene {
+            transition: all 0.3s ease-in-out;
+        }
+        .gene-highlight {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(13, 148, 136, 0.7);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-slate-800">Polinton-like Supergroup</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#players" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600">The Players</a>
+                        <a href="#evolution" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600">Evolutionary Saga</a>
+                        <a href="#genomes" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600">Genomic Blueprints</a>
+                        <a href="#impact" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600">Impact & Future</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        
+        <section id="hero" class="text-center py-16">
+            <h2 class="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl md:text-6xl">A Tangled Web of Evolution</h2>
+            <p class="mt-6 max-w-3xl mx-auto text-lg leading-8 text-slate-600">
+                Explore the fascinating world of Polintons, Virophages, and Polinton-like Viruses — selfish genetic elements that blur the lines between viruses and transposons, revealing a hidden layer of biological complexity.
+            </p>
+        </section>
+
+        <div class="space-y-24 md:space-y-32">
+
+            <section id="players">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Meet the Players</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">A new class of selfish elements was discovered at the turn of the century. They are not discrete entities, but rather nodes in a dense evolutionary network. This section introduces the three main groups in the polinton-like supergroup, allowing for an interactive comparison of their characteristics and biology.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold mb-4 text-center">Comparative Profile</h3>
+                         <div class="chart-container">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                        <p class="text-sm text-slate-500 mt-4 text-center">This radar chart visualizes the key characteristics of each group. Values are normalized for comparison.</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div id="tabs-container" class="flex flex-wrap justify-center gap-2 mb-4">
+                            
+                        </div>
+                        <div id="tab-content-container" class="bg-white p-6 rounded-lg shadow-lg min-h-[300px]">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="evolution">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">The Evolutionary Saga</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">The history of these elements is not a simple tree but a complex network shaped by gene exchange and ancient origins. This section visualizes the key discoveries that unveiled this hidden world and illustrates the leading hypothesis for their evolution.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-center">Key Discovery Timeline</h3>
+                        <div id="timeline-container" class="relative border-l-2 border-teal-500 ml-4 py-4">
+                        </div>
+                    </div>
+                    <div>
+                         <h3 class="text-xl font-semibold mb-4 text-center">"Polinton-first" Hypothesis</h3>
+                        <div id="network-container" class="relative bg-white p-6 rounded-lg shadow-lg h-96">
+                        </div>
+                        <p class="text-sm text-slate-500 mt-4 text-center">This diagram illustrates the current leading theory: ancient Polintons served as an evolutionary hotbed, giving rise to Virophages and PLVs. Hover over the nodes for more information.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="genomes">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Genomic Blueprints</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">The genomes of these elements tell a story of modularity and shared ancestry. They possess a conserved "viral morphogenesis module" for building particles, but their replication and integration genes are highly variable. Explore their genomic architectures below.</p>
+                </div>
+                <div class="flex justify-center flex-wrap gap-4 mb-8" id="gene-toggle-buttons">
+                    <button data-gene-class="morphogenesis" class="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 transition">Toggle Morphogenesis Module</button>
+                    <button data-gene-class="replication" class="px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600 transition">Toggle Replication Module</button>
+                    <button data-gene-class="integration" class="px-4 py-2 text-sm font-medium text-white bg-indigo-500 rounded-md hover:bg-indigo-600 transition">Toggle Integration Module</button>
+                </div>
+                <div id="genome-diagrams-container" class="space-y-8">
+                </div>
+            </section>
+
+            <section id="impact">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Impact & Future Directions</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">These elements are more than genomic curiosities; they are active players in global ecosystems and powerful drivers of evolution. Yet, many fundamental questions remain, pointing to exciting frontiers for future research.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold mb-4 text-slate-800">🌍 Ecological & Evolutionary Impact</h3>
+                        <ul id="impact-list" class="space-y-4 text-slate-600"></ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold mb-4 text-slate-800">🔬 Major Unanswered Questions</h3>
+                        <ul id="questions-list" class="space-y-4 text-slate-600"></ul>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="bg-slate-800 text-white mt-24">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p>This interactive application is based on the comprehensive literature review "A Comprehensive Review of Polintons, Virophages, and Polinton-like Viruses".</p>
+            <p class="mt-2 text-slate-400">Created as an educational tool to visualize complex biological concepts.</p>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const DATA = {
+                players: [
+                    {
+                        id: 'polintons',
+                        name: 'Polintons',
+                        title: 'The Endogenous Ancestors',
+                        summary: 'Initially found as large DNA transposons, Polintons are now considered integrated viruses ("polintoviruses"). They are defined by their unique replication/integration genes (pPolB and RVE-INT) and possess a full suite of genes for building viral particles, though this has not been observed directly. They represent an ancient lineage likely present in the earliest eukaryotes.',
+                        features: {
+                            'Genome Size': 4,
+                            'Lifestyle': 'Endogenous / Transposon-like',
+                            'Replication': 'Protein-primed DNA Pol B (pPolB)',
+                            'Integration': 'Retroviral-like Integrase (RVE-INT)',
+                            'Key Trait': 'Considered the ancestors of the supergroup'
+                        },
+                        chartData: [4, 2, 5, 5, 5]
+                    },
+                    {
+                        id: 'virophages',
+                        name: 'Virophages',
+                        title: 'The "Virus Eaters"',
+                        summary: 'Small dsDNA viruses that are obligate hyperparasites of giant viruses. They replicate within the giant virus\'s "viral factory," hijacking its machinery and inhibiting its replication. This unique lifestyle positions them as ecological regulators. Some, like Mavirus, can integrate into the host genome, providing a form of heritable immunity.',
+                        features: {
+                            'Genome Size': 2,
+                            'Lifestyle': 'Hyperparasitic (on giant viruses)',
+                            'Replication': 'Variable (pPolB or Primase-Helicase)',
+                            'Integration': 'Variable (RVE-INT or Tyrosine Recombinase)',
+                            'Key Trait': 'Prey on other viruses'
+                        },
+                        chartData: [2, 5, 3, 3, 3]
+                    },
+                    {
+                        id: 'plvs',
+                        name: 'PLVs',
+                        title: 'The Diverse Descendants',
+                        summary: 'Polinton-like Viruses (PLVs) are a vast, diverse group discovered via metagenomics. They occupy the evolutionary middle ground, lacking the canonical Polinton replication genes but retaining the core viral particle genes. Their lifestyles are varied, including free-living viruses, integrated elements, and hyperparasites of viruses like poxviruses, showcasing evolution in action.',
+                        features: {
+                            'Genome Size': 3,
+                            'Lifestyle': 'Diverse (Free-living, Endogenous, Hyperparasitic)',
+                            'Replication': 'Highly variable (e.g., Helicases)',
+                            'Integration': 'Variable (Tyrosine Recombinase or absent)',
+                            'Key Trait': 'Evolutionary "missing links"'
+                        },
+                        chartData: [3, 4, 2, 2, 4]
+                    }
+                ],
+                timeline: [
+                    { year: '2006', title: 'Polintons/Mavericks Described', text: 'A new class of large, self-synthesizing DNA transposons with a unique polymerase (pPolB) and integrase is identified through computational analysis of eukaryotic genomes.' },
+                    { year: '2008', title: 'Discovery of Sputnik', text: 'The first virophage, Sputnik, is found parasitizing a giant virus. This establishes the concept of viral hyperparasitism—a "virus that eats other viruses."' },
+                    { year: '2011', title: 'Discovery of Mavirus', text: 'Mavirus, a virophage that shares key replication and integration genes with Polintons, is discovered, providing the first direct evolutionary link between the two groups.' },
+                    { year: '2014', title: 'Capsid Genes Found in Polintons', text: 'Computational studies reveal that Polintons encode a complete set of viral capsid genes, leading to their reclassification from transposons to integrated viruses (polintoviruses).' },
+                    { year: '2015', title: 'Metagenomic Discovery of PLVs', text: 'Using virophage genes as digital bait, researchers uncover a vast and diverse group of Polinton-like Viruses (PLVs) in environmental data, revealing the true scale of the supergroup.' },
+                    { year: '2016', title: 'Virophage as an Immune System', text: 'Experiments show that an integrated Mavirus provirophage can be reactivated by a giant virus infection to protect the host population, demonstrating a heritable antiviral defense system.' },
+                    { year: '2023', title: 'A Hyperparasitic PLV is Cultured', text: 'Gezel-14T is isolated and characterized, proving to be a PLV that functions as a virophage. This discovery provides a direct experimental link between the two groups.' },
+                ],
+                network: [
+                    { id: 'tectivirus', name: 'Tectivirus (Ancestor)', x: '50%', y: '10%', text: 'Prokaryotic dsDNA viruses considered the likely ancient ancestors of the entire supergroup.' },
+                    { id: 'polinton', name: 'Polintons', x: '50%', y: '40%', text: 'Evolved from Tectiviruses, becoming the first eukaryotic members. Served as an evolutionary cradle for others.' },
+                    { id: 'plv', name: 'PLVs', x: '20%', y: '75%', text: 'Evolved from Polintons by losing/replacing replication genes. A diverse group exploring new lifestyles.' },
+                    { id: 'virophage', name: 'Virophages', x: '80%', y: '75%', text: 'Specialized descendants of Polintons (e.g., Mavirus) or PLVs that adapted to a hyperparasitic lifestyle on giant viruses.' },
+                ],
+                genomes: [
+                    { 
+                        name: 'Canonical Polinton',
+                        genes: [
+                            { name: 'pPolB', class: 'replication', color: 'bg-amber-500' },
+                            { name: 'ATPase', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'PRO', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'MCP', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'mCP', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'RVE-INT', class: 'integration', color: 'bg-indigo-500' }
+                        ]
+                    },
+                    {
+                        name: 'Mavirus-like Virophage',
+                        genes: [
+                            { name: 'pPolB', class: 'replication', color: 'bg-amber-500' },
+                            { name: 'ATPase', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'PRO', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'MCP', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'mCP', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'RVE-INT', class: 'integration', color: 'bg-indigo-500' }
+                        ]
+                    },
+                    {
+                        name: 'Sputnik-like Virophage',
+                        genes: [
+                            { name: 'Prim-S3H', class: 'replication', color: 'bg-amber-500' },
+                            { name: 'ATPase', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'PRO', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'MCP', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'mCP', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'Y-Rec', class: 'integration', color: 'bg-indigo-500' }
+                        ]
+                    },
+                    {
+                        name: 'Typical PLV',
+                        genes: [
+                            { name: 'Helicase', class: 'replication', color: 'bg-amber-500' },
+                            { name: 'ATPase', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'MCP', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'mCP', class: 'morphogenesis', color: 'bg-teal-500' },
+                            { name: 'Y-Rec (opt.)', class: 'integration', color: 'bg-indigo-500' },
+                        ]
+                    }
+                ],
+                impacts: [
+                    { icon: '🔄', text: 'Regulate giant virus populations, which in turn influences microbial community structure and reduces host mortality.' },
+                    { icon: '🌍', text: 'Influence global biogeochemical cycles (e.g., carbon) by modulating phytoplankton blooms.' },
+                    { icon: '🧬', text: 'Drive eukaryotic genome evolution by contributing to genome size expansion and genomic plasticity.' },
+                    { icon: '↔️', text: 'Act as vectors for Horizontal Gene Transfer (HGT), moving genes between distantly related species.' }
+                ],
+                questions: [
+                    { icon: '🔬', text: 'Can infectious virions be experimentally produced from an endogenous Polinton to confirm the "polintovirus" hypothesis?' },
+                    { icon: '❓', text: 'What are the specific giant virus hosts for the thousands of newly discovered PLVs and virophages?' },
+                    { icon: '⚙️', text: 'What are the precise molecular mechanisms of viral factory hijacking and provirophage reactivation?' },
+                    { icon: '🌳', text: 'How can the formal taxonomy be continuously updated to classify the flood of new viruses found via metagenomics?' }
+                ]
+            };
+
+            const setupNavigation = () => {
+                const navLinks = document.querySelectorAll('.nav-link');
+                const sections = document.querySelectorAll('main section');
+                
+                const observerOptions = {
+                    root: null,
+                    rootMargin: '0px',
+                    threshold: 0.3
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            navLinks.forEach(link => {
+                                link.classList.remove('active');
+                                if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                    link.classList.add('active');
+                                }
+                            });
+                        }
+                    });
+                }, observerOptions);
+
+                sections.forEach(section => {
+                    observer.observe(section);
+                });
+            };
+
+            const setupPlayersSection = () => {
+                const tabsContainer = document.getElementById('tabs-container');
+                const contentContainer = document.getElementById('tab-content-container');
+                let activeTab = DATA.players[0].id;
+
+                const renderContent = () => {
+                    const activePlayerData = DATA.players.find(p => p.id === activeTab);
+                    if (!activePlayerData) return;
+
+                    let featuresHtml = '<ul class="space-y-3 text-slate-600">';
+                    for (const [key, value] of Object.entries(activePlayerData.features)) {
+                        featuresHtml += `<li class="flex"><strong class="w-1/3 flex-shrink-0 font-semibold text-slate-700">${key}:</strong><span>${value}</span></li>`;
+                    }
+                    featuresHtml += '</ul>';
+
+                    contentContainer.innerHTML = `
+                        <h4 class="text-2xl font-bold text-teal-600 mb-2">${activePlayerData.name}</h4>
+                        <p class="italic text-slate-500 mb-4">${activePlayerData.title}</p>
+                        <p class="text-slate-700 mb-6">${activePlayerData.summary}</p>
+                        ${featuresHtml}
+                    `;
+                };
+
+                const renderTabs = () => {
+                    tabsContainer.innerHTML = DATA.players.map(player => `
+                        <button class="tab-button px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${player.id === activeTab ? 'active' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}" data-tab-id="${player.id}">
+                            ${player.name}
+                        </button>
+                    `).join('');
+
+                    document.querySelectorAll('.tab-button').forEach(button => {
+                        button.addEventListener('click', () => {
+                            activeTab = button.dataset.tabId;
+                            renderTabs();
+                            renderContent();
+                        });
+                    });
+                };
+                
+                const ctx = document.getElementById('comparisonChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Genome Size', 'Lifestyle Diversity', 'Integration Ability', 'Replication Autonomy', 'Ancient Lineage'],
+                        datasets: DATA.players.map((p, i) => ({
+                            label: p.name,
+                            data: p.chartData,
+                            backgroundColor: i === 0 ? 'rgba(13, 148, 136, 0.2)' : i === 1 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(99, 102, 241, 0.2)',
+                            borderColor: i === 0 ? 'rgb(13, 148, 136)' : i === 1 ? 'rgb(245, 158, 11)' : 'rgb(99, 102, 241)',
+                            pointBackgroundColor: i === 0 ? 'rgb(13, 148, 136)' : i === 1 ? 'rgb(245, 158, 11)' : 'rgb(99, 102, 241)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: i === 0 ? 'rgb(13, 148, 136)' : i === 1 ? 'rgb(245, 158, 11)' : 'rgb(99, 102, 241)'
+                        }))
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        scales: {
+                            r: {
+                                angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                                grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                                pointLabels: { font: { size: 12 } },
+                                suggestedMin: 0,
+                                suggestedMax: 5,
+                                ticks: {
+                                    stepSize: 1,
+                                    backdropColor: 'rgba(0,0,0,0)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        }
+                    }
+                });
+
+                renderTabs();
+                renderContent();
+            };
+
+            const setupEvolutionSection = () => {
+                const timelineContainer = document.getElementById('timeline-container');
+                timelineContainer.innerHTML = DATA.timeline.map((item, index) => `
+                    <div class="timeline-item mb-8 ml-6 cursor-pointer">
+                        <div class="absolute -left-1.5 mt-1.5 w-3 h-3 bg-teal-500 rounded-full"></div>
+                        <time class="mb-1 text-sm font-normal leading-none text-slate-500">${item.year}</time>
+                        <h3 class="text-lg font-semibold text-slate-800">${item.title}</h3>
+                        <div class="timeline-item-content">
+                            <p class="text-base font-normal text-slate-600">${item.text}</p>
+                        </div>
+                    </div>
+                `).join('');
+
+                timelineContainer.querySelectorAll('.timeline-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        item.classList.toggle('active');
+                    });
+                });
+
+                const networkContainer = document.getElementById('network-container');
+                DATA.network.forEach(node => {
+                    const nodeEl = document.createElement('div');
+                    nodeEl.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 p-3 text-center bg-white border-2 rounded-lg shadow-md transition-transform duration-200 hover:scale-110 cursor-pointer';
+                    nodeEl.style.left = node.x;
+                    nodeEl.style.top = node.y;
+                    
+                    const borderColor = node.name.includes('Ancestor') ? 'border-slate-400' : node.name.includes('Polinton') ? 'border-teal-500' : 'border-amber-500';
+                    nodeEl.classList.add(borderColor);
+                    
+                    nodeEl.innerHTML = `<span class="font-semibold">${node.name}</span>`;
+                    
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'absolute bottom-full mb-2 w-48 p-2 text-sm text-white bg-slate-700 rounded-md shadow-lg opacity-0 pointer-events-none transition-opacity duration-200';
+                    tooltip.textContent = node.text;
+                    
+                    nodeEl.appendChild(tooltip);
+                    nodeEl.addEventListener('mouseenter', () => tooltip.style.opacity = '1');
+                    nodeEl.addEventListener('mouseleave', () => tooltip.style.opacity = '0');
+                    
+                    networkContainer.appendChild(nodeEl);
+                });
+            };
+
+            const setupGenomesSection = () => {
+                const container = document.getElementById('genome-diagrams-container');
+                container.innerHTML = DATA.genomes.map(genome => `
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h4 class="font-semibold text-lg mb-4 text-slate-700">${genome.name}</h4>
+                        <div class="flex items-center space-x-1 bg-slate-100 p-2 rounded-md">
+                            ${genome.genes.map(gene => `
+                                <div class="gene flex-grow h-10 rounded flex items-center justify-center text-xs font-semibold text-white ${gene.color}" data-gene-class="${gene.class}" title="${gene.name}">
+                                    ${gene.name}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.querySelectorAll('#gene-toggle-buttons button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const geneClass = button.dataset.geneClass;
+                        document.querySelectorAll(`.gene[data-gene-class="${geneClass}"]`).forEach(geneEl => {
+                            geneEl.classList.toggle('gene-highlight');
+                        });
+                    });
+                });
+            };
+
+            const setupImpactSection = () => {
+                const impactList = document.getElementById('impact-list');
+                impactList.innerHTML = DATA.impacts.map(item => `
+                    <li class="flex items-start">
+                        <span class="text-xl mr-4 mt-1">${item.icon}</span>
+                        <span>${item.text}</span>
+                    </li>
+                `).join('');
+
+                const questionsList = document.getElementById('questions-list');
+                questionsList.innerHTML = DATA.questions.map(item => `
+                    <li class="flex items-start">
+                        <span class="text-xl mr-4 mt-1">${item.icon}</span>
+                        <span>${item.text}</span>
+                    </li>
+                `).join('');
+            };
+
+            setupNavigation();
+            setupPlayersSection();
+            setupEvolutionSection();
+            setupGenomesSection();
+            setupImpactSection();
+        });
+    </script>
+</body>
+</html>
+
