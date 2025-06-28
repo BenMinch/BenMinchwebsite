@@ -140,6 +140,14 @@ Coming soon.
         htmlFile: 'interactive/size-compare.html'
     },
     {
+        id: 'game',
+        type: 'interactive',
+        title: 'Inside-vs-outside',
+        date: '2025-06-27',
+        description: 'Game demo',
+        htmlFile: 'interactive/game.html'
+    },
+    {
         id: 'protist-defense',
         type: 'interactive',
         title: 'Protist and Giant Virus Arms race',
