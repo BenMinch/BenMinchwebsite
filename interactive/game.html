@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Two Presents Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lobster&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the game */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Prevents scrollbars from appearing, especially horizontal ones */
+            overflow: hidden; 
+        }
+        .present-container {
+            perspective: 1000px;
+        }
+        .present {
+            /* Made presents slightly smaller to fit better on various screens */
+            width: 220px;
+            height: 220px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s;
+            cursor: pointer;
+        }
+        .present.opened {
+            transform: rotateY(180deg);
+            cursor: default;
+        }
+        .present-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+        }
+        .present-front {
+            z-index: 2;
+        }
+        .present-back {
+            transform: rotateY(180deg);
+            z-index: 1;
+        }
+        .fancy-present {
+            background: linear-gradient(135deg, #d63384, #8e44ad);
+            border: 4px solid #f8c2ec;
+        }
+        .cardboard-box {
+            background-color: #d2b48c;
+            border: 4px dashed #a0522d;
+        }
+        /* Ribbon for the fancy present */
+        .ribbon {
+            position: absolute;
+            background-color: #f1c40f;
+        }
+        .ribbon-v {
+            width: 35px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .ribbon-h {
+            height: 35px;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        /* Content styles */
+        .content-icon {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+        #message-box {
+            transition: opacity 0.5s, transform 0.5s;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold" style="font-family: 'Lobster', cursive;">The Two Presents</h1>
+            <p id="instruction" class="text-lg mt-2 text-gray-600 dark:text-gray-400">Choose a present to open!</p>
+        </header>
+
+        <!-- Presents Container - adjusted gaps for better spacing -->
+        <div class="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-12 w-full max-w-4xl">
+            <!-- Fancy Present -->
+            <div class="present-container">
+                <div id="fancyPresent" class="present">
+                    <div class="present-face present-front fancy-present flex flex-col items-center justify-center">
+                        <!-- Fancy present SVG -->
+                        <div class="w-full h-full relative">
+                           <div class="ribbon ribbon-v"></div>
+                           <div class="ribbon ribbon-h"></div>
+                           <!-- Adjusted bow position to prevent overflow -->
+                           <svg class="absolute -top-8 left-1/2 -translate-x-1/2 w-20 h-20 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15.585l-4.14-4.14a2 2 0 010-2.83l.707-.707a2 2 0 012.83 0L10 8.585l.603-.604a2 2 0 012.83 0l.707.707a2 2 0 010 2.83L10 15.585z"/><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v2.586l-1.293 1.293a1 1 0 001.414 1.414L7 10.414V6a3 3 0 013-3 3 3 0 013 3v4.414l.879.879a1 1 0 001.414-1.414L14 8.586V6a4 4 0 00-4-4z" clip-rule="evenodd"/></svg>
+                        </div>
+                    </div>
+                    <div class="present-face present-back bg-gray-700 p-4">
+                        <!-- Coal SVG -->
+                        <svg class="content-icon text-gray-900" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12.383 3.013C11.13 2.94 10.223 4.237 10.51 5.437l.453 1.89c.208.87-.293 1.737-1.166 2.05l-1.42.51c-1.21.434-1.63 1.846-1.023 2.923l2.09 3.665c.532.934.02 2.138-.94 2.45l-1.66.536c-1.18.38-1.618 1.756-1.06 2.848l.43 1.053c.518 1.268 2.025 1.83 3.255 1.22l1.633-.816a2.5 2.5 0 001.593-2.268l-.004-.325c.023-1.09.9-1.996 1.996-1.996h.3c1.07 0 1.956.84 2.003 1.9l.007.453c.03 1.184.99 2.124 2.16 2.15l1.63.037c1.233.028 2.24-1.144 1.93-2.343l-.48-1.89c-.207-.87.293-1.737 1.165-2.05l1.42-.51c1.21-.434 1.63-1.846 1.023-2.923l-2.09-3.665c-.532-.934-.02-2.138.94-2.45l1.66-.536c1.18-.38 1.618-1.756 1.06-2.848l-.43-1.053c-.518-1.268-2.025-1.83-3.255-1.22l-1.633.816a2.5 2.5 0 00-1.593-2.268l.004.325C15.153 4.09 14.28 3.03 13.2 3.004h-.817z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cardboard Box -->
+            <div class="present-container">
+                <div id="cardboardBox" class="present">
+                    <div class="present-face present-front cardboard-box flex items-center justify-center">
+                        <!-- Cardboard box SVG -->
+                        <svg class="w-24 h-24 text-amber-900 opacity-80" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+                    </div>
+                    <div class="present-face present-back bg-green-500 p-4">
+                        <!-- Car SVG -->
+                        <svg class="content-icon text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message and Reset Button -->
+        <div id="message-box" class="text-center mt-10 opacity-0 transform scale-90">
+            <h2 id="message-title" class="text-3xl font-bold"></h2>
+            <p id="message-text" class="text-lg mt-2"></p>
+            <button id="resetButton" class="mt-6 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition-transform transform hover:scale-105">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const fancyPresent = document.getElementById('fancyPresent');
+        const cardboardBox = document.getElementById('cardboardBox');
+        const instruction = document.getElementById('instruction');
+        const messageBox = document.getElementById('message-box');
+        const messageTitle = document.getElementById('message-title');
+        const messageText = document.getElementById('message-text');
+        const resetButton = document.getElementById('resetButton');
+
+        let gameEnded = false;
+
+        // --- Event Listeners ---
+        fancyPresent.addEventListener('click', () => openPresent(fancyPresent, 'coal'));
+        cardboardBox.addEventListener('click', () => openPresent(cardboardBox, 'car'));
+        resetButton.addEventListener('click', resetGame);
+
+        /**
+         * Opens the selected present and ends the game.
+         * @param {HTMLElement} presentEl - The present element that was clicked.
+         * @param {string} content - The content to reveal ('coal' or 'car').
+         */
+        function openPresent(presentEl, content) {
+            if (gameEnded) return; // Prevent opening another present
+            gameEnded = true;
+
+            // Flip the selected present
+            presentEl.classList.add('opened');
+            
+            // Disable the other present
+            const otherPresent = presentEl.id === 'fancyPresent' ? cardboardBox : fancyPresent;
+            otherPresent.style.opacity = '0.5';
+            otherPresent.style.cursor = 'default';
+
+            // Set the instruction text
+            instruction.textContent = "Let's see what you got...";
+            
+            // Wait for the flip animation to finish before showing the message
+            setTimeout(() => {
+                if (content === 'coal') {
+                    showMessage(
+                        "Oh no, it's coal!",
+                        "The beautiful wrapping was deceiving. Better luck next time!"
+                    );
+                } else {
+                    showMessage(
+                        "Wow, a new car!",
+                        "It's what's on the inside that counts. Congratulations!"
+                    );
+                }
+            }, 1000);
+        }
+
+        /**
+         * Displays the result message and the reset button.
+         * @param {string} title - The title of the message.
+         * @param {string} text - The descriptive text of the message.
+         */
+        function showMessage(title, text) {
+            messageTitle.textContent = title;
+            messageText.textContent = text;
+            messageBox.style.opacity = '1';
+            messageBox.style.transform = 'scale(1)';
+        }
+
+        /**
+         * Resets the game to its initial state.
+         */
+        function resetGame() {
+            gameEnded = false;
+
+            // Flip presents back
+            fancyPresent.classList.remove('opened');
+            cardboardBox.classList.remove('opened');
+            
+            // Re-enable presents
+            fancyPresent.style.opacity = '1';
+            fancyPresent.style.cursor = 'pointer'; // Make sure fancy present is clickable again
+            cardboardBox.style.opacity = '1';
+            cardboardBox.style.cursor = 'pointer';
+
+
+            // Hide message box
+            messageBox.style.opacity = '0';
+            messageBox.style.transform = 'scale(0.9)';
+
+            // Reset instruction
+            instruction.textContent = "Choose a present to open!";
+        }
+    </script>
+
+</body>
+</html>
