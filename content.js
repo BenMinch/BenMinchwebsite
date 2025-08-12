@@ -148,6 +148,14 @@ Coming soon.
         htmlFile: 'interactive/game.html'
     },
     {
+        id: 'umap',
+        type: 'interactive',
+        title: 'Umap-Visualizer',
+        date: '2025-06-27',
+        description: 'A tool for visualizing umap data',
+        htmlFile: 'interactive/umap_viewer.html'
+    },
+    {
         id: 'protist-defense',
         type: 'interactive',
         title: 'Protist and Giant Virus Arms race',
