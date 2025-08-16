@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virus Capsid Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a2a;
+            background-image: radial-gradient(#1a1a3a 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .font-mono {
+            font-family: 'Roboto Mono', monospace;
+        }
+        .glass-panel {
+            background: rgba(10, 10, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        #viewer-canvas {
+            cursor: grab;
+        }
+        #viewer-canvas:active {
+            cursor: grabbing;
+        }
+        /* Custom scrollbar for a more thematic feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a3a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00ffff;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00cccc;
+        }
+        .info-title {
+            color: #00ffff; /* Cyan */
+            text-shadow: 0 0 5px #00ffff;
+        }
+    </style>
+</head>
+<body class="text-gray-200 min-h-screen">
+
+    <div class="container mx-auto p-4 max-w-7xl">
+        <header class="text-center py-4 mb-4">
+            <h1 class="text-4xl md:text-5xl font-bold text-white">Virus Capsid Explorer</h1>
+            <p class="text-lg text-cyan-300 font-mono mt-1">Interactive 3D Viral Structure Visualization</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 3D Viewer -->
+            <div id="viewer-container" class="lg:col-span-2 glass-panel rounded-2xl p-4 shadow-2xl shadow-cyan-500/10 h-[60vh] lg:h-auto">
+                <!-- Canvas will be inserted here by Three.js -->
+            </div>
+
+            <!-- Control and Info Panel -->
+            <div class="glass-panel rounded-2xl p-6 shadow-2xl shadow-cyan-500/10 flex flex-col space-y-6 max-h-[80vh] overflow-y-auto">
+                <div>
+                    <label for="virus-select" class="block text-sm font-bold mb-2 text-cyan-300">SELECT VIRUS MODEL</label>
+                    <select id="virus-select" class="w-full bg-gray-900/80 border border-cyan-500/50 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                        <option value="adenovirus">Adenovirus</option>
+                        <option value="poliovirus">Poliovirus</option>
+                        <option value="bacteriophage">Bacteriophage (Head)</option>
+                        <option value="mimivirus">Mimivirus (Giant Virus)</option>
+                        <option value="sputnik_virophage">Sputnik Virophage</option>
+                    </select>
+                </div>
+
+                <div id="info-panel">
+                    <h2 id="virus-name" class="text-2xl font-bold info-title">Adenovirus</h2>
+                    <p id="virus-description" class="mt-2 text-sm text-gray-300 leading-relaxed">
+                        A common virus that can cause a range of illnesses, from colds to pneumonia. Its capsid is a non-enveloped, icosahedral structure known for its stability.
+                    </p>
+                </div>
+
+                <div id="protein-info-panel" class="hidden">
+                    <hr class="border-cyan-500/30 my-4">
+                    <h3 id="protein-name" class="text-xl font-bold info-title"></h3>
+                    <p id="protein-description" class="mt-2 text-sm text-gray-300 leading-relaxed"></p>
+                </div>
+                 <div id="default-protein-text">
+                    <hr class="border-cyan-500/30 my-4">
+                    <p class="text-sm text-gray-400 italic">Click on a surface protein to learn more about it.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- Data ---
+        const virusDatabase = {
+            adenovirus: {
+                name: "Adenovirus",
+                description: "A common virus causing illnesses from colds to pneumonia. Its non-enveloped, icosahedral capsid is famously stable and used in gene therapy vectors.",
+                capsid: { name: "Capsid", color: 0x00ffff, scale: 8, geometry: new THREE.IcosahedronGeometry(1, 1) },
+                proteins: [
+                    { name: "Hexon Protein", description: "The major structural protein, forming the triangular facets of the icosahedron. It's the primary target for the host's immune system.", color: 0xff00ff, scale: 0.15, placement: 'face' },
+                    { name: "Penton Base", description: "Located at the 12 vertices, this protein is crucial for attaching to host cells and initiating viral entry.", color: 0xffff00, scale: 0.2, placement: 'vertex' },
+                    { name: "Fiber Protein", description: "A long projection extending from the Penton Base. This glycoprotein is the primary binding factor, attaching to specific receptors on the host cell surface.", color: 0xffa500, scale: [0.05, 1.5, 0.05], placement: 'extension', target: 'Penton Base' }
+                ]
+            },
+            poliovirus: {
+                name: "Poliovirus",
+                description: "The causative agent of poliomyelitis. It has a simple, non-enveloped icosahedral capsid composed of 60 copies of three different proteins (VP1, VP2, VP3).",
+                capsid: { name: "Capsid", color: 0x00ff00, scale: 6, geometry: new THREE.IcosahedronGeometry(1, 0) },
+                proteins: [
+                    { name: "VP1/VP2/VP3 Complex", description: "These proteins form the main structural shell of the capsid, creating a stable protective container for the viral RNA and binding to host cell receptors.", color: 0x00aaff, scale: 0.18, placement: 'vertex' }
+                ]
+            },
+            bacteriophage: {
+                name: "Bacteriophage T4 (Head)",
+                description: "A virus that infects bacteria. This model shows the icosahedral head (capsid), which protects the viral DNA before it's injected into a host bacterium.",
+                capsid: { name: "Capsid Head", color: 0x8a2be2, scale: 9, geometry: new THREE.IcosahedronGeometry(1, 0) },
+                proteins: [
+                    { name: "Major Capsid Protein (gp23)", description: "The primary building block of the phage head, forming a hexagonal lattice on the faces of the icosahedron.", color: 0xcccccc, scale: 0.1, placement: 'face' },
+                    { name: "Vertex Protein (gp24)", description: "Located at the vertices of the capsid, playing a role in the assembly and structural integrity of the phage head.", color: 0xf0e68c, scale: 0.15, placement: 'vertex' }
+                ]
+            },
+            mimivirus: {
+                name: "Mimivirus (Giant Virus)",
+                description: "One of the largest known viruses, Mimivirus infects amoebas. Its large icosahedral capsid is covered by a dense layer of long glycoprotein fibers, mimicking the appearance of a bacterium.",
+                capsid: { name: "Inner Capsid", color: 0x32cd32, scale: 12, geometry: new THREE.IcosahedronGeometry(1, 2) },
+                proteins: [
+                    { name: "Stargate Vertex", description: "A unique five-pronged vertex structure that opens to release the viral DNA into the host cell. It's a key feature of giant viruses.", color: 0xffd700, scale: 0.5, placement: 'special_vertex' },
+                    { name: "Surface Glycosylation", description: "A dense forest of long sugar-coated protein fibers covering the entire capsid. These fibers are crucial for interacting with the host amoeba.", color: 0xb0c4de, scale: [0.01, 0.8, 0.01], placement: 'surface', count: 300 }
+                ]
+            },
+            sputnik_virophage: {
+                name: "Sputnik Virophage",
+                description: "A satellite virus that can only replicate in cells already infected by a giant virus (its 'helper'). It parasitizes the giant virus's replication machinery, hence the name 'virophage' (virus eater).",
+                capsid: { name: "Capsid", color: 0xff4500, scale: 4, geometry: new THREE.IcosahedronGeometry(1, 1) },
+                proteins: [
+                    { name: "Major Capsid Protein", description: "Forms the primary icosahedral shell of the virophage.", color: 0xeeeeee, scale: 0.15, placement: 'face' },
+                    { name: "Minor Capsid Protein (Penton)", description: "Located at the vertices, these proteins are involved in capsid assembly and potentially in interacting with the host cell or helper virus.", color: 0xadd8e6, scale: 0.2, placement: 'vertex' }
+                ]
+            }
+        };
+
+        // --- DOM Elements ---
+        const viewerContainer = document.getElementById('viewer-container');
+        const virusSelect = document.getElementById('virus-select');
+        const virusNameEl = document.getElementById('virus-name');
+        const virusDescEl = document.getElementById('virus-description');
+        const proteinInfoPanel = document.getElementById('protein-info-panel');
+        const proteinNameEl = document.getElementById('protein-name');
+        const proteinDescEl = document.getElementById('protein-description');
+        const defaultProteinText = document.getElementById('default-protein-text');
+
+        // --- Three.js Setup ---
+        let scene, camera, renderer, controls, virusGroup, raycaster, mouse, selectedObject;
+        const proteinGeometries = {
+            sphere: new THREE.SphereGeometry(1, 16, 16),
+            cylinder: new THREE.CylinderGeometry(1, 1, 1, 8),
+            cone: new THREE.ConeGeometry(1, 1, 8)
+        };
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, viewerContainer.clientWidth / viewerContainer.clientHeight, 0.1, 1000);
+            camera.position.z = 25;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            viewerContainer.appendChild(renderer.domElement);
+            renderer.domElement.id = 'viewer-canvas';
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.4;
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            window.addEventListener('resize', onWindowResize);
+            renderer.domElement.addEventListener('click', onObjectClick);
+            virusSelect.addEventListener('change', (e) => buildVirus(e.target.value));
+
+            buildVirus('adenovirus');
+            animate();
+        }
+
+        function buildVirus(virusKey) {
+            const data = virusDatabase[virusKey];
+            if (virusGroup) scene.remove(virusGroup);
+            virusGroup = new THREE.Group();
+            
+            virusNameEl.textContent = data.name;
+            virusDescEl.textContent = data.description;
+            hideProteinInfo();
+
+            const capsidGeom = data.capsid.geometry.clone();
+            const capsidMat = new THREE.MeshStandardMaterial({
+                color: data.capsid.color, transparent: true, opacity: 0.2, wireframe: true
+            });
+            const capsidMesh = new THREE.Mesh(capsidGeom, capsidMat);
+            capsidMesh.scale.setScalar(data.capsid.scale);
+            capsidMesh.userData = { type: 'capsid', info: data.capsid };
+            virusGroup.add(capsidMesh);
+
+            const vertexProteins = new Map();
+
+            data.proteins.forEach(proteinData => {
+                const proteinMat = new THREE.MeshStandardMaterial({ color: proteinData.color, roughness: 0.6 });
+                
+                switch(proteinData.placement) {
+                    case 'vertex':
+                        placeVertexProteins(proteinData, proteinMat, capsidGeom, data.capsid.scale, vertexProteins);
+                        break;
+                    case 'face':
+                        placeFaceProteins(proteinData, proteinMat, capsidGeom, data.capsid.scale);
+                        break;
+                    case 'surface':
+                        placeSurfaceProteins(proteinData, proteinMat, capsidMesh);
+                        break;
+                    case 'special_vertex':
+                        placeSpecialVertexProtein(proteinData, proteinMat, capsidGeom, data.capsid.scale);
+                        break;
+                }
+            });
+            
+            // Handle extensions last, after their targets have been created
+            data.proteins.forEach(proteinData => {
+                 if(proteinData.placement === 'extension') {
+                    const targets = vertexProteins.get(proteinData.target);
+                    if (targets) {
+                        const proteinMat = new THREE.MeshStandardMaterial({ color: proteinData.color, roughness: 0.6 });
+                        placeExtensionProteins(proteinData, proteinMat, targets);
+                    }
+                }
+            });
+
+
+            scene.add(virusGroup);
+        }
+        
+        function createProteinMesh(proteinData, material) {
+            let geom;
+            if (proteinData.placement === 'surface' || proteinData.placement === 'extension') {
+                geom = proteinGeometries.cylinder;
+            } else {
+                geom = proteinGeometries.sphere;
+            }
+            const mesh = new THREE.Mesh(geom, material);
+            mesh.userData = { type: 'protein', info: proteinData };
+            return mesh;
+        }
+
+        function placeVertexProteins(proteinData, material, capsidGeom, scale, vertexMap) {
+            const vertices = capsidGeom.attributes.position;
+            const uniqueVertices = new Map();
+            for (let i = 0; i < vertices.count; i++) {
+                const vert = new THREE.Vector3().fromBufferAttribute(vertices, i);
+                const key = `${vert.x.toFixed(4)},${vert.y.toFixed(4)},${vert.z.toFixed(4)}`;
+                if (!uniqueVertices.has(key)) uniqueVertices.set(key, vert);
+            }
+            
+            const createdProteins = [];
+            uniqueVertices.forEach(vertex => {
+                const proteinMesh = createProteinMesh(proteinData, material);
+                proteinMesh.position.copy(vertex).multiplyScalar(scale);
+                proteinMesh.scale.setScalar(proteinData.scale);
+                virusGroup.add(proteinMesh);
+                createdProteins.push(proteinMesh);
+            });
+            vertexMap.set(proteinData.name, createdProteins);
+        }
+
+        function placeFaceProteins(proteinData, material, capsidGeom, scale) {
+            const vertices = capsidGeom.attributes.position;
+            // The IcosahedronGeometry is non-indexed, meaning the vertices are already ordered as triangles.
+            // We iterate through the vertices, taking 3 at a time to form a face.
+            for (let i = 0; i < vertices.count; i += 3) {
+                const vA = new THREE.Vector3().fromBufferAttribute(vertices, i);
+                const vB = new THREE.Vector3().fromBufferAttribute(vertices, i + 1);
+                const vC = new THREE.Vector3().fromBufferAttribute(vertices, i + 2);
+                const center = new THREE.Vector3().add(vA).add(vB).add(vC).divideScalar(3);
+                
+                const proteinMesh = createProteinMesh(proteinData, material);
+                proteinMesh.position.copy(center).multiplyScalar(scale);
+                proteinMesh.scale.setScalar(proteinData.scale);
+                virusGroup.add(proteinMesh);
+            }
+        }
+        
+        function placeExtensionProteins(proteinData, material, targets) {
+             targets.forEach(targetMesh => {
+                const proteinMesh = createProteinMesh(proteinData, material);
+                proteinMesh.position.copy(targetMesh.position);
+                
+                const scaleVec = Array.isArray(proteinData.scale) ? new THREE.Vector3(...proteinData.scale) : new THREE.Vector3(proteinData.scale, proteinData.scale, proteinData.scale);
+                proteinMesh.scale.copy(scaleVec);
+
+                // Orient it to point outwards from the center
+                proteinMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), targetMesh.position.clone().normalize());
+                proteinMesh.translateY(targetMesh.scale.y * 0.5 + scaleVec.y * 0.5); // Position it on top of the target
+                
+                virusGroup.add(proteinMesh);
+            });
+        }
+
+        function placeSurfaceProteins(proteinData, material, capsidMesh) {
+            const count = proteinData.count || 100;
+            const tempPosition = new THREE.Vector3();
+            const tempNormal = new THREE.Vector3();
+            const up = new THREE.Vector3(0, 1, 0);
+
+            const vertices = capsidMesh.geometry.attributes.position;
+            
+            // Since it's non-indexed, the number of faces is vertices.count / 3
+            const faceCount = vertices.count / 3;
+
+            for (let i = 0; i < count; i++) {
+                // Pick a random face
+                const faceIndex = Math.floor(Math.random() * faceCount);
+                const baseVertexIndex = faceIndex * 3;
+                const a = new THREE.Vector3().fromBufferAttribute(vertices, baseVertexIndex);
+                const b = new THREE.Vector3().fromBufferAttribute(vertices, baseVertexIndex + 1);
+                const c = new THREE.Vector3().fromBufferAttribute(vertices, baseVertexIndex + 2);
+
+                // Generate random barycentric coordinates
+                let u = Math.random(), v = Math.random();
+                if (u + v > 1) { u = 1 - u; v = 1 - v; }
+                const w = 1 - u - v;
+
+                // Calculate random point on the face
+                tempPosition.set(0,0,0)
+                    .addScaledVector(a, w)
+                    .addScaledVector(b, u)
+                    .addScaledVector(c, v);
+                
+                tempNormal.copy(tempPosition).normalize();
+                
+                const proteinMesh = createProteinMesh(proteinData, material);
+                proteinMesh.position.copy(tempPosition).multiplyScalar(capsidMesh.scale.x);
+                
+                const scaleVec = Array.isArray(proteinData.scale) ? new THREE.Vector3(...proteinData.scale) : new THREE.Vector3(proteinData.scale, proteinData.scale, proteinData.scale);
+                proteinMesh.scale.copy(scaleVec).multiplyScalar(capsidMesh.scale.x);
+                
+                proteinMesh.quaternion.setFromUnitVectors(up, tempNormal);
+                proteinMesh.position.addScaledVector(tempNormal, proteinMesh.scale.y / 2);
+
+                virusGroup.add(proteinMesh);
+            }
+        }
+        
+        function placeSpecialVertexProtein(proteinData, material, capsidGeom, scale) {
+            const vertices = capsidGeom.attributes.position;
+            const vertex = new THREE.Vector3().fromBufferAttribute(vertices, 0); // Pick the first vertex
+            
+            const proteinMesh = new THREE.Mesh(new THREE.ConeGeometry(1, 1.5, 5), material);
+            proteinMesh.userData = { type: 'protein', info: proteinData };
+            
+            proteinMesh.position.copy(vertex).multiplyScalar(scale);
+            proteinMesh.scale.setScalar(proteinData.scale * scale);
+            proteinMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vertex.clone().normalize());
+            virusGroup.add(proteinMesh);
+        }
+
+
+        function onObjectClick(event) {
+            event.preventDefault();
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(virusGroup.children, true);
+
+            if (intersects.length > 0) {
+                const clickedObject = intersects[0].object;
+                
+                if (selectedObject && selectedObject.material.emissive) {
+                    selectedObject.material.emissive.setHex(0x000000);
+                }
+
+                if (clickedObject.userData.type === 'protein') {
+                    selectedObject = clickedObject;
+                    selectedObject.material.emissive.setHex(0xffffff);
+                    showProteinInfo(clickedObject.userData.info);
+                    controls.autoRotate = false;
+                } else {
+                    hideProteinInfo();
+                }
+            }
+        }
+        
+        function showProteinInfo(info) {
+            proteinInfoPanel.classList.remove('hidden');
+            defaultProteinText.classList.add('hidden');
+            proteinNameEl.textContent = info.name;
+            proteinDescEl.textContent = info.description;
+        }
+
+        function hideProteinInfo() {
+            proteinInfoPanel.classList.add('hidden');
+            defaultProteinText.classList.remove('hidden');
+            if (selectedObject && selectedObject.material.emissive) {
+                selectedObject.material.emissive.setHex(0x000000);
+                selectedObject = null;
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = viewerContainer.clientWidth / viewerContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html>
