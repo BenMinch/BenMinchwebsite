@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TextGuessr — Text‑Only Geo Guessing Game</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <style>
+    :root{--bg:#0b1020;--card:#121934;--muted:#9fb0ff;--text:#e8ecff;--accent:#7aa2ff;--accent2:#66e1b6;--warn:#ffb86b;}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#0b1020,#101736);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#b197fc);display:grid;place-items:center;color:#0b1020;font-weight:800}
+    h1{font-size:20px;margin:0}
+    .stats{display:flex;gap:14px;flex-wrap:wrap}
+    .pill{background:var(--card);padding:8px 12px;border-radius:999px;color:var(--muted);border:1px solid #202956}
+    .btn{appearance:none;border:none;background:var(--accent);color:#08122a;font-weight:700;padding:10px 14px;border-radius:12px;cursor:pointer;box-shadow:0 6px 20px rgb(122 162 255 / .25)}
+    .btn.secondary{background:#202956;color:var(--text);box-shadow:none;border:1px solid #2a3770}
+    .btn.ghost{background:transparent;border:1px solid #2a3770;color:var(--muted)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr;}}
+
+    .card{background:linear-gradient(180deg,#121934,#0f1632);border:1px solid #202956;border-radius:16px;box-shadow:0 10px 30px rgb(0 0 0 / .25);overflow:hidden}
+    .card h2{margin:0;padding:14px 16px;border-bottom:1px solid #1b244b;color:#cbd6ff;font-size:16px;letter-spacing:.2px}
+    .card .body{padding:14px 16px}
+
+    #desc{white-space:pre-wrap}
+    #map{height:520px}
+
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+    .grow{flex:1}
+    .muted{color:var(--muted)}
+    .warn{color:var(--warn)}
+
+    .result{padding:10px 12px;border-radius:12px;background:#0c1838;border:1px solid #1d2b63;margin-top:10px}
+
+    /* Modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgb(0 0 0 / .55);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+    .modal{width:min(900px,100%);background:#0f1632;border:1px solid #27336c;border-radius:16px;box-shadow:0 10px 40px rgb(0 0 0 / .4);overflow:hidden}
+    .modal header{padding:12px 14px;margin:0;border-bottom:1px solid #1e2a61}
+    .modal .body{padding:14px}
+    textarea{width:100%;min-height:260px;background:#0b132e;color:var(--text);border:1px solid #27336c;border-radius:12px;padding:12px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+    .small{font-size:12px}
+    .footer{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px dashed #2b3872;color:#b9c6ff;background:#0a1433}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">TG</div>
+        <h1>TextGuessr — Text‑Only Geo Guessing</h1>
+      </div>
+      <div class="stats">
+        <div class="pill">Round: <span id="round">1</span>/5</div>
+        <div class="pill">Round Score: <span id="roundScore">0</span></div>
+        <div class="pill">Total Score: <span id="totalScore">0</span></div>
+        <button class="btn secondary" id="btnDb">City DB</button>
+        <button class="btn ghost" id="btnHelp">Help</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Map — Click to place your guess</h2>
+        <div id="map"></div>
+        <div class="body">
+          <div class="row">
+            <button class="btn" id="btnSubmit">Submit Guess</button>
+            <button class="btn secondary" id="btnNext" disabled>Next Round</button>
+            <span class="muted">Tip: zoom & drag to anywhere in the world, then click the map.</span>
+          </div>
+          <div id="result" class="result" style="display:none"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Text Scene — Where are you?</h2>
+        <div class="body">
+          <div id="desc" class="muted"></div>
+          <div class="row">
+            <div class="chip">No photos. Only vibes 📍</div>
+            <button class="btn secondary" id="btnHint">Hint</button>
+          </div>
+          <div id="hints" class="small muted" style="margin-top:8px"></div>
+        </div>
+      </section>
+    </div>
+
+    <div style="margin-top:16px" class="row">
+      <button class="btn" id="btnRestart">Play Again</button>
+      <span class="muted">Each game has 5 rounds. Cities are random & non‑repeating per game.</span>
+    </div>
+  </div>
+
+  <!-- Modal: City Database Editor -->
+  <div class="modal-backdrop" id="dbModal">
+    <div class="modal">
+      <header>
+        <h2 style="margin:0">City Database</h2>
+      </header>
+      <div class="body">
+        <p class="muted">Edit the JSON below to add your own cities. Fields: <code>name</code>, <code>country</code>, <code>lat</code>, <code>lng</code>, <code>description</code>, optional <code>hints</code> array. Your edits are saved to <strong>localStorage</strong> (browser‑only). Use <em>Export</em> to download a JSON file.</p>
+        <textarea id="dbTextarea" spellcheck="false"></textarea>
+        <div class="footer">
+          <button class="btn ghost" id="btnImport">Import JSON…</button>
+          <button class="btn secondary" id="btnExport">Export</button>
+          <button class="btn secondary" id="btnResetDb">Reset to Defaults</button>
+          <button class="btn" id="btnSaveDb">Save</button>
+          <button class="btn ghost" id="btnCloseDb">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Help -->
+  <div class="modal-backdrop" id="helpModal">
+    <div class="modal">
+      <header>
+        <h2 style="margin:0">How to Play</h2>
+      </header>
+      <div class="body">
+        <ol>
+          <li>Read the <strong>Text Scene</strong> for clues (plants, animals, buildings, vehicles, culture).</li>
+          <li>Click the <strong>map</strong> where you think the city is. A marker appears.</li>
+          <li>Hit <strong>Submit Guess</strong>. You’ll see the actual location, your distance, and points.</li>
+          <li>Points scale from <em>0–5000</em> per round using an exponential curve: closer = more points.</li>
+          <li>Play <strong>5 rounds</strong>. The total is your final score. Try again for a new set!</li>
+        </ol>
+        <p class="muted">You can add your own cities via the <em>City DB</em> button. Changes save in your browser.</p>
+        <div class="footer">
+          <button class="btn" id="btnCloseHelp">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// --------------------------- Utility Functions ---------------------------
+const km = (n)=> new Intl.NumberFormat(undefined,{maximumFractionDigits:1}).format(n);
+const pts = (n)=> new Intl.NumberFormat().format(n);
+function haversine(lat1, lon1, lat2, lon2){
+  const toRad = d=> d*Math.PI/180;
+  const R = 6371; // km
+  const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+function scoreForDistance(dKm){
+  // 0–5000 points using smooth exponential falloff. ~350 km ≈ 4000 pts, 1000 km ≈ 2400 pts
+  return Math.max(0, Math.round(5000*Math.exp(-dKm/2000)));
+}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;
+}
+function pickUnique(arr, n){
+  const a = [...arr]; shuffle(a); return a.slice(0, Math.min(n,a.length));
+}
+
+// --------------------------- Default City Data ---------------------------
+const DEFAULT_CITIES = [
+  {name:"New York City",country:"USA",lat:40.7128,lng:-74.0060,description:"Skyscraper canyons, steam rising from subway grates, yellow cabs honking between food carts selling pretzels and halal. Plane trees line blocks of brownstones; a baseball game blares from a bar.",hints:["Statue with a torch in the harbor.","Five boroughs."]},
+  {name:"Paris",country:"France",lat:48.8566,lng:2.3522,description:"Cast-iron balconies and cream limestone facades overlook narrow cafés with wicker chairs turned to the street. Plane trees shade a river with bookstalls; tiny hatchback cars zip past.",hints:["Famous iron tower.","Metro signs in Art Nouveau style."]},
+  {name:"London",country:"United Kingdom",lat:51.5074,lng:-0.1278,description:"Red double-deckers slide past Victorian terraces and glass towers. Black cabs idle near a royal park full of gray geese. Brick pubs advertise Sunday roasts.",hints:["Left-side traffic.","Iconic clocktower."]},
+  {name:"Tokyo",country:"Japan",lat:35.6895,lng:139.6917,description:"Neon kanji above convenience stores, tidy vending machines on every block. Tiny kei cars and orderly cyclists glide by pocket shrines and wooden temples tucked between offices.",hints:["Sakura in spring.","Iconic scramble crossing."]},
+  {name:"Sydney",country:"Australia",lat:-33.8688,lng:151.2093,description:"Glittering harbor with white-sailed ferries, cockatoos screeching from eucalyptus trees. Modern high-rises face golden beaches where surfers carry longboards.",hints:["Harbor bridge arches.","Opera house shells."]},
+  {name:"Rio de Janeiro",country:"Brazil",lat:-22.9068,lng:-43.1729,description:"Granite peaks rise over sweeping beaches lined with mosaic sidewalks. Vendors sell coconut water as hang gliders drift above rainforest-covered hills.",hints:["Colossal hilltop statue.","Copacabana patterns."]},
+  {name:"Cairo",country:"Egypt",lat:30.0444,lng:31.2357,description:"Dusty boulevards jammed with old sedans and minibuses. Date palms, call to prayer from a grand mosque, and beyond the sprawl, ancient triangles of stone in desert haze.",hints:["River with feluccas.","Millennia-old pyramids nearby." ]},
+  {name:"Nairobi",country:"Kenya",lat:-1.2921,lng:36.8219,description:"Matatus painted in bright murals weave between jacaranda trees in bloom. Giraffe and buffalo silhouettes appear on city signage; a national park is at the edge of town.",hints:["High savanna nearby.","Home of Karen Blixen museum."]},
+  {name:"Cape Town",country:"South Africa",lat:-33.9249,lng:18.4241,description:"A flat-topped mountain looms over pastel Victorian houses. Penguins waddle on nearby beaches; fynbos shrubs dot coastal trails.",hints:["Two oceans meeting vibe.","Robben Island ferries." ]},
+  {name:"Mumbai",country:"India",lat:19.0760,lng:72.8777,description:"Crumbling Gothic arches and art deco cinemas by a warm sea. Rickshaws buzz past banyan trees and cricket games on the maidan.",hints:["Gateway arch on the waterfront.","Bollywood capital."]},
+  {name:"Mexico City",country:"Mexico",lat:19.4326,lng:-99.1332,description:"Broad avenues shaded by jacarandas; murals splash across public buildings. Street vendors press blue corn tortillas as volcanoes loom far off.",hints:["High-altitude basin.","Floating gardens tradition."]},
+  {name:"Toronto",country:"Canada",lat:43.6532,lng:-79.3832,description:"Glass condos crowd a cold lakefront; red maples flank tidy neighborhoods. Streetcars hum past indie coffee shops; raccoons are local celebrities.",hints:["Very tall needle tower.","Blue jays of the baseball kind."]},
+  {name:"Moscow",country:"Russia",lat:55.7558,lng:37.6173,description:"Grand avenues and onion-domed cathedrals. Long winter coats, kiosks selling kvass, and vast Soviet-era towers casting sharp shadows.",hints:["Walled red square.","Seven sisters skyscrapers." ]},
+  {name:"Beijing",country:"China",lat:39.9042,lng:116.4074,description:"Broad ring roads, gray hutong alleys with bicycles and caged songbirds. Plane trees guard imperial gates painted vermilion.",hints:["Forbidden complex.","Great wall a drive away."]},
+  {name:"Singapore",country:"Singapore",lat:1.3521,lng:103.8198,description:"Towering tropical trees frame spotless streets; orchids bloom beside hawker centers. High-rise gardens sprout from gleaming towers.",hints:["Merlion mascot.","Tiny nation, big airport garden."]},
+  {name:"Bangkok",country:"Thailand",lat:13.7563,lng:100.5018,description:"Tangled cables, long-tail boats on a brown river, gilded temple spires. Street food smoke curls around motorbikes and pink taxis.",hints:["City of angels (Thai name is very long).","Wat-lined waterways."]},
+  {name:"Dubai",country:"UAE",lat:25.2048,lng:55.2708,description:"Mirrored skyscrapers rise from desert highways. Date palms in manicured rows, luxury SUVs, and an indoor ski slope inside a mall.",hints:["World’s tallest tower.","Man-made palm islands."]},
+  {name:"Istanbul",country:"Türkiye",lat:41.0082,lng:28.9784,description:"Seagulls wheel over a strait packed with ferries. Domes and minarets silhouette the skyline; cats lounge on ancient stones.",hints:["Where two continents meet.","Blue-tiled mosque."]},
+  {name:"Rome",country:"Italy",lat:41.9028,lng:12.4964,description:"Ruins peeking between pines with umbrella tops. Vespas dart past travertine fountains and espresso bars.",hints:["Seven hills.","Colossal amphitheater."]},
+  {name:"Athens",country:"Greece",lat:37.9838,lng:23.7275,description:"Olive trees and whitewashed balconies under a rocky acropolis crowned by columns. Stray cats sunbathe on marble steps.",hints:["Birthplace of democracy.","Souvlaki on every corner."]},
+  {name:"Amsterdam",country:"Netherlands",lat:52.3676,lng:4.9041,description:"Brick canal houses lean with ornate gables. Bicycles rule; ducks share waterways with glass-topped tour boats.",hints:["Tulips and stroopwafels.","Many small bridges."]},
+  {name:"Berlin",country:"Germany",lat:52.5200,lng:13.4050,description:"Industrial-chic warehouses turned art spaces, wide boulevards, and linden trees. Currywurst stalls and late-night clubs.",hints:["Brandenburg gate.","A wall once split the city."]},
+  {name:"San Francisco",country:"USA",lat:37.7749,lng:-122.4194,description:"Fog curls over steep streets lined with colorful Victorians. Cable cars clatter past tech shuttles; sea lions bark by a rust-red bridge.",hints:["Bay and headlands.","Famous switchback street."]},
+  {name:"Los Angeles",country:"USA",lat:34.0522,lng:-118.2437,description:"Palm-lined boulevards, low stucco bungalows, endless freeways. Food trucks by soundstage gates, and a hillside sign in giant white letters.",hints:["Walk of fame stars.","Beach piers & surfers."]},
+  {name:"Honolulu",country:"USA",lat:21.3069,lng:-157.8583,description:"Fragrant plumeria and banyan shade along turquoise beaches. Outrigger canoes and shave ice stands; a volcanic cone frames the skyline.",hints:["Aloha shirts everywhere.","US state capital on an island chain."]},
+  {name:"Reykjavík",country:"Iceland",lat:64.1466,lng:-21.9426,description:"Tin-roofed houses painted bright against basalt. Steam vents and hot pools; puffin souvenirs and a church shaped like basalt columns.",hints:["Northern lights on good nights.","Tiny capital near lava fields."]},
+  {name:"Buenos Aires",country:"Argentina",lat:-34.6037,lng:-58.3816,description:"Parisian avenues meet tango in leafy plazas. Parrillas scent the air; colorful corrugated houses in a dockside barrio.",hints:["Obelisk on a huge avenue.","River Plate nearby."]},
+  {name:"Lima",country:"Peru",lat:-12.0464,lng:-77.0428,description:"Clifftop parks with paragliders riding the coastal fog. Colonial balconies, ceviche bars, and desert hills behind.",hints:["Pacific surf crashes below parks.","Historic center with wooden balconies."]},
+  {name:"Santiago",country:"Chile",lat:-33.4489,lng:-70.6693,description:"Snowy Andes fill the horizon behind glass towers. Jacaranda trees line tidy neighborhoods; pumas occasionally wander foothills.",hints:["Ski slopes a short drive.","Mapocho river channel."]},
+  {name:"Auckland",country:"New Zealand",lat:-36.8485,lng:174.7633,description:"Harbors dotted with sailboats and extinct volcano cones as city parks. Kauri trees and tūī birds; a needle-like tower downtown.",hints:["City of sails.","On an isthmus with two seas."]},
+  {name:"Seoul",country:"South Korea",lat:37.5665,lng:126.9780,description:"Mountains hem in glass districts; palaces hide behind wooden gates. Cafés buzz late; neon hangul crowds the alleys.",hints:["Han river divides the city.","K-pop central."]},
+  {name:"Hanoi",country:"Vietnam",lat:21.0278,lng:105.8342,description:"Lakes with temple islands, banyan roots gripping old walls. Scooters swarm past colonial shutters and steaming pho stalls.",hints:["Water puppets tradition.","Capital in the north."]},
+  {name:"Manila",country:"Philippines",lat:14.5995,lng:120.9842,description:"Jeepneys painted like rainbows, tropical humidity, and Spanish-era stone walls by a wide bay.",hints:["Tagalog & English signage.","Archipelago capital."]},
+  {name:"Kathmandu",country:"Nepal",lat:27.7172,lng:85.3240,description:"Pagoda-roofed temples, prayer flags fluttering over narrow lanes. Himalaya air and carved wooden windows.",hints:["Durbar squares.","Gateway to Everest treks."]},
+  {name:"Marrakesh",country:"Morocco",lat:31.6295,lng:-7.9811,description:"Pink clay walls ring maze-like souks fragrant with saffron and leather. Palm groves and snow-tipped mountains beyond.",hints:["Jemaa el-Fnaa square.","Atlas range nearby."]},
+  {name:"Los Angeles",country:"USA",lat:34.0522,lng:-118.2437,description:"Palm-lined boulevards, sprawling freeways, and beaches where surfers ride Pacific waves. Hills dotted with luxury homes overlook the glitter of Hollywood.",hints:["Hollywood sign on the hill.","City of angels."]},
+  {name:"Chicago",country:"USA",lat:41.8781,lng:-87.6298,description:"Steel skyscrapers rise beside a vast blue lake. Elevated trains rattle overhead, deep-dish pizza scents the air, and jazz drifts from basement clubs.",hints:["Deep dish pizza capital.","Windy City."]},
+  {name:"San Francisco",country:"USA",lat:37.7749,lng:-122.4194,description:"Steep streets climb past colorful Victorian houses, fog blankets a red suspension bridge, and cable cars clang up hills overlooking the bay.",hints:["Famous bridge painted red-orange.","Golden Gate."]},
+  {name:"Boston",country:"USA",lat:42.3601,lng:-71.0589,description:"Cobblestone streets lined with brick townhouses, historic tea harbor, and ivy-covered campuses buzzing with students and rowers on the Charles River.",hints:["Freedom Trail.","Home of Fenway Park."]},
+  {name:"Miami",country:"USA",lat:25.7617,lng:-80.1918,description:"Neon-lit art deco hotels face sandy beaches. Salsa and reggaeton spill from clubs, pastel lifeguard towers dot the shore, and tropical palms sway.",hints:["South Beach.","Gateway to Latin America."]},
+  {name:"Washington D.C.",country:"USA",lat:38.9072,lng:-77.0369,description:"White marble monuments rise over broad avenues. Cherry blossoms ring a tidal basin, and motorcades sweep past neoclassical domes and government squares.",hints:["White House.","Nation’s capital."]},
+  {name:"Seattle",country:"USA",lat:47.6062,lng:-122.3321,description:"Glass towers rise over harbors of ferries and fishing boats. Coffee aromas drift under evergreen forests and a tall needle pierces the skyline.",hints:["Space Needle.","Birthplace of grunge."]},
+  {name:"Philadelphia",country:"USA",lat:39.9526,lng:-75.1652,description:"Historic cobblestone alleys meet murals splashed across row houses. Cheesesteak vendors feed crowds near a cracked old bell in a colonial hall.",hints:["Liberty Bell.","City of brotherly love."]},
+  {name:"Houston",country:"USA",lat:29.7604,lng:-95.3698,description:"Highways loop endlessly around glass towers. Barbecue smoke fills the air while NASA’s rockets rest on display nearby.",hints:["Johnson Space Center.","Largest city in Texas by area."]},
+  {name:"Atlanta",country:"USA",lat:33.7490,lng:-84.3880,description:"Towering skyscrapers sprout from a forest of pines. Coca-Cola billboards and hip-hop beats dominate streets filled with southern food joints.",hints:["Major airport hub.","Birthplace of MLK Jr."]},
+  {name:"London",country:"UK",lat:51.5074,lng:-0.1278,description:"Red double-decker buses roll past Gothic towers and glass skyscrapers. River bridges connect bustling boroughs, where pubs glow with golden light.",hints:["Big Ben clock tower.","River Thames."]},
+  {name:"Paris",country:"France",lat:48.8566,lng:2.3522,description:"Iron tower rises above boulevards of cafés and bakeries. Street lamps glow over the Seine as painters work in Montmartre.",hints:["Famous iron tower.","City of light."]},
+  {name:"Berlin",country:"Germany",lat:52.5200,lng:13.4050,description:"Murals cover fragments of a concrete wall. Techno beats pulse in warehouses, while grand Prussian gates open onto wide boulevards.",hints:["Brandenburg Gate.","Capital of Germany."]},
+  {name:"Rome",country:"Italy",lat:41.9028,lng:12.4964,description:"Ruins of an ancient amphitheater tower beside Renaissance fountains. Scooters zip past domes, piazzas, and stone pine trees.",hints:["The Colosseum.","Eternal City."]},
+  {name:"Madrid",country:"Spain",lat:40.4168,lng:-3.7038,description:"Plazas ringed with cafes, flamenco dancers stamp, and royal palaces glitter under dry Castilian sun.",hints:["Royal Palace.","Capital of Spain."]},
+  {name:"Barcelona",country:"Spain",lat:41.3851,lng:2.1734,description:"A basilica of twisting spires towers over colorful mosaic parks. Beaches stretch beside bustling ramblas of tapas and street musicians.",hints:["Gaudí’s Sagrada Familia.","Catalonia’s capital."]},
+  {name:"Amsterdam",country:"Netherlands",lat:52.3676,lng:4.9041,description:"Bicycles race over canal bridges, houses tilt at odd angles, and tulips bloom near old windmills.",hints:["Anne Frank House.","Famous canals."]},
+  {name:"Vienna",country:"Austria",lat:48.2100,lng:16.3738,description:"Imperial palaces echo with classical music. Coffeehouses serve sachertorte as carriages clip-clop across baroque squares.",hints:["Opera capital.","Habsburg palaces."]},
+  {name:"Prague",country:"Czech Republic",lat:50.0755,lng:14.4378,description:"Gothic spires rise over red roofs. Bridges cross a river glowing with lanterns, and beer halls ring with laughter.",hints:["Charles Bridge.","Bohemian capital."]},
+  {name:"Budapest",country:"Hungary",lat:47.4979,lng:19.0402,description:"Thermal baths steam beside a river crossed by grand bridges. Parliament’s spires glimmer as ruin pubs buzz with life.",hints:["Danube divides it.","Twin cities Buda and Pest."]},
+  {name:"Dublin",country:"Ireland",lat:53.3331,lng:-6.2489,description:"Colorful pubs echo with fiddles, stout beer froths over oak counters, and Georgian doors line cobbled streets.",hints:["River Liffey.","Capital of Ireland."]},
+  {name:"Munich",country:"Germany",lat:48.1351,lng:11.5820,description:"Beer gardens overflow with laughter beneath chestnut trees, while baroque churches overlook markets full of pretzels and sausages.",hints:["Oktoberfest.","Capital of Bavaria."]},
+  {name:"Edinburgh",country:"Scotland",lat:55.9533,lng:-3.1883,description:"Stone castle sits atop a volcanic hill. Bagpipes echo down medieval lanes lit by whisky bars.",hints:["Royal Mile.","Scottish capital."]},
+  {name:"Lisbon",country:"Portugal",lat:38.7169,lng:-9.1390,description:"Trams climb steep tiled streets overlooking the sea, where fado singers mournful songs drift from taverns.",hints:["Yellow trams.","Capital of Portugal."]},
+  {name:"Stockholm",country:"Sweden",lat:59.3293,lng:18.0686,description:"Islands stitched together by bridges and ferries, pastel buildings reflect in cold waters while pop music plays in cafes.",hints:["Royal palace on an island.","Capital of Sweden."]},
+  {name:"Copenhagen",country:"Denmark",lat:55.6758,lng:12.5683,description:"Colorful harbor houses, bicycles buzzing, and a mermaid statue watching the shore.",hints:["Nyhavn harbor.","Capital of Denmark."]},
+  {name:"Warsaw",country:"Poland",lat:52.2297,lng:21.0122,description:"Rebuilt old town squares meet stark Soviet towers. Pierogi aromas fill markets beside the Vistula River.",hints:["Capital of Poland.","Royal Castle."]},
+  {name:"Athens",country:"Greece",lat:37.9838,lng:23.7275,description:"Ancient marble columns rise above chaotic streets. Cafes spill onto plazas under sacred hills.",hints:["The Parthenon.","Birthplace of democracy."]},
+  {name:"Oslo",country:"Norway",lat:59.9139,lng:10.7522,description:"Fiords and forests surround a clean, modern city. Sculptures fill a vast park, and ferries crowd the harbor.",hints:["Capital of Norway.","Viking ships museum."]},
+  {name:"Helsinki",country:"Finland",lat:60.1699,lng:24.9384,description:"Seaside saunas steam beside neoclassical buildings. Trams glide through snowy streets lined with design shops.",hints:["Capital of Finland.","Near Baltic Sea."]},
+  {name:"Lagos",country:"Nigeria",lat:6.5244,lng:3.3792,description:"Bustling bridges link islands to mainland. Yellow danfo buses, afrobeat thumping from kiosks; rainstorms burst and vanish.",hints:["Huge coastal megacity.","Atlantic lagoon network."]},
+  {name:"Portland",country:"USA",lat:45.5152,lng:-122.6784,description:"Coffee shops and food trucks at every corner, bridges crossing wide rivers, evergreen trees hugging the skyline. Cyclists weave past microbreweries under misty rain.",hints:["Known as 'Rose City'.","Powell’s famous bookstore."]},
+  {name:"Philadelphia",country:"USA",lat:39.9526,lng:-75.1652,description:"Historic cobblestone streets near brick row houses, cheesesteak stands sizzling on corners, murals splashed across walls. A cracked old bell rests in a pavilion.",hints:["Birthplace of U.S. independence.","Rocky ran up these steps."]},
+  {name:"Phoenix",country:"USA",lat:33.4484,lng:-112.0740,description:"Saguaro cacti dot the dry desert horizon, adobe-style homes with red tiles, sprawling highways under the blazing sun. Palms sway beside shimmering pools.",hints:["Valley of the Sun.","Capital of Arizona."]},
+  {name:"San Antonio",country:"USA",lat:29.4241,lng:-98.4936,description:"Spanish missions with limestone walls, the riverwalk lined with cafes and mariachi music, Tex-Mex aromas drifting through the warm air.",hints:["Remember the Alamo.","Riverwalk city."]},
+  {name:"Cleveland",country:"USA",lat:41.4993,lng:-81.6944,description:"Industrial warehouses turned breweries, a massive lakefront skyline, football fans in orange jerseys, rock music memorabilia behind glass walls.",hints:["Rock and Roll Hall of Fame.","On Lake Erie."]},
+  {name:"Cincinnati",country:"USA",lat:39.1031,lng:-84.5120,description:"Hilly streets with old brick buildings, chili served over spaghetti, murals splashed on downtown walls. Bridges cross a wide muddy river.",hints:["Baseball’s first professional team.","On the Ohio River."]},
+  {name:"Detroit",country:"USA",lat:42.3314,lng:-83.0458,description:"Art deco skyscrapers beside abandoned factories, Motown echoes from museums, muscle cars roar from classic garages. Graffiti blossoms on concrete walls.",hints:["The Motor City.","Motown’s birthplace."]},
+  {name:"Minneapolis",country:"USA",lat:44.9778,lng:-93.2650,description:"Glassy modern towers rise near icy lakes, bike trails snake along the Mississippi, indie record shops and theaters crowd quirky neighborhoods.",hints:["Twin Cities.","Prince’s home."]},
+  {name:"St. Louis",country:"USA",lat:38.6270,lng:-90.1994,description:"A gleaming metal arch towers above the river, brick breweries pump out malty aromas, blues music hums from dark clubs.",hints:["Gateway to the West.","Famous arch."]},
+  {name:"Salt Lake City",country:"USA",lat:40.7608,lng:-111.8910,description:"Snowy peaks frame a grid of wide streets, a massive domed temple dominates downtown, copper-roofed houses sprawl toward dry valleys.",hints:["Home of the Mormon Tabernacle.","Great Salt Lake nearby."]},
+  {name:"Oslo",country:"Norway",lat:59.9139,lng:10.7522,description:"Fjords gleam in the distance, modern glass architecture mixes with wooden houses, electric trams buzz past cozy cafes. Boats bob in icy harbors.",hints:["Capital of Norway.","Viking ship museum."]},
+  {name:"Bergen",country:"Norway",lat:60.3913,lng:5.3221,description:"Colorful wooden houses line the wharf, mist rolls down steep green hills, fish markets fill the salty air with cod and salmon.",hints:["Gateway to the fjords.","Bryggen Wharf."]},
+  {name:"Reykjavik",country:"Iceland",lat:64.1355,lng:-21.8954,description:"Bright painted houses with corrugated iron siding, geothermal steam rising from vents, a church shaped like basalt columns towers above the skyline.",hints:["Northernmost capital city.","Hallgrímskirkja."]},
+  {name:"Dublin",country:"Ireland",lat:53.3498,lng:-6.2603,description:"Georgian townhouses with bright doors, pubs spilling out live fiddle music, cobbled streets damp with drizzle.",hints:["River Liffey.","Guinness factory."]},
+  {name:"Edinburgh",country:"Scotland",lat:55.9533,lng:-3.1883,description:"Stone castles perched on rocky cliffs, narrow alleys called closes, bagpipes echoing in windy squares.",hints:["Capital of Scotland.","Famous summer arts festival."]},
+  {name:"Glasgow",country:"Scotland",lat:55.8642,lng:-4.2518,description:"Red sandstone tenements, murals sprawling across high-rises, indie rock humming from pubs, shipyards converted to art centers.",hints:["Scotland’s largest city.","Clyde River."]},
+  {name:"Manchester",country:"UK",lat:53.4808,lng:-2.2426,description:"Red-brick mills turned into lofts, football jerseys everywhere, rain spattering against glass shopping arcades.",hints:["Industrial Revolution hub.","Two famous football clubs."]},
+  {name:"Liverpool",country:"UK",lat:53.4084,lng:-2.9916,description:"Ships docked at brick warehouses, Beatles tunes floating from souvenir shops, pubs buzzing along cobbled streets.",hints:["Birthplace of the Beatles.","Mersey River."]},
+  {name:"Bristol",country:"UK",lat:51.4545,lng:-2.5879,description:"Harborside warehouses now cafes, suspension bridges stretching across gorges, graffiti murals under highway overpasses.",hints:["Banksy’s hometown.","Suspension bridge."]},
+  {name:"Brighton",country:"UK",lat:50.8225,lng:-0.1372,description:"Pebble beaches with striped deck chairs, carnival rides spinning on a pier, quirky shops selling vinyl and vintage clothes.",hints:["On the English Channel.","Famous pier."]},
+  {name:"Charleston",country:"USA",lat:32.7765,lng:-79.9311,description:"Pastel row houses face cobbled streets where horse-drawn carriages pass moss-draped oaks. A salty breeze drifts from nearby forts.",hints:["Historic southern port.","Rainbow Row."]},
+  {name:"Savannah",country:"USA",lat:32.0809,lng:-81.0912,description:"Spanish moss shades elegant squares, iron balconies overlook shaded streets, and riverboats ply a brick-lined waterfront.",hints:["Famous tree-lined squares.","Georgia’s coast."]},
+  {name:"Nashville",country:"USA",lat:36.1627,lng:-86.7816,description:"Live music floods neon-lit honky-tonks, murals of guitars cover walls, and southern barbecue wafts along the Cumberland River.",hints:["Country music capital.","Grand Ole Opry."]},
+  {name:"Memphis",country:"USA",lat:35.1495,lng:-90.0490,description:"Blues guitar riffs echo down Beale Street, barbecue smoke drifts through the air, and a pyramid-shaped arena dominates the skyline.",hints:["Graceland estate.","Birthplace of rock ’n’ roll."]},
+  {name:"New Orleans",country:"USA",lat:29.9511,lng:-90.0715,description:"French Quarter balconies overflow with flowers, jazz spills into cobbled alleys, and gumbo steams in wrought-iron courtyards.",hints:["Mardi Gras parades.","Café au lait with beignets."]},
+  {name:"Indianapolis",country:"USA",lat:39.7684,lng:-86.1581,description:"Monuments line broad avenues, racing cars roar once a year at a legendary oval track, and canals wind through downtown parks.",hints:["Famous 500-mile race.","State capital of Indiana."]},
+  {name:"Milwaukee",country:"USA",lat:43.0389,lng:-87.9065,description:"Brick breweries line the riverside, motorcycles rev by a lakeshore museum, and bratwurst stands scent summer festivals.",hints:["Lake Michigan city.","Harley-Davidson museum."]},
+  {name:"Pittsburgh",country:"USA",lat:40.4406,lng:-79.9959,description:"Steel bridges span three rivers, funiculars climb steep hillsides, and sports fans wave black-and-gold banners.",hints:["Three rivers meet here.","Once called Steel City."]},
+  {name:"Denver",country:"USA",lat:39.7392,lng:-104.9903,description:"A skyline backdropped by snowy peaks, microbreweries fill old warehouses, and golden-domed capitol glitters in the sun.",hints:["Mile-High City.","Rocky Mountains nearby."]},
+  {name:"Boulder",country:"USA",lat:40.01499,lng:-105.2705,description:"Hiking trails start at red sandstone cliffs, bikes fill leafy boulevards, and coffee shops hum with students and climbers.",hints:["Flatirons cliffs.","University town."]},
+  {name:"Florence",country:"Italy",lat:43.7699,lng:11.2556,description:"Renaissance domes tower above the Arno, cobbled bridges lined with goldsmiths, and art spills from palaces and galleries.",hints:["Michelangelo’s David.","Birthplace of the Renaissance."]},
+  {name:"Venice",country:"Italy",lat:45.4408,lng:12.3155,description:"Gondolas glide under stone bridges, plazas echo with pigeons, and canals weave between crumbling palaces.",hints:["Famous canals.","St. Mark’s Square."]},
+  {name:"Milan",country:"Italy",lat:45.4642,lng:9.19,description:"Fashion boutiques line grand arcades, a marble cathedral bristles with spires, and aperitivo hours fill outdoor cafes.",hints:["Fashion capital.","Duomo di Milano."]},
+  {name:"Naples",country:"Italy",lat:40.8518,lng:14.2681,description:"Laundry hangs above narrow streets, pizza ovens glow late into the night, and Vesuvius looms over the bay.",hints:["Birthplace of pizza.","Near Pompeii ruins."]},
+  {name:"Verona",country:"Italy",lat:45.4384,lng:10.9916,description:"Roman amphitheaters still host concerts, medieval bridges span rivers, and balconies recall tragic love stories.",hints:["Romeo and Juliet balcony.","Opera arena."]},
+  {name:"Turin",country:"Italy",lat:45.0703,lng:7.6869,description:"Wide boulevards framed by baroque palaces, alpine views, and coffee houses filled with chocolate drinks.",hints:["Shroud relic.","Fiat automobiles."]},
+  {name:"Palermo",country:"Italy",lat:38.1157,lng:13.3615,description:"Markets brim with citrus, Arab-Norman domes rise over mosaicked churches, and scooters zip down crowded alleys.",hints:["Capital of Sicily.","Arancini and cannoli."]},
+  {name:"Bologna",country:"Italy",lat:44.4949,lng:11.3426,description:"Red brick towers tilt above arcaded streets, pasta dishes fill trattorias, and students bustle around an ancient university.",hints:["World’s oldest university.","Tagliatelle al ragù."]},
+  {name:"Genoa",country:"Italy",lat:44.4056,lng:8.9463,description:"Harbor cranes rise beside pastel houses on steep hillsides, labyrinthine alleys smell of pesto and sea air.",hints:["Christopher Columbus’s hometown.","Major Italian port."]},
+  {name:"Pisa",country:"Italy",lat:43.7166,lng:10.3966,description:"A white marble tower leans precariously beside a grassy square, students gather near old stone walls.",hints:["Leaning tower.","Tuscan city."]},
+  {name:"Marseille",country:"France",lat:43.2965,lng:5.3698,description:"Fishing boats and yachts crowd a sunlit harbor, lavender-scented winds blow in from Provence, graffiti splashes on hillsides.",hints:["Old Port.","South of France hub."]},
+  {name:"Lyon",country:"France",lat:45.7640,lng:4.8357,description:"Red-tiled roofs cover hillsides, secret passageways connect courtyards, and bouchon restaurants serve hearty stews.",hints:["Gastronomy capital.","Two rivers meet here."]},
+  {name:"Bordeaux",country:"France",lat:44.8378,lng:-0.5792,description:"Grand neoclassical facades line a crescent riverbank, vineyards stretch endlessly nearby, and fountains sparkle in plazas.",hints:["Wine capital.","Southwest France."]},
+  {name:"Nice",country:"France",lat:43.7102,lng:7.2620,description:"Palm trees sway over pebble beaches, pastel buildings line promenades, and artists sell watercolors in old squares.",hints:["French Riviera.","Promenade des Anglais."]},
+  {name:"Toulouse",country:"France",lat:43.6047,lng:1.4442,description:"Red-brick buildings glow in sunset light, students pack cafes, and aerospace hangars loom on the outskirts.",hints:["Pink city.","Airbus headquarters."]},
+  {name:"Strasbourg",country:"France",lat:48.5734,lng:7.7521,description:"Half-timbered houses overlook canals, a gothic cathedral towers, and markets sell both pretzels and croissants.",hints:["On Rhine border.","EU parliament seat."]},
+  {name:"Lille",country:"France",lat:50.6292,lng:3.0573,description:"Flemish-style townhouses surround bustling squares, beer halls buzz with students, and art museums fill old stock exchanges.",hints:["Near Belgium.","Northern France hub."]},
+  {name:"Avignon",country:"France",lat:43.9493,lng:4.8055,description:"Stone walls enclose medieval streets, a palace of popes looms above, and a broken bridge juts into the river.",hints:["Famous bridge song.","Papacy’s home in 1300s."]},
+  {name:"Grenoble",country:"France",lat:45.1885,lng:5.7245,description:"Snowy peaks surround a modern city with cable cars shaped like bubbles, cyclists crowd leafy boulevards.",hints:["French Alps.","Winter sports."]},
+  {name:"Dijon",country:"France",lat:47.3220,lng:5.0415,description:"Burgundy-tiled roofs top medieval townhouses, mustard shops scent the air, and vineyards climb nearby hills.",hints:["Mustard capital.","Burgundy wine."]},
+  {name:"Seville",country:"Spain",lat:37.3891,lng:-5.9845,description:"Orange trees line sunny plazas, flamenco heels click in courtyards, and Moorish arches frame golden palaces.",hints:["Andalusian capital.","Famous April fair."]},
+  {name:"Granada",country:"Spain",lat:37.1773,lng:-3.5986,description:"Snow-capped mountains rise behind ornate Moorish palaces, tea shops line narrow alleys, and fountains splash in gardens.",hints:["Alhambra fortress.","Andalusia region."]},
+  {name:"Valencia",country:"Spain",lat:39.4699,lng:-0.3763,description:"Futuristic white arches gleam beside old gothic towers, paella simmers by the sea, and palm-lined boulevards stretch wide.",hints:["Paella birthplace.","Las Fallas festival."]},
+  {name:"Bilbao",country:"Spain",lat:43.2630,lng:-2.9350,description:"A shimmering titanium museum rises by the river, pintxo bars buzz, and green hills roll around the city.",hints:["Guggenheim museum.","Basque country."]},
+  {name:"Malaga",country:"Spain",lat:36.7213,lng:-4.4214,description:"A hilltop fortress overlooks palm beaches, tapas stalls crowd the old quarter, and colorful ceramics fill markets.",hints:["Costa del Sol.","Picasso’s birthplace."]},
+  {name:"Cordoba",country:"Spain",lat:37.8882,lng:-4.7794,description:"Courtyards burst with flowers, an immense mosque-cathedral glows with striped arches, and narrow lanes twist under whitewashed houses.",hints:["Mezquita mosque-cathedral.","Andalusia region."]},
+  {name:"Toledo",country:"Spain",lat:39.8628,lng:-4.0273,description:"Stone ramparts circle a hilltop town of swordsmen and cathedrals, winding streets echo with history of three faiths.",hints:["Former Spanish capital.","City of Three Cultures."]},
+  {name:"Salamanca",country:"Spain",lat:40.9701,lng:-5.6635,description:"Golden sandstone squares fill with students, ornate facades glow in sunlight, and cathedrals tower beside ancient libraries.",hints:["Oldest Spanish university.","Castile region."]},
+  {name:"San Sebastian",country:"Spain",lat:43.3183,lng:-1.9812,description:"Arc-shaped beaches framed by green hills, Michelin-starred restaurants, and vibrant tapas bars crowd narrow lanes.",hints:["Basque culinary hub.","La Concha beach."]},
+  {name:"Zaragoza",country:"Spain",lat:41.6488,lng:-0.8891,description:"A massive basilica with colorful domes towers by the river, Roman ruins hide among modern plazas, and street art splashes old walls.",hints:["Aragon region capital.","Ebro River city."]}
+];
+
+// --------------------------- State ---------------------------
+let game = {
+  cities: [],
+  roundsTotal: 5,
+  round: 0,
+  used: [],
+  target: null,
+  guessLatLng: null,
+  totalScore: 0,
+  map: null,
+  guessMarker: null,
+  targetMarker: null,
+  line: null,
+  revealed: false,
+};
+
+// --------------------------- Map Setup ---------------------------
+function initMap(){
+  const map = L.map('map',{worldCopyJump:true});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+  map.setView([20,0],2);
+
+  map.on('click', e=>{
+    if(game.revealed) return; // don't allow new guesses after reveal
+    placeGuess(e.latlng);
+  });
+
+  game.map = map;
+}
+function placeGuess(latlng){
+  game.guessLatLng = latlng;
+  if(!game.guessMarker){
+    game.guessMarker = L.marker(latlng,{draggable:false}).addTo(game.map).bindTooltip('Your Guess',{permanent:true,offset:[0,-18]});
+  }else{
+    game.guessMarker.setLatLng(latlng);
+  }
+}
+function revealAnswer(){
+  const {lat,lng,name,country} = game.target;
+  if(game.targetMarker){game.map.removeLayer(game.targetMarker)}
+  game.targetMarker = L.marker([lat,lng]).addTo(game.map).bindTooltip(`${name}, ${country}`,{permanent:true,offset:[0,-18]});
+  if(game.line){game.map.removeLayer(game.line)}
+  if(game.guessLatLng){
+    game.line = L.polyline([[lat,lng],[game.guessLatLng.lat, game.guessLatLng.lng]],{dashArray:'6,8'}).addTo(game.map);
+    const b = L.latLngBounds([[lat,lng],[game.guessLatLng.lat, game.guessLatLng.lng]]).pad(0.4);
+    game.map.fitBounds(b);
+  }else{
+    game.map.setView([lat,lng],5);
+  }
+}
+
+// --------------------------- Game Flow ---------------------------
+function loadCityDb(){
+  const saved = localStorage.getItem('textguessr_cities');
+  let data = DEFAULT_CITIES;
+  if(saved){
+    try{const parsed = JSON.parse(saved); if(Array.isArray(parsed) && parsed.length) data = parsed;}catch{console.warn('Invalid saved DB; using defaults.')}
+  }
+  return data;
+}
+function saveCityDb(db){ localStorage.setItem('textguessr_cities', JSON.stringify(db)); }
+
+function startGame(){
+  game.cities = loadCityDb();
+  if(game.cities.length < 5){ alert('City DB has fewer than 5 cities. Add more in City DB to play a full game.'); }
+  game.used = [];
+  game.round = 0;
+  game.totalScore = 0;
+  updateHud();
+  nextRound();
+}
+
+function nextRound(){
+  // pick a random city that isn't used this game
+  const pool = game.cities.filter(c=> !game.used.includes(c.name+"|"+c.country));
+  if(pool.length === 0){ // all used, reset pool
+    game.used = [];
+  }
+  const pick = pool[Math.floor(Math.random()*pool.length)];
+  game.target = pick;
+  game.used.push(pick.name+"|"+pick.country);
+  game.round++;
+  game.guessLatLng = null;
+  game.revealed = false;
+
+  // reset map UI
+  if(game.guessMarker){ game.map.removeLayer(game.guessMarker); game.guessMarker = null; }
+  if(game.targetMarker){ game.map.removeLayer(game.targetMarker); game.targetMarker = null; }
+  if(game.line){ game.map.removeLayer(game.line); game.line = null; }
+  game.map.setView([20,0],2);
+
+  document.getElementById('btnNext').disabled = true;
+  document.getElementById('btnSubmit').disabled = false;
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('roundScore').textContent = '0';
+
+  // set description & clear hints
+  document.getElementById('desc').textContent = pick.description;
+  document.getElementById('hints').textContent = '';
+
+  updateHud();
+}
+
+function endIfDone(){
+  if(game.round >= game.roundsTotal){
+    // show final results
+    const res = document.getElementById('result');
+    res.style.display = 'block';
+    res.innerHTML = `<strong>Game Over!</strong> Final Score: <strong>${pts(game.totalScore)}</strong>. Click <em>Play Again</em> to start a new run.`;
+    document.getElementById('btnSubmit').disabled = true;
+    document.getElementById('btnNext').disabled = true;
+  }
+}
+
+function submitGuess(){
+  if(!game.guessLatLng){ alert('Click the map to place your guess.'); return; }
+  const d = haversine(game.guessLatLng.lat, game.guessLatLng.lng, game.target.lat, game.target.lng);
+  const roundScore = scoreForDistance(d);
+  game.totalScore += roundScore;
+  game.revealed = true;
+
+  revealAnswer();
+
+  const res = document.getElementById('result');
+  res.style.display = 'block';
+  res.innerHTML = `Actual: <strong>${game.target.name}, ${game.target.country}</strong><br>`+
+                   `Distance: <strong>${km(d)} km</strong> — Round Points: <strong>${pts(roundScore)}</strong>`;
+
+  document.getElementById('roundScore').textContent = pts(roundScore);
+  document.getElementById('totalScore').textContent = pts(game.totalScore);
+
+  document.getElementById('btnSubmit').disabled = true;
+  if(game.round < game.roundsTotal){
+    document.getElementById('btnNext').disabled = false;
+  }
+  endIfDone();
+}
+
+function updateHud(){
+  document.getElementById('round').textContent = Math.min(game.round+ (game.revealed?0: (game.round?0:1)), game.roundsTotal);
+  document.getElementById('totalScore').textContent = pts(game.totalScore);
+}
+
+// --------------------------- Hints ---------------------------
+function showHint(){
+  const h = (game.target && game.target.hints) || [];
+  const el = document.getElementById('hints');
+  if(!h.length){ el.textContent = 'No more hints for this city.'; return; }
+  const shown = el.textContent.split('\n').filter(Boolean);
+  const next = h[shown.length];
+  if(next){ el.textContent += (el.textContent? '\n' : '') + '• ' + next; }
+  else{ el.textContent += (el.textContent? '\n' : '') + '• (That\'s all the hints!)'; }
+}
+
+// --------------------------- DB Modal Logic ---------------------------
+const dbModal = document.getElementById('dbModal');
+const dbTextarea = document.getElementById('dbTextarea');
+function openDb(){ dbModal.style.display = 'flex'; dbTextarea.value = JSON.stringify(loadCityDb(), null, 2); }
+function closeDb(){ dbModal.style.display = 'none'; }
+function saveDbFromTextarea(){
+  try{
+    const val = JSON.parse(dbTextarea.value);
+    if(!Array.isArray(val)) throw new Error('Top level must be an array of cities.');
+    for(const c of val){
+      if(typeof c.name!== 'string' || typeof c.country!== 'string' || typeof c.lat!== 'number' || typeof c.lng!== 'number' || typeof c.description!== 'string'){
+        throw new Error('Each city needs name, country, lat, lng, description.');
+      }
+    }
+    saveCityDb(val);
+    alert('Saved! Your custom DB will be used next game.');
+  }catch(err){
+    alert('Invalid JSON: '+ err.message);
+  }
+}
+function resetDb(){
+  if(confirm('Reset to built-in defaults? This will replace your saved DB.')){
+    saveCityDb(DEFAULT_CITIES);
+    dbTextarea.value = JSON.stringify(DEFAULT_CITIES, null, 2);
+  }
+}
+function exportDb(){
+  const blob = new Blob([dbTextarea.value], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'textguessr_cities.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function importDb(){
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'application/json';
+  input.onchange = (e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{ dbTextarea.value = reader.result; };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// --------------------------- Event Wiring ---------------------------
+window.addEventListener('DOMContentLoaded',()=>{
+  initMap();
+  startGame();
+  document.getElementById('btnSubmit').addEventListener('click', submitGuess);
+  document.getElementById('btnNext').addEventListener('click', ()=>{
+    if(game.round < game.roundsTotal){ nextRound(); } else { endIfDone(); }
+  });
+  document.getElementById('btnRestart').addEventListener('click', startGame);
+  document.getElementById('btnHint').addEventListener('click', showHint);
+
+  document.getElementById('btnDb').addEventListener('click', openDb);
+  document.getElementById('btnCloseDb').addEventListener('click', closeDb);
+  document.getElementById('btnSaveDb').addEventListener('click', saveDbFromTextarea);
+  document.getElementById('btnResetDb').addEventListener('click', resetDb);
+  document.getElementById('btnExport').addEventListener('click', exportDb);
+  document.getElementById('btnImport').addEventListener('click', importDb);
+
+  document.getElementById('btnHelp').addEventListener('click', ()=> document.getElementById('helpModal').style.display='flex');
+  document.getElementById('btnCloseHelp').addEventListener('click', ()=> document.getElementById('helpModal').style.display='none');
+
+  // Close modals when clicking backdrop
+  document.querySelectorAll('.modal-backdrop').forEach(bg=>{
+    bg.addEventListener('click', (e)=>{ if(e.target === bg){ bg.style.display='none'; } });
+  });
+});
+</script>
+</body>
+</html>
