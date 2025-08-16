@@ -156,6 +156,14 @@ Coming soon.
         htmlFile: 'interactive/umap_viewer.html'
     },
     {
+        id: 'capsid_visual',
+        type: 'interactive',
+        title: 'Interactive Virus Viewer',
+        date: '2025-06-27',
+        description: 'A fun visualization of viral capsids',
+        htmlFile: 'interactive/virus_capsid.html'
+    },
+    {
         id: 'protist-defense',
         type: 'interactive',
         title: 'Protist and Giant Virus Arms race',
