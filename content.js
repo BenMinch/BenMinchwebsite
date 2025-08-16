@@ -164,6 +164,14 @@ Coming soon.
         htmlFile: 'interactive/virus_capsid.html'
     },
     {
+        id: 'textguesser',
+        type: 'interactive',
+        title: 'TextGuesser',
+        date: '2025-06-27',
+        description: 'A text-based geoguesser',
+        htmlFile: 'interactive/textguesser.html'
+    },
+    {
         id: 'protist-defense',
         type: 'interactive',
         title: 'Protist and Giant Virus Arms race',
