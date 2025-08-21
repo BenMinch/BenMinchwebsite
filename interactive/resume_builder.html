@@ -1,0 +1,711 @@
+import React,
+{
+    useState,
+    useCallback
+}
+from 'react';
+
+// Helper function to generate a unique ID
+const generateUniqueId = () => `id_${Math.random().toString(36).substr(2, 9)}`;
+
+// Helper function to generate docx
+const generateDocx = (resumeData, docx) => {
+    const {
+        Packer,
+        Document,
+        Paragraph,
+        HeadingLevel
+    } = docx;
+    const {
+        personalInfo,
+        education,
+        experience,
+        skills,
+        publications,
+        awards
+    } = resumeData;
+
+    // Helper to create styled paragraphs for the document
+    const createHeading = (text) => new Paragraph({
+        text,
+        heading: HeadingLevel.HEADING_1,
+        style: "heading1"
+    });
+    const createSubHeading = (text) => new Paragraph({
+        text,
+        heading: HeadingLevel.HEADING_2,
+        style: "heading2"
+    });
+    const createInstitution = (text) => new Paragraph({
+        text,
+        style: "institution"
+    });
+    const createRole = (text) => new Paragraph({
+        text,
+        style: "role"
+    });
+    const createDates = (text) => new Paragraph({
+        text,
+        style: "dates"
+    });
+    const createBodyText = (text) => new Paragraph({
+        text,
+        style: "body"
+    });
+    const createBullet = (text) => new Paragraph({
+        text,
+        bullet: {
+            level: 0
+        },
+        style: "body"
+    });
+
+
+    const formatSection = (title, items, formatItem) => {
+        if (!items || items.length === 0 || items.every(item => Object.values(item).every(v => v === ''))) return [];
+        const children = [createSubHeading(title)];
+        items.forEach(item => {
+            children.push(...formatItem(item));
+        });
+        return children;
+    };
+
+    const doc = new Document({
+        styles: {
+            paragraphStyles: [{
+                id: "heading1",
+                name: "Heading 1",
+                basedOn: "Normal",
+                next: "Normal",
+                run: {
+                    size: 48,
+                    bold: true,
+                    color: "2E2E2E"
+                },
+                paragraph: {
+                    spacing: {
+                        after: 240
+                    }
+                }
+            }, {
+                id: "heading2",
+                name: "Heading 2",
+                basedOn: "Normal",
+                next: "Normal",
+                run: {
+                    size: 28,
+                    bold: true,
+                    color: "4F4F4F"
+                },
+                paragraph: {
+                    spacing: {
+                        before: 240,
+                        after: 120
+                    },
+                    border: {
+                        bottom: {
+                            color: "auto",
+                            space: 1,
+                            value: "single",
+                            size: 6
+                        }
+                    }
+                }
+            }, {
+                id: "institution",
+                name: "Institution",
+                basedOn: "Normal",
+                run: {
+                    size: 24,
+                    bold: true
+                }
+            }, {
+                id: "role",
+                name: "Role",
+                basedOn: "Normal",
+                run: {
+                    size: 22,
+                    italics: true
+                }
+            }, {
+                id: "dates",
+                name: "Dates",
+                basedOn: "Normal",
+                run: {
+                    size: 20,
+                    color: "808080"
+                }
+            }, {
+                id: "body",
+                name: "Body",
+                basedOn: "Normal",
+                run: {
+                    size: 22
+                },
+                paragraph: {
+                    spacing: {
+                        line: 276
+                    }
+                }
+            }, ]
+        },
+        sections: [{
+            children: [
+                createHeading(personalInfo.name || " "),
+                createBodyText(`${personalInfo.email || " "} | ${personalInfo.phone || " "} | ${personalInfo.address || " "}`),
+                new Paragraph(""),
+                ...formatSection("Education", education, (edu) => [
+                    createInstitution(edu.university),
+                    createRole(`${edu.degree} - ${edu.major}`),
+                    createDates(`${edu.startDate} - ${edu.endDate}`),
+                    new Paragraph(""),
+                ]),
+                ...formatSection("Experience", experience, (job) => [
+                    createInstitution(job.company),
+                    createRole(job.title),
+                    createDates(`${job.startDate} - ${job.endDate}`),
+                    ...(job.description ? job.description.split('\n').filter(line => line.trim() !== '').map(line => createBullet(line)) : []),
+                    new Paragraph(""),
+                ]),
+                ...(skills && skills.length > 0 && skills[0] !== '' ? [
+                    createSubHeading("Skills"),
+                    createBodyText(skills.join(', ')),
+                    new Paragraph(""),
+                ] : []),
+                ...formatSection("Publications", publications, (pub) => [
+                    createInstitution(pub.title),
+                    createRole(pub.authors),
+                    createDates(`${pub.journal}, ${pub.year}`),
+                    new Paragraph(""),
+                ]),
+                ...formatSection("Awards", awards, (award) => [
+                    createInstitution(award.title),
+                    createRole(award.organization),
+                    createDates(award.year),
+                    new Paragraph(""),
+                ]),
+            ],
+        }, ],
+    });
+
+    return Packer.toBlob(doc);
+};
+
+
+// Main App Component
+export default function App() {
+    const [resumeData, setResumeData] = useState({
+        personalInfo: {
+            name: '',
+            email: '',
+            phone: '',
+            address: ''
+        },
+        education: [],
+        experience: [],
+        skills: [],
+        publications: [],
+        awards: [],
+    });
+
+    const handlePersonalInfoChange = useCallback((e) => {
+        const {
+            name,
+            value
+        } = e.target;
+        setResumeData(prev => ({ ...prev,
+            personalInfo: { ...prev.personalInfo,
+                [name]: value
+            }
+        }));
+    }, []);
+
+    const handleSectionChange = useCallback((section, id, e) => {
+        const {
+            name,
+            value
+        } = e.target;
+        setResumeData(prev => {
+            const list = prev[section].map(item => {
+                if (item.id === id) {
+                    return { ...item,
+                        [name]: value
+                    };
+                }
+                return item;
+            });
+            return { ...prev,
+                [section]: list
+            };
+        });
+    }, []);
+
+    const handleSkillsChange = useCallback((e) => {
+        const skills = e.target.value.split(',').map(s => s.trim());
+        setResumeData(prev => ({ ...prev,
+            skills
+        }));
+    }, []);
+
+    const addSectionItem = useCallback((section) => {
+        let newItem;
+        const id = generateUniqueId();
+        switch (section) {
+            case 'education':
+                newItem = {
+                    id,
+                    university: '',
+                    degree: '',
+                    major: '',
+                    startDate: '',
+                    endDate: ''
+                };
+                break;
+            case 'experience':
+                newItem = {
+                    id,
+                    company: '',
+                    title: '',
+                    startDate: '',
+                    endDate: '',
+                    description: ''
+                };
+                break;
+            case 'publications':
+                newItem = {
+                    id,
+                    title: '',
+                    authors: '',
+                    journal: '',
+                    year: ''
+                };
+                break;
+            case 'awards':
+                newItem = {
+                    id,
+                    title: '',
+                    organization: '',
+                    year: ''
+                };
+                break;
+            default:
+                newItem = {
+                    id
+                };
+        }
+        setResumeData(prev => ({ ...prev,
+            [section]: [...prev[section], newItem]
+        }));
+    }, []);
+
+    const removeSectionItem = useCallback((section, id) => {
+        setResumeData(prev => {
+            const list = prev[section].filter(item => item.id !== id);
+            return { ...prev,
+                [section]: list
+            };
+        });
+    }, []);
+
+    const handleExport = async () => {
+        try {
+            // Dynamically import the libraries when the export button is clicked.
+            const {
+                default: saveAs
+            } = await import('https://cdn.jsdelivr.net/npm/file-saver@2.0.5/+esm');
+            const docx = await import('https://cdn.jsdelivr.net/npm/docx@8.5.0/+esm');
+
+            const blob = await generateDocx(resumeData, docx);
+            saveAs(blob, "resume.docx");
+        } catch (error) {
+            console.error("Error generating DOCX file:", error);
+            // You could show an error message to the user here
+        }
+    };
+
+    const Section = React.memo(({
+        title,
+        section,
+        children,
+        onAddItem
+    }) => ( <
+        div className = "mb-8 p-6 bg-white rounded-lg shadow-md" >
+        <
+        h2 className = "text-2xl font-bold text-gray-800 mb-6 border-b pb-2" > {
+            title
+        } < /h2> {
+            children
+        } <
+        button onClick = {
+            () => onAddItem(section)
+        }
+        className = "mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105" >
+        Add {
+            title.slice(0, -1)
+        } <
+        /button> <
+        /div>
+    ));
+
+    const FormInput = React.memo(({
+        label,
+        name,
+        value,
+        onChange,
+        placeholder
+    }) => ( <
+        div className = "mb-4" >
+        <
+        label className = "block text-gray-700 text-sm font-bold mb-2" > {
+            label
+        } < /label> <
+        input type = "text"
+        name = {
+            name
+        }
+        value = {
+            value
+        }
+        onChange = {
+            onChange
+        }
+        placeholder = {
+            placeholder
+        }
+        className = "shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" /
+        >
+        <
+        /div>
+    ));
+
+    return ( <
+        div className = "bg-gray-100 min-h-screen font-sans" >
+        <
+        div className = "container mx-auto p-4 lg:p-8" >
+        <
+        header className = "text-center mb-10" >
+        <
+        h1 className = "text-5xl font-extrabold text-gray-800" > Resume Builder < /h1> <
+        p className = "text-gray-500 mt-2" > Create your professional resume with ease. < /p> <
+        /header>
+
+        <
+        div className = "max-w-4xl mx-auto" > {
+            /* Form Section */
+        } <
+        div className = "bg-gray-50 p-6 rounded-xl shadow-inner" >
+
+        <
+        div className = "mb-8 p-6 bg-white rounded-lg shadow-md" >
+        <
+        h2 className = "text-2xl font-bold text-gray-800 mb-6 border-b pb-2" > Personal Information < /h2> <
+        FormInput label = "Full Name"
+        name = "name"
+        value = {
+            resumeData.personalInfo.name
+        }
+        onChange = {
+            handlePersonalInfoChange
+        }
+        placeholder = "John Doe" / >
+        <
+        FormInput label = "Email"
+        name = "email"
+        value = {
+            resumeData.personalInfo.email
+        }
+        onChange = {
+            handlePersonalInfoChange
+        }
+        placeholder = "john.doe@example.com" / >
+        <
+        FormInput label = "Phone"
+        name = "phone"
+        value = {
+            resumeData.personalInfo.phone
+        }
+        onChange = {
+            handlePersonalInfoChange
+        }
+        placeholder = "(123) 456-7890" / >
+        <
+        FormInput label = "Address"
+        name = "address"
+        value = {
+            resumeData.personalInfo.address
+        }
+        onChange = {
+            handlePersonalInfoChange
+        }
+        placeholder = "123 Main St, Anytown, USA" / >
+        <
+        /div>
+
+        <
+        Section title = "Education"
+        section = "education"
+        onAddItem = {
+            addSectionItem
+        } > {
+            resumeData.education.map((edu) => ( <
+                div key = {
+                    edu.id
+                }
+                className = "mb-4 p-4 border rounded-lg bg-gray-50 relative" >
+                <
+                button onClick = {
+                    () => removeSectionItem('education', edu.id)
+                }
+                className = "absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold" > X < /button> <
+                FormInput label = "University"
+                name = "university"
+                value = {
+                    edu.university
+                }
+                onChange = {
+                    (e) => handleSectionChange('education', edu.id, e)
+                }
+                /> <
+                FormInput label = "Degree"
+                name = "degree"
+                value = {
+                    edu.degree
+                }
+                onChange = {
+                    (e) => handleSectionChange('education', edu.id, e)
+                }
+                /> <
+                FormInput label = "Major"
+                name = "major"
+                value = {
+                    edu.major
+                }
+                onChange = {
+                    (e) => handleSectionChange('education', edu.id, e)
+                }
+                /> <
+                FormInput label = "Start Date"
+                name = "startDate"
+                value = {
+                    edu.startDate
+                }
+                onChange = {
+                    (e) => handleSectionChange('education', edu.id, e)
+                }
+                /> <
+                FormInput label = "End Date"
+                name = "endDate"
+                value = {
+                    edu.endDate
+                }
+                onChange = {
+                    (e) => handleSectionChange('education', edu.id, e)
+                }
+                /> <
+                /div>
+            ))
+        } <
+        /Section>
+
+        <
+        Section title = "Experience"
+        section = "experience"
+        onAddItem = {
+            addSectionItem
+        } > {
+            resumeData.experience.map((job) => ( <
+                div key = {
+                    job.id
+                }
+                className = "mb-4 p-4 border rounded-lg bg-gray-50 relative" >
+                <
+                button onClick = {
+                    () => removeSectionItem('experience', job.id)
+                }
+                className = "absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold" > X < /button> <
+                FormInput label = "Company"
+                name = "company"
+                value = {
+                    job.company
+                }
+                onChange = {
+                    (e) => handleSectionChange('experience', job.id, e)
+                }
+                /> <
+                FormInput label = "Title"
+                name = "title"
+                value = {
+                    job.title
+                }
+                onChange = {
+                    (e) => handleSectionChange('experience', job.id, e)
+                }
+                /> <
+                FormInput label = "Start Date"
+                name = "startDate"
+                value = {
+                    job.startDate
+                }
+                onChange = {
+                    (e) => handleSectionChange('experience', job.id, e)
+                }
+                /> <
+                FormInput label = "End Date"
+                name = "endDate"
+                value = {
+                    job.endDate
+                }
+                onChange = {
+                    (e) => handleSectionChange('experience', job.id, e)
+                }
+                /> <
+                textarea name = "description"
+                value = {
+                    job.description
+                }
+                onChange = {
+                    (e) => handleSectionChange('experience', job.id, e)
+                }
+                placeholder = "Description (use new lines for bullet points)"
+                className = "shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 h-24" > < /textarea> <
+                /div>
+            ))
+        } <
+        /Section>
+
+        <
+        div className = "mb-8 p-6 bg-white rounded-lg shadow-md" >
+        <
+        h2 className = "text-2xl font-bold text-gray-800 mb-6 border-b pb-2" > Skills < /h2> <
+        textarea value = {
+            resumeData.skills.join(', ')
+        }
+        onChange = {
+            handleSkillsChange
+        }
+        placeholder = "e.g., JavaScript, React, Node.js"
+        className = "shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" /
+        >
+        <
+        p className = "text-xs text-gray-500 mt-1" > Separate skills with a comma. < /p> <
+        /div>
+
+        <
+        Section title = "Publications"
+        section = "publications"
+        onAddItem = {
+            addSectionItem
+        } > {
+            resumeData.publications.map((pub) => ( <
+                div key = {
+                    pub.id
+                }
+                className = "mb-4 p-4 border rounded-lg bg-gray-50 relative" >
+                <
+                button onClick = {
+                    () => removeSectionItem('publications', pub.id)
+                }
+                className = "absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold" > X < /button> <
+                FormInput label = "Title"
+                name = "title"
+                value = {
+                    pub.title
+                }
+                onChange = {
+                    (e) => handleSectionChange('publications', pub.id, e)
+                }
+                /> <
+                FormInput label = "Authors"
+                name = "authors"
+                value = {
+                    pub.authors
+                }
+                onChange = {
+                    (e) => handleSectionChange('publications', pub.id, e)
+                }
+                /> <
+                FormInput label = "Journal/Conference"
+                name = "journal"
+                value = {
+                    pub.journal
+                }
+                onChange = {
+                    (e) => handleSectionChange('publications', pub.id, e)
+                }
+                /> <
+                FormInput label = "Year"
+                name = "year"
+                value = {
+                    pub.year
+                }
+                onChange = {
+                    (e) => handleSectionChange('publications', pub.id, e)
+                }
+                /> <
+                /div>
+            ))
+        } <
+        /Section>
+
+        <
+        Section title = "Awards"
+        section = "awards"
+        onAddItem = {
+            addSectionItem
+        } > {
+            resumeData.awards.map((award) => ( <
+                div key = {
+                    award.id
+                }
+                className = "mb-4 p-4 border rounded-lg bg-gray-50 relative" >
+                <
+                button onClick = {
+                    () => removeSectionItem('awards', award.id)
+                }
+                className = "absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold" > X < /button> <
+                FormInput label = "Title"
+                name = "title"
+                value = {
+                    award.title
+                }
+                onChange = {
+                    (e) => handleSectionChange('awards', award.id, e)
+                }
+                /> <
+                FormInput label = "Organization"
+                name = "organization"
+                value = {
+                    award.organization
+                }
+                onChange = {
+                    (e) => handleSectionChange('awards', award.id, e)
+                }
+                /> <
+                FormInput label = "Year"
+                name = "year"
+                value = {
+                    award.year
+                }
+                onChange = {
+                    (e) => handleSectionChange('awards', award.id, e)
+                }
+                /> <
+                /div>
+            ))
+        } <
+        /Section>
+
+        <
+        button onClick = {
+            handleExport
+        }
+        className = "w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105" >
+        Save as Word Document <
+        /button> <
+        /div> <
+        /div> <
+        /div> <
+        /div>
+    );
+}
+
