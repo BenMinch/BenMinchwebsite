@@ -172,14 +172,6 @@ Coming soon.
         htmlFile: 'interactive/textguesser.html'
     },
     {
-        id: 'resumebuilder',
-        type: 'interactive',
-        title: 'Resume-Builder',
-        date: '2025-06-27',
-        description: 'A plug and play resume creator',
-        htmlFile: 'interactive/resume_builder.html'
-    },
-    {
         id: 'protist-defense',
         type: 'interactive',
         title: 'Protist and Giant Virus Arms race',
