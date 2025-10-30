@@ -34,6 +34,7 @@
                     <a href="#podcasts" class="nav-link text-gray-500 hover:text-gray-900 transition">Podcasts</a>
                     <a href="#publications" class="nav-link text-gray-500 hover:text-gray-900 transition">Publications</a>
                     <a href="#interactive" class="nav-link text-gray-500 hover:text-gray-900 transition">Interactive</a>
+                    <a href="#videos" class="nav-link text-gray-500 hover:text-gray-900 transition">Videos</a>
                 </div>
                 <div class="sm:hidden">
                     <button id="mobile-menu-button" class="p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100">
@@ -46,6 +47,7 @@
                 <a href="#podcasts" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Podcasts</a>
                 <a href="#publications" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Publications</a>
                 <a href="#interactive" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Interactive</a>
+                <a href="#videos" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Videos</a>
             </div>
         </nav>
     </header>
@@ -80,6 +82,7 @@
             '#podcasts': () => renderList('podcast', 'Podcasts', createCard),
             '#publications': () => renderList('publication', 'Publications', createPublicationCard),
             '#interactive': () => renderList('interactive', 'Interactive Pages', createCard),
+            '#videos': () => renderList('video', 'Videos', createVideoCard),
         };
 
         function router() {
@@ -184,6 +187,25 @@
                         <div class="mt-4">
                             <a href="${link}" class="font-semibold text-blue-600 hover:text-blue-800 transition">View Abstract &rarr;</a>
                         </div>
+                    </div>
+                </div>
+            `;
+        }
+        function createVideoCard(item) {
+            const link = `#${item.type}/${item.id}`;
+            return `
+                <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+                    <div class="aspect-w-16 aspect-h-9">
+                        <iframe src="https://www.youtube.com/embed/${item.youtubeId}" 
+                                title="${item.title}" 
+                                class="w-full h-64 border-0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-900">${item.title}</h3>
+                        <p class="mt-2 text-gray-600">${item.description}</p>
                     </div>
                 </div>
             `;
