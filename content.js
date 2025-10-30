@@ -159,6 +159,23 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
         date: '2025-06-23',
         description: 'An overview of giant virus entry mechanisms and protist defences.',
         htmlFile: 'interactive/protist-defense.html'
-    }
+    },
+    // === Videos ===
+    {
+    id: 'Genomic-islands',
+    type: 'video',
+    title: 'The Genomic Island Landscape of Giant Viruses',
+    date: '2025-10-24',
+    description: 'An overview of my research into the genomic islands of giant viruses.',
+    youtubeId: 'AXeiHifZ3kM' // 👈 Replace with your actual YouTube video ID
+    },
+    {
+    id: 'Metagenomics-workshop',
+    type: 'video',
+    title: 'Intro to Metagenomics Workshop',
+    date: '2025-09-22',
+    description: 'An introductory metagenomic workshop for those interested in getting into it.',
+    youtubeId: 'Mlp0dE7sQAo' // Replace with your actual video ID
+    },
 ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
