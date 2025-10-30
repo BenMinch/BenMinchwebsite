@@ -79,17 +79,6 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
 
     // === BLOG POSTS ===
     {
-        id: 'my-first-post',
-        type: 'blog',
-        title: 'An introduction',
-        date: '2025-06-25',
-        description: 'An introduction to myself and what I research.',
-        content: `
-## Welcome!
-Coming soon.
-        `
-    },
-    {
         id: 'news-npj',
         type: 'blog',
         title: 'News articles for Expansion of GV diversity NPJ paper',
@@ -138,14 +127,6 @@ Coming soon.
         date: '2025-06-27',
         description: 'An interactive size chart to see the relative size of giant viruses.',
         htmlFile: 'interactive/size-compare.html'
-    },
-    {
-        id: 'game',
-        type: 'interactive',
-        title: 'Inside-vs-outside',
-        date: '2025-06-27',
-        description: 'Game demo',
-        htmlFile: 'interactive/game.html'
     },
     {
         id: 'umap',
