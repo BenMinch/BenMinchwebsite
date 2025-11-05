@@ -144,6 +144,28 @@
         }
 
         function renderList(type, title, cardFn) {
+            const headerImages = {
+                'blog': 'carcassonne.jpg',
+                'podcasts': 'italy.jpg',
+                'publications': 'greece.jpg',
+                'interactive': 'athens.jpg',
+                'videos': ''
+            };
+
+            const imagePath = headerImages[type]; // Get the image for the current page type
+            let headerImageHtml = ''; // Default to no image
+
+            // --- 2. ADD THIS 'if' BLOCK ---
+            // If we found an image for this page, create the HTML for it
+            if (imagePath) {
+                headerImageHtml = `
+                    <div class="w-full h-64 md:h-80 rounded-lg shadow-lg overflow-hidden mb-8">
+                        <img src="${imagePath}" 
+                             alt="${title} header" 
+                             class="w-full h-full object-cover object-center">
+                    </div>
+                `;
+            }
             const items = contentData.filter(item => item.type === type);
             const cardHtml = items.length > 0 ? items.map(cardFn).join('') : '<p>No content here yet. Check back soon!</p>';
             const gridClass = type === 'publication' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
