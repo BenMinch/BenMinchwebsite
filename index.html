@@ -112,6 +112,11 @@
             const recentBlogs = contentData.filter(item => item.type === 'blog').slice(0, 2);
             const recentPubs = contentData.filter(item => item.type === 'publication').slice(0, 1);
             contentRoot.innerHTML = `
+                <div class="w-full h-72 md:h-96 rounded-lg shadow-lg overflow-hidden mb-12">
+                    <img src="strasborg.jpg" 
+                         alt="Describe your image here for accessibility" 
+                         class="w-full h-full object-cover object-center">
+                </div>
                 <div class="text-center mb-12">
                     <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Welcome to My Personal Website</h1>
                     <p class="mt-4 text-lg text-gray-600">I am a Ph.D. student at the University of Miami studying ocean viruses! For inquiries email bsm122@miami.edu.</p>
