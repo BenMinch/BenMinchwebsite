@@ -35,6 +35,7 @@
                     <a href="#publications" class="nav-link text-gray-500 hover:text-gray-900 transition">Publications</a>
                     <a href="#interactive" class="nav-link text-gray-500 hover:text-gray-900 transition">Interactive</a>
                     <a href="#videos" class="nav-link text-gray-500 hover:text-gray-900 transition">Videos</a>
+                    <a href="#cv" class="nav-link text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white transition">CV</a>
                 </div>
                 <div class="sm:hidden">
                     <button id="mobile-menu-button" class="p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100">
@@ -48,6 +49,7 @@
                 <a href="#publications" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Publications</a>
                 <a href="#interactive" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Interactive</a>
                 <a href="#videos" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Videos</a>
+                <a href="#cv" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded">CV</a>
             </div>
         </nav>
     </header>
@@ -63,6 +65,7 @@
     </footer>
 
     <script src="content.js"></script>
+    <script src="cv.js"></script>
     <script type="module">
         const contentRoot = document.getElementById('content-root');
         const mobileMenu = document.getElementById('mobile-menu');
@@ -83,6 +86,7 @@
             '#publications': () => renderList('publication', 'Publications', createPublicationCard),
             '#interactive': () => renderList('interactive', 'Interactive Pages', createCard),
             '#videos': () => renderList('video', 'Videos', createVideoCard),
+            '#cv': renderCV
         };
 
         function router() {
@@ -120,6 +124,11 @@
                 <div class="text-center mb-12">
                     <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Welcome to My Personal Website</h1>
                     <p class="mt-4 text-lg text-gray-600">I am a Ph.D. student at the University of Miami studying ocean viruses! For inquiries email bsm122@miami.edu.</p>
+                </div>
+                <div class="text-center mb-16">
+                    <a href="#cv" class="inline-block bg-blue-600 text-white ...">
+                        View My Curriculum Vitae
+                    </a>
                 </div>
                 <div class="space-y-12">
                     ${generateSection('Latest Blog Posts', recentBlogs, '#blog', createCard)}
@@ -196,6 +205,110 @@
                 detailHTML = `<article class="max-w-4xl mx-auto"><h1 class="text-3xl font-bold text-gray-900">${item.title}</h1><div class="mt-2 mb-4 text-md text-gray-600">${item.authors}</div><div class="mb-8 text-sm text-gray-500"><em>${item.venue}</em>, ${item.date}</div><div class="prose max-w-none">${abstractHtml}</div><div class="mt-8"><a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-semibold hover:underline">Read Full Paper &rarr;</a></div></article>`;
             }
             contentRoot.innerHTML = detailHTML;
+        }
+         function renderCV() {
+            // Check if cvData exists
+            if (typeof cvData === 'undefined') {
+                contentRoot.innerHTML = '<p>CV data not found. Make sure cv.js is loaded.</p>';
+                return;
+            }
+
+            // Automatically find the publications from contentData to display in the CV
+            const publications = contentData.filter(item => item.type === 'publication');
+
+            contentRoot.innerHTML = `
+                <div class="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8 md:p-12">
+                    <!-- Header Section -->
+                    <div class="text-center border-b dark:border-slate-700 pb-6 mb-8">
+                        <h1 class="text-4xl md:text-5xl font-bold dark:text-white font-serif">${cvData.name}</h1>
+                        <div class="flex justify-center space-x-4 mt-4 text-gray-600 dark:text-slate-400">
+                            <span>${cvData.email}</span>
+                            <span>&bull;</span>
+                            <a href="${cvData.website}" target="_blank" class="text-blue-600 dark:text-cyan-400 hover:underline">${cvData.website}</a>
+                        </div>
+                        <!-- Download PDF Button -->
+                        ${cvData.pdf ? `<div class="mt-8">
+                            <a href="${cvData.pdf}" target="_blank" rel="noopener" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 dark:bg-cyan-500 dark:text-slate-900 dark:hover:bg-cyan-400 transition-colors">
+                                Download PDF
+                            </a>
+                        </div>` : ''}
+                    </div>
+
+                    <!-- Dynamic Sections -->
+                    ${renderCVSection('Education', cvData.education, renderCVEntry)}
+                    ${renderCVSection('Experience', cvData.experience, renderCVEntry)}
+                    ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
+                    ${renderCVSection('Skills', cvData.skills, renderSkillItem)}
+                    
+                    <!-- Special section for publications pulled from contentData -->
+                    ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
+                </div>
+            `;
+        }
+
+        /**
+         * A helper function to render a full section of the CV
+         * @param {string} title - The section title (e.g., "Education")
+         * @param {Array} items - The list of items from cvData
+         * @param {Function} renderItemFn - The function to use for rendering each item
+         */
+        function renderCVSection(title, items, renderItemFn) {
+            if (!items || items.length === 0) return '';
+            return `
+                <section class="mb-10">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white border-b-2 border-blue-600 dark:border-cyan-400 pb-2 mb-6 font-serif">${title}</h2>
+                    <div class="space-y-6">
+                        ${items.map(renderItemFn).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        /**
+         * Renders a standard CV entry (for Education, Experience, Awards)
+         */
+        function renderCVEntry(item) {
+            return `
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/4 text-gray-600 dark:text-slate-400 font-medium mb-1 md:mb-0">${item.years}</div>
+                    <div class="md:w-3/4">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-slate-100">${item.title}</h3>
+                        <p class="text-md font-semibold text-gray-700 dark:text-slate-300">${item.organization}</p>
+                        ${item.description ? `<p class="mt-2 text-gray-600 dark:text-slate-300">${item.description}</p>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders a Skill entry
+         */
+        function renderSkillItem(item) {
+            return `
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/4 text-gray-600 dark:text-slate-300 font-medium mb-1 md:mb-0">${item.category}</div>
+                    <div class="md:w-3/4">
+                        <p class="text-gray-700 dark:text-slate-300">${item.items}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders a Publication entry (pulled from contentData)
+         */
+        function renderPublicationEntry(item) {
+             return `
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/4 text-gray-600 dark:text-slate-400 font-medium mb-1 md:mb-0">${item.date}</div>
+                    <div class="md:w-3/4">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-slate-100">${item.title}</h3>
+                        <p class="text-md text-gray-700 dark:text-slate-300">${item.authors}</p>
+                        <p class="text-sm italic text-gray-600 dark:text-slate-400 mt-1">${item.venue}</p>
+                        <a href="${item.link}" target="_blank" rel="noopener" class="text-blue-600 dark:text-cyan-400 hover:underline text-sm font-medium">View Paper &rarr;</a>
+                    </div>
+                </div>
+            `;
         }
 
         function createCard(item) {
