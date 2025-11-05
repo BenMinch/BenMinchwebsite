@@ -15,39 +15,39 @@ const cvData = {
   // Personal Info
   name: "Benjamin Minch",
   email: "bsm122@miami.edu",
-  website: "https://bminch.github.io/", // Or your custom domain
+  website: "https://github.com/BenMinch", // Or your custom domain
   // You can link to a PDF version here if you have one
   pdf: "path/to/your/cv.pdf", 
 
   // --- EDUCATION ---
   education: [
     {
-      years: "2021 – Present",
-      title: "Ph.D. in Marine Biology",
+      years: "2022 – Present",
+      title: "Ph.D. in Marine Biology and Ecology",
       organization: "University of Miami, Rosenstiel School",
-      description: "Advisor: Dr. Example Advisor. Focusing on the ecological role of viruses in coral reef ecosystems. Developing computational models to track viral dynamics."
+      description: "Advisor: Dr. Mohammad Moniruzzaman. Focusing on the ecology and genomics of giant viruses in the global oceans through bioinformatics, lab experimentation, and field research."
     },
     {
-      years: "2017 – 2021",
-      title: "B.S. in Marine Science, cum laude",
-      organization: "University of Example",
-      description: "Minor in Computer Science. Senior Thesis: 'Genetic diversity of Synechococcus in coastal waters.'"
+      years: "2018 – 2021",
+      title: "B.S. in Biology, Summa cum laude",
+      organization: "Biola University",
+      description: "Minor in Biblical studies. 3.98 GPA."
     }
   ],
 
   // --- EXPERIENCE ---
   experience: [
     {
-      years: "2021 – Present",
+      years: "2022 – Present",
       title: "Graduate Research Assistant",
       organization: "University of Miami",
-      description: "Conducting Ph.D. research. Includes fieldwork, next-generation sequencing, and bioinformatic analysis."
+      description: "Conducting Ph.D. research. Includes fieldwork, algal-virus culture experimentation, next-generation sequencing (nanopore), and bioinformatic analysis."
     },
     {
-      years: "2020 – 2021",
-      title: "Undergraduate Research Fellow",
-      organization: "University of Example, Marine Lab",
-      description: "Assisted with sample collection and processing for long-term ecological monitoring projects. Maintained lab equipment."
+      years: "January 2022 – May 2022",
+      title: "Adjunct Professor of Cell and Molecular Biology",
+      organization: "Biola University",
+      description: "Taught an upper-division lab course in cell and molecular biology. This involved lesson prep, CRISPR-Cas9 experimentation, bacterial culturing, and extensive teaching/guidance."
     },
     {
       years: "Summer 2019",
