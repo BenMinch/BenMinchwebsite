@@ -170,6 +170,7 @@
             const cardHtml = items.length > 0 ? items.map(cardFn).join('') : '<p>No content here yet. Check back soon!</p>';
             const gridClass = type === 'publication' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
             contentRoot.innerHTML = `
+                ${headerImageHtml}
                 <h1 class="text-3xl font-bold mb-8 border-b pb-4">${title}</h1>
                 <div class="grid ${gridClass} gap-8">${cardHtml}</div>
             `;
