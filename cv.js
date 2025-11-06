@@ -61,34 +61,48 @@ const cvData = {
   skills: [
     {
       category: "Laboratory",
-      items: "DNA/RNA extraction, PCR/qPCR, Nanopore sequencing, flow cytometry, microscopy."
+      items: "DNA/RNA extraction, PCR/qPCR, Nanopore sequencing, flow cytometry, algal and cell culture, microscopy."
     },
     {
       category: "Computational",
-      items: "Python (Pandas, NumPy, Biopython), R (phyloseq, ggplot2), Bash/Shell scripting, QIIME 2, MATLAB."
+      items: "Proficient in Python, R, and Bash/Shell scripting, as well as bioinformatic tool development and pipeline implementation."
     },
     {
       category: "Fieldwork",
-      items: "AAUS Scientific Diver (Rescue, Nitrox), small boat handling, collection of water and sediment samples."
+      items: "Water/soil sampling, filtration and sample processing, CTD casting."
     }
   ],
 
   // --- AWARDS & GRANTS ---
   awards: [
     {
-      years: "2022",
-      title: "NSF Graduate Research Fellowship Program (GRFP)",
-      organization: "National Science Foundation",
+      years: "2020",
+      title: "NOAA Hollings Scholarship",
+      organization: "National Oceanic and Atmospheric Administration",
       description: "Awarded for proposed research on viral impacts on coral holobiont health."
     },
     {
-      years: "2021",
-      title: "Rosenstiel School Fellowship",
-      organization: "University of Miami",
-      description: "Four-year fellowship for incoming graduate students."
+      years: "2018",
+      title: "Stuart Science Honors recipient",
+      organization: "Biola University",
+      description: "A four-year program with an associated scholarship to conduct research and present that research at a conference."
     }
   ]
-  
+  // --- Teaching ---
+  teaching: [
+    {
+      years: "Fall 2023-2024",
+      title: "TA for Saltwater Semester",
+      organization: "University of Miami",
+      description: "Assisted with the teaching of the Conservation genomics course taught to upper-division marine biology students."
+    },
+    {
+      years: "2018",
+      title: "Stuart Science Honors recipient",
+      organization: "Biola University",
+      description: "A four-year program with an associated scholarship to conduct research and present that research at a conference."
+    }
+  ]
   // --- ADD MORE SECTIONS AS NEEDED ---
   // e.g., teaching, publications, presentations...
   // publications: [ ... ],
