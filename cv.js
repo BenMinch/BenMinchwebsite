@@ -87,7 +87,7 @@ const cvData = {
       organization: "Biola University",
       description: "A four-year program with an associated scholarship to conduct research and present that research at a conference."
     }
-  ]
+  ],
   // --- Teaching ---
   teaching: [
     {
