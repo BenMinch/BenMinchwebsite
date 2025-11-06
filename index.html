@@ -239,6 +239,7 @@
                     ${renderCVSection('Experience', cvData.experience, renderCVEntry)}
                     ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
                     ${renderCVSection('Skills', cvData.skills, renderSkillItem)}
+                    ${renderCVSection('Teaching', cvData.teaching, renderCVEntry)}
                     
                     <!-- Special section for publications pulled from contentData -->
                     ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
