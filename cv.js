@@ -44,7 +44,7 @@ const cvData = {
       description: "Conducting Ph.D. research. Includes fieldwork, algal-virus culture experimentation, next-generation sequencing (nanopore), and bioinformatic analysis."
     },
     {
-      years: "January 2022 – May 2022",
+      years: "Jan 2022 – May 2022",
       title: "Adjunct Professor of Cell and Molecular Biology",
       organization: "Biola University",
       description: "Taught an upper-division lab course in cell and molecular biology. This involved lesson prep, CRISPR-Cas9 experimentation, bacterial culturing, and extensive teaching/guidance."
