@@ -139,7 +139,7 @@ const cvData = {
       description: "I was involved with the Students4Students outreach club on campus. Through this club, I was paired up with various high schools to give guest lectures on ocean microbes and viruses. Throughout my time, I gave a total of 8 lectures to a total of 193 students at 3 different highschools."
     },
     {
-      years: "January 2022 – May 2022",
+      years: "Jan 2022 – May 2022",
       title: "Adjunct Professor of Cell and Molecular Biology",
       organization: "Biola University",
       description: "Taught an upper-division lab course in cell and molecular biology. This involved lesson prep, CRISPR-Cas9 experimentation, bacterial culturing, and extensive teaching/guidance."
