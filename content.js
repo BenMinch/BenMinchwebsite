@@ -160,6 +160,14 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
         description: 'An overview of giant virus entry mechanisms and protist defences.',
         htmlFile: 'interactive/protist-defense.html'
     },
+    {
+        id: 'volcano-plotter',
+        type: 'interactive',
+        title: 'Volcano Plot Viewer for RNA-SEQ',
+        date: '2025-07-23',
+        description: 'A tool to create volcano plots from RNA-SEQ data.',
+        htmlFile: 'interactive/volcanoplotter.html'
+    },
     // === Videos ===
     {
     id: 'Genomic-islands',
