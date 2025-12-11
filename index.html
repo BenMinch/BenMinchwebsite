@@ -35,6 +35,7 @@
                     <a href="#publications" class="nav-link text-gray-500 hover:text-gray-900 transition">Publications</a>
                     <a href="#interactive" class="nav-link text-gray-500 hover:text-gray-900 transition">Interactive</a>
                     <a href="#videos" class="nav-link text-gray-500 hover:text-gray-900 transition">Videos</a>
+                    <a href="#teaching" class="nav-link text-gray-500 hover:text-gray-900 transition">Teaching</a>
                     <a href="#cv" class="nav-link text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white transition">CV</a>
                 </div>
                 <div class="sm:hidden">
@@ -49,6 +50,7 @@
                 <a href="#publications" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Publications</a>
                 <a href="#interactive" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Interactive</a>
                 <a href="#videos" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Videos</a>
+                <a href="#teaching" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Teaching</a>
                 <a href="#cv" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded">CV</a>
             </div>
         </nav>
@@ -86,6 +88,7 @@
             '#publications': () => renderList('publication', 'Publications', createPublicationCard),
             '#interactive': () => renderList('interactive', 'Interactive Pages', createCard),
             '#videos': () => renderList('video', 'Videos', createVideoCard),
+            '#teaching': () => renderList('teaching', 'Teaching Resources', createCard),
             '#cv': renderCV
         };
 
@@ -157,6 +160,7 @@
                 'blog': 'carcassonne.jpg',
                 'podcasts': 'italy.jpg',
                 'interactive': 'greece.jpg',
+                'teaching': '',
                 'videos': ''
             };
 
@@ -192,6 +196,37 @@
             }
 
             let detailHTML = '';
+            if (type === 'teaching') {
+        // Show loading state
+        contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-xl text-gray-500">Loading lesson...</p></div>';
+        
+        // Fetch the markdown file from the URL provided in content.js
+        fetch(item.markdownUrl)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(markdown => {
+                const contentHtml = markdownConverter.makeHtml(markdown);
+                const html = `
+                    <article class="max-w-4xl mx-auto">
+                        <h1 class="text-4xl font-bold text-gray-900">${item.title}</h1>
+                        <p class="text-gray-500 mt-2 mb-8">
+                            ${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                        <div class="prose lg:prose-xl max-w-none">
+                            ${contentHtml}
+                        </div>
+                    </article>
+                `;
+                contentRoot.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error loading markdown:', error);
+                contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-red-500">Error loading lesson content. Please try again later.</p></div>';
+            });
+        return; // Return early because we handled the HTML update asynchronously
+    }
             if (type === 'blog') {
                 const contentHtml = markdownConverter.makeHtml(item.content);
                 detailHTML = `<article class="max-w-4xl mx-auto"><h1 class="text-4xl font-bold text-gray-900">${item.title}</h1><p class="text-gray-500 mt-2 mb-8">${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><div class="prose lg:prose-xl max-w-none">${contentHtml}</div></article>`;
