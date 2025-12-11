@@ -1,29 +1,91 @@
-# Introduction to Protein Prediction with Prodigal
+# Tutorial: Predicting Proteins from a Microbial Metagenome Using Prodigal (with Figures)
 
-**Date:** 2025-12-10  
-**Author:** Benjamin Minch
-
-Prodigal (Prokaryotic Dynamic Programming Genefinding Algorithm) is widely considered the gold standard for identifying protein-coding genes in microbial genomes. Whether you are working with a complete bacterial genome or a complex metagenome from the ocean, Prodigal is efficient, robust, and highly accurate.
-
-In this tutorial, we will walk through how to use Prodigal to predict genes from a mock metagenome.
+## 1. Overview
+Prodigal is a fast and accurate tool for predicting protein-coding genes (ORFs) from microbial genomes and metagenomes.
 
 ---
 
-## 1. What is Prodigal?
+## 2. Workflow Diagram
 
-Prodigal is a gene prediction tool tailored for prokaryotes (bacteria and archaea). It reads raw DNA sequences and outputs the coordinates of potential genes (open reading frames, or ORFs) and their corresponding protein translations.
-
-**Key Features:**
-* **Fast:** Can analyze large datasets quickly.
-* **Accurate:** Uses a highly tuned algorithm to find translation initiation sites.
-* **Versatile:** Runs in two main modes: *Single Genome* (normal) and *Metagenomic* (anonymous).
+```
++----------------------+       +-------------------+       +---------------------+
+|  Metagenome Assembly | --->  |     Prodigal      | --->  |  Predicted Proteins |
+|    (FASTA file)      |       |  Gene Prediction  |       |   (FAA / FNA / GFF) |
++----------------------+       +-------------------+       +---------------------+
+```
 
 ---
 
-## 2. Installation
+## 3. Example of Gene Prediction on a Contig
 
-If you haven't installed Prodigal yet, you can typically install it via Conda (bioconda) or standard package managers.
+```
+Contig Sequence:
+ATGACCATGATTACGCCA...TAGGCTGA
 
-**Option A: Conda (Recommended)**
-```bash
-conda install -c bioconda prodigal
+Detected ORF:
+ATG----------------------TGA
+ |                        |
+Start Codon          Stop Codon
+```
+
+---
+
+## 4. Command Diagram
+
+```
+prodigal -i metagenome.fasta          -a proteins.faa          -d genes.fna          -o annotations.gff          -p meta
+
+ Inputs:
+   - metagenome.fasta  -> Assembled contigs
+
+ Outputs:
+   - proteins.faa -> amino acids
+   - genes.fna    -> nucleotide ORFs
+   - annotations.gff -> coordinates
+```
+
+---
+
+## 5. Output Structure Diagram
+
+```
+proteins.faa
+>gene_1 # 100 # 900 # + # 0.95
+MKTIIALSYIFCLVFA...
+
+genes.fna
+>gene_1
+ATGAAAACC...
+
+prodigal_output.gff
+contig1  Prodigal  CDS  100 900  .  +  0  ID=1
+```
+
+---
+
+## 6. Summary Figure
+
+```
++----------------------+
+|      START HERE      |
++----------------------+
+           |
+           v
++----------------------+        +------------------------+
+|  Input FASTA Assembly| -----> | Run Prodigal (-p meta) |
++----------------------+        +------------------------+
+           |                                |
+           v                                v
+   +---------------+             +------------------------------+
+   | genes.fna     |             | proteins.faa                 |
+   | nucleotides   |             | amino acids (functional use) |
+   +---------------+             +------------------------------+
+           |
+           v
+   +---------------+
+   | annotations   |
+   | (GFF file)    |
+   +---------------+
+```
+
+---
