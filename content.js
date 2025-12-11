@@ -114,10 +114,18 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
     {
         id: 'protein-prediction',
         type: 'teaching',
-        title: 'Lesson 2:Protein Prediction',
+        title: 'Lesson 1:Protein Prediction',
         date: '2025-06-24',
         description: 'How to predict microbial proteins and determine their function',
         markdownUrl: 'teaching/Predicting_and_annotating.md'
+    },
+    {
+        id: 'introduction',
+        type: 'teaching',
+        title: 'Introduction (Read First)',
+        date: '2025-010-24',
+        description: 'An introduction to using these tutorials.',
+        markdownUrl: 'teaching/introduction.md'
     },
     // === INTERACTIVE PAGES ===
     {
