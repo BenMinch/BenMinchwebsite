@@ -20,45 +20,14 @@ For metagenomes, Prodigal uses the `-p meta` flag, which adjusts the model to av
 
 ---
 
-## 📦 2. Installation
-
-### **Option A: Install via Conda (recommended)**
-
-```bash
-conda install -c bioconda prodigal
-```
-
-### **Option B: Manual Install**
-
-1. Download from: [https://github.com/hyattpd/Prodigal](https://github.com/hyattpd/Prodigal)
-2. Compile:
-
-```bash
-make
-```
-
-3. Move executable into your PATH:
-
-```bash
-sudo mv prodigal /usr/local/bin/
-```
-
-### Confirm installation
-
-```bash
-prodigal -v
-```
-
----
-
-## 📁 3. Input Data
+## 📁 2. Input Data
 
 Prodigal requires an assembly in **FASTA format**.
 
 Example:
 
 ```
-metagenome_assembly.fasta
+Mock_metagenome.fasta
 ```
 
 Ensure that:
@@ -69,7 +38,7 @@ Ensure that:
 
 ---
 
-## ▶️ 4. Running Prodigal in Metagenome Mode
+## ▶️ 3. Running Prodigal in Metagenome Mode
 
 To run Prodigal on a metagenome and generate protein predictions:
 
@@ -99,14 +68,14 @@ prodigal -i metagenome_assembly.fasta \
 
 ---
 
-## 📊 5. Understanding the Output Files
+## 📊 4. Understanding the Output Files
 
 ### **1. Protein file (proteins.faa)**
 
 Headers look like:
 
 ```
->1_1 # 1 # 100 # 900 # + # 0.89
+>1_1 # 1 # 100 # 900 # +1 # 0.89
 ```
 
 Information encoded:
@@ -128,37 +97,22 @@ Useful for: visualization, integration with downstream tools.
 
 ---
 
-## 🔧 6. Common Downstream Tasks
+## 🔧 5. Common Downstream Tasks
 
 ### **A. Count the number of predicted proteins**
 
 ```bash
-grep -c ">" proteins.faa
+seqkit stats proteins.faa
 ```
 
 ### **B. Filter out short proteins (<100 aa)**
 
 ```bash
-awk '/^>/ {if (seqlen){print seqlen}; print; seqlen=0; next;} {seqlen += length($0)} END {print seqlen}' proteins.faa |
-awk 'NR%2==1 {header=$0} NR%2==0 {if ($0 >= 300) print header"\n"$0}' > proteins_100aa.faa
+seqkit seq -m 100 proteins.faa > long_proteins.faa
 ```
 
-### **C. Use predicted proteins for functional annotation**
 
-Tools include:
-
-* **Diamond BLASTp** against UniProt or NR
-* **HMMER** against PFAM or TIGRFAM
-* **eggNOG-mapper**
-* **InterProScan**
-
-### **D. Generate gene statistics** (length, GC%)
-
-Use scripts or tools like: seqkit, bioawk, or custom Python.
-
----
-
-## 🔁 7. Running Prodigal on Many Samples
+## 🔁 6. Running Prodigal on Many Samples
 
 Loop example:
 
@@ -169,26 +123,7 @@ for f in *.fasta; do
 done
 ```
 
----
-
-## 🧪 8. Troubleshooting
-
-### **"No genes found"**
-
-* Assembly might be too fragmented
-* Check for mixed nucleotide/amino acid content
-
-### **Strange headers**
-
-Prodigal compresses information into the header—this is expected.
-
-### **Very short ORFs**
-
-Use `grep`/awk filters to remove tiny genes.
-
----
-
-## 🎯 9. Summary
+## 🎯 7. Summary
 
 In this tutorial, you learned how to:
 
@@ -202,7 +137,7 @@ Prodigal remains one of the most efficient and accurate ORF finders in microbial
 
 ---
 
-## 📚 10. References
+## 📚 8. Further Reading
 
 * Hyatt, D. et al. (2010). *Prodigal: prokaryotic gene recognition and translation initiation site identification.* BMC Bioinformatics.
 * Prodigal GitHub repository.
