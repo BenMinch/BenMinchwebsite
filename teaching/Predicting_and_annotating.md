@@ -208,10 +208,3 @@ Prodigal remains one of the most efficient and accurate ORF finders in microbial
 * Prodigal GitHub repository.
 
 ---
-
-If you'd like, I can also generate:
-
-* a downloadable `.md` file
-* a version with embedded figures
-* a shell script wrapper for Prodigal
-* a Snakemake workflow
