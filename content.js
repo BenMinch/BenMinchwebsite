@@ -110,7 +110,15 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
 * How these viruses may be influencing the chemistry of the pools.
         `
     },
-
+    // === Teaching ===
+    {
+        id: 'protein-prediction',
+        type: 'teaching',
+        title: 'Protein Prediction',
+        date: '2025-06-24',
+        description: 'How to predict microbial proteins and determine their function',
+        markdownUrl: 'teaching/Predicting_and_annotating.md'
+    },
     // === INTERACTIVE PAGES ===
     {
         id: 'Polinton-like-viruses',
