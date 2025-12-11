@@ -181,8 +181,8 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
         type: 'interactive',
         title: 'Virtual Bioinformatics Terminal',
         date: '2025-07-23',
-        description: 'A bioinformatics-ready environment to learn command line tools.',
-        htmlFile: 'https://mybinder.org/v2/gh/BenMinch/bioinformatic-teaching-environment/HEAD?urlpath=%2Fdoc%2Ftree%2Flab'
+        description: 'A bioinformatics-ready environment to learn command line tools. Copy this link into the page and click launch.(https://github.com/BenMinch/bioinformatic-teaching-environment)',
+        htmlFile: 'https://mybinder.org'
     },
     // === Videos ===
     {
