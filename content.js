@@ -20,9 +20,9 @@ Giant viruses (GVs) play crucial roles in the global ocean microbial food web an
         type: 'publication',
         title: 'BEREN: A bioinformatic tool for recovering Giant viruses, Polinton-like Viruses, and Virophages in metagenomic data',
         authors: 'Benjamin Minch and Mohammad Moniruzzaman',
-        venue: 'bioRxviv',
-        date: '2024',
-        link: 'https://www.biorxiv.org/content/10.1101/2024.10.09.617401v1.abstract',
+        venue: 'Bioinformatics Advances',
+        date: '2025',
+        link: 'https://academic.oup.com/bioinformaticsadvances/article/5/1/vbaf284/8317246',
         abstract: `
 Viruses in the kingdom Bamfordvirae, specifically giant viruses (NCLDVs) in the phylum Nucleocytoviricota and smaller members in the Preplasmiviricota phylum, are widespread and important groups of viruses that infect eukaryotes. While viruses in this kingdom such as giant viruses, polinton-like viruses, and virophages have gained large interest from researchers in recent years, there is still a lack of streamlined tools for the recovery of their genomes from metagenomic datasets. Here, we present BEREN, a comprehensive bioinformatic tool to unlock the diversity of these viruses in metagenomes through five modules for NCLDV genome, contig, and marker gene recovery, metabolic protein annotation, and Preplasmiviricota genome identification and annotation. BEREN’s performance was benchmarked against other mainstream virus recovery tools using a mock metagenome, demonstrating superior recovery rates of NCLDV contigs and Preplasmiviricota genomes. Applied to a real-world dataset from the Baltic Sea, BEREN identified diverse Bamfordvirae members, giving insight into viral interactions and metabolic functions in this region. Overall, BEREN offers a user-friendly, transparent bioinformatic solution for studying the ecological and functional roles of these eukaryotic viruses, facilitating broader access to their metagenomic analysis.
         `
