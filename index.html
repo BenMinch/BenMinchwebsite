@@ -24,7 +24,6 @@
         .prose pre code { background-color: transparent; padding: 0; }
 
         /* --- PDF GENERATION STYLES --- */
-        /* Prevent awkward page breaks inside individual CV entries and sections */
         .cv-section, .cv-entry { 
             page-break-inside: avoid; 
             break-inside: avoid; 
@@ -32,23 +31,28 @@
 
         /* COMPACT MODE STYLES (Overrides for the Short PDF) */
         .compact-cv {
-            font-size: 0.8rem !important;
-            line-height: 1.3 !important;
+            font-size: 0.7rem !important;
+            line-height: 1.1 !important;
         }
-        .compact-cv .p-8, .compact-cv .md\:p-12 { padding: 1.5rem !important; }
-        .compact-cv h1 { font-size: 2rem !important; }
-        .compact-cv h2 { font-size: 1.1rem !important; margin-bottom: 0.5rem !important; padding-bottom: 0.25rem !important; }
-        .compact-cv h3 { font-size: 0.95rem !important; }
-        .compact-cv .mb-10 { margin-bottom: 1rem !important; }
-        .compact-cv .space-y-6 > * + * { margin-top: 0.5rem !important; }
-        .compact-cv .text-lg { font-size: 0.95rem !important; }
-        .compact-cv .text-md, .compact-cv .text-sm { font-size: 0.8rem !important; }
+        .compact-cv .p-8, .compact-cv .md\:p-12 { padding: 1rem !important; }
+        .compact-cv h1 { font-size: 1.5rem !important; }
+        .compact-cv h2 { font-size: 0.95rem !important; margin-bottom: 0.5rem !important; padding-bottom: 0.25rem !important; }
+        .compact-cv h3 { font-size: 0.8rem !important; }
+        .compact-cv .mb-10 { margin-bottom: 0.75rem !important; }
+        .compact-cv .space-y-6 > * + * { margin-top: 0.35rem !important; }
+        .compact-cv .text-lg { font-size: 0.8rem !important; }
+        .compact-cv .text-md, .compact-cv .text-sm { font-size: 0.7rem !important; }
+
+        /* Hides specific sections when in compact mode */
+        .compact-cv .hide-in-short {
+            display: none !important;
+        }
 
         /* Forces a two-column grid layout for the body when in compact mode */
         .compact-cv #cv-body-wrapper {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+            gap: 1rem;
             align-items: start;
         }
     </style>
@@ -303,9 +307,9 @@
                         </div>
                         
                         <div>
-                            ${renderCVSection('Skills', cvData.skills, renderSkillItem)}
+                            ${renderCVSection('Skills', cvData.skills, renderSkillItem, 'hide-in-short')}
                             ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
-                            ${renderCVSection('Teaching', cvData.teaching, renderCVEntry)}
+                            ${renderCVSection('Teaching', cvData.teaching, renderCVEntry, 'hide-in-short')}
                             ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
                         </div>
                     </div>
@@ -349,10 +353,11 @@
             });
         }
 
-        function renderCVSection(title, items, renderItemFn) {
+        // Updated renderCVSection to accept an optional extraClass (like 'hide-in-short')
+        function renderCVSection(title, items, renderItemFn, extraClass = '') {
             if (!items || items.length === 0) return '';
             return `
-                <section class="mb-10 cv-section">
+                <section class="mb-10 cv-section ${extraClass}">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white border-b-2 border-blue-600 dark:border-cyan-400 pb-2 mb-6 font-serif">${title}</h2>
                     <div class="space-y-6">
                         ${items.map(renderItemFn).join('')}
