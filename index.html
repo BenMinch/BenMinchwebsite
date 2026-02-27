@@ -24,20 +24,33 @@
         .prose pre code { background-color: transparent; padding: 0; }
 
         /* --- PDF GENERATION STYLES --- */
-        .cv-section, .cv-entry { 
+        /* Prevent awkward page breaks inside individual CV entries */
+        .cv-entry { 
             page-break-inside: avoid; 
             break-inside: avoid; 
+        }
+        /* Keep Section Headers attached to their content */
+        .cv-section h2 {
+            page-break-after: avoid;
+            break-after: avoid;
         }
 
         /* COMPACT MODE STYLES (Overrides for the Short PDF) */
         .compact-cv {
-            font-size: 0.7rem !important;
-            line-height: 1.1 !important;
+            font-size: 0.7rem !important; 
+            line-height: 1.2 !important;
         }
         .compact-cv .p-8, .compact-cv .md\:p-12 { padding: 1rem !important; }
-        .compact-cv h1 { font-size: 1.5rem !important; }
-        .compact-cv h2 { font-size: 0.95rem !important; margin-bottom: 0.5rem !important; padding-bottom: 0.25rem !important; }
-        .compact-cv h3 { font-size: 0.8rem !important; }
+        .compact-cv h1 { font-size: 1.75rem !important; }
+        .compact-cv h2 { font-size: 0.95rem !important; margin-bottom: 0.3rem !important; padding-bottom: 0.2rem !important; }
+        
+        /* TIGHTENED BOLD HEADERS: Reduced font size, line height, and bottom margin */
+        .compact-cv h3 { 
+            font-size: 0.8rem !important; 
+            line-height: 1.1 !important; 
+            margin-bottom: 0.1rem !important; 
+        }
+        
         .compact-cv .mb-10 { margin-bottom: 0.75rem !important; }
         .compact-cv .space-y-6 > * + * { margin-top: 0.35rem !important; }
         .compact-cv .text-lg { font-size: 0.8rem !important; }
@@ -48,12 +61,11 @@
             display: none !important;
         }
 
-        /* Forces a two-column grid layout for the body when in compact mode */
+        /* NEW NEWSPAPER LAYOUT: Forces sequential flow that fills columns one by one */
         .compact-cv #cv-body-wrapper {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            align-items: start;
+            display: block; /* Remove flex/grid */
+            column-count: 2;
+            column-gap: 1.5rem;
         }
     </style>
 </head>
@@ -301,17 +313,12 @@
                     </div>
 
                     <div id="cv-body-wrapper">
-                        <div>
-                            ${renderCVSection('Education', cvData.education, renderCVEntry)}
-                            ${renderCVSection('Experience', cvData.experience, renderCVEntry)}
-                        </div>
-                        
-                        <div>
-                            ${renderCVSection('Skills', cvData.skills, renderSkillItem, 'hide-in-short')}
-                            ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
-                            ${renderCVSection('Teaching', cvData.teaching, renderCVEntry, 'hide-in-short')}
-                            ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
-                        </div>
+                        ${renderCVSection('Education', cvData.education, renderCVEntry)}
+                        ${renderCVSection('Experience', cvData.experience, renderCVEntry)}
+                        ${renderCVSection('Skills', cvData.skills, renderSkillItem, 'hide-in-short')}
+                        ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
+                        ${renderCVSection('Teaching', cvData.teaching, renderCVEntry, 'hide-in-short')}
+                        ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
                     </div>
                 </div>
             `;
@@ -353,11 +360,12 @@
             });
         }
 
-        // Updated renderCVSection to accept an optional extraClass (like 'hide-in-short')
         function renderCVSection(title, items, renderItemFn, extraClass = '') {
             if (!items || items.length === 0) return '';
+            /* Note: Removed 'cv-section' from here to prevent whole sections from breaking awkwardly, 
+               instead letting columns break naturally between entries */
             return `
-                <section class="mb-10 cv-section ${extraClass}">
+                <section class="mb-10 ${extraClass}">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white border-b-2 border-blue-600 dark:border-cyan-400 pb-2 mb-6 font-serif">${title}</h2>
                     <div class="space-y-6">
                         ${items.map(renderItemFn).join('')}
@@ -398,7 +406,7 @@
                         <h3 class="text-lg font-bold text-gray-900 dark:text-slate-100">${item.title}</h3>
                         <p class="text-md text-gray-700 dark:text-slate-300">${item.authors}</p>
                         <p class="text-sm italic text-gray-600 dark:text-slate-400 mt-1">${item.venue}</p>
-                        <a href="${item.link}" target="_blank" rel="noopener" class="text-blue-600 dark:text-cyan-400 hover:underline text-sm font-medium">View Paper &rarr;</a>
+                        <a href="${item.link}" target="_blank" rel="noopener" class="text-blue-600 dark:text-cyan-400 hover:underline text-sm font-medium hide-in-short">View Paper &rarr;</a>
                     </div>
                 </div>
             `;
