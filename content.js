@@ -4,6 +4,17 @@
 const contentData = [
     // === PUBLICATIONS ===
     {
+        id: 'ICEL', // Must be unique for publications
+        type: 'publication',
+        title: 'Extensive Array of Endogenous Giant Viral Elements in a Polar Alga Shows Dynamic Transcriptional Response to Abiotic Stress',
+        authors: 'Sydney Schultz, Benjamin Minch, Ethan Mimick, and Mohammad Moniruzzaman',
+        venue: 'Current Biology',
+        date: '2026', // Just the year is fine for publications
+        link: 'https://www.nature.com/articles/s44298-025-00122-z', // Link to the paper (PDF, DOI, or a page)
+        abstract: `
+Giant viruses, members of the phylum Nucleocytoviricota, possess exceptionally large genomes that encode hundreds of genes involved in replication, metabolism, and host manipulation. These viruses have emerged as major players in protist ecology and evolution. Recent studies reveal that their genomes are frequently endogenized in protists, contributing to structural innovation and functional novelty across diverse lineages. Yet, the extent and impact of such events on genome architecture and physiological responses in algae inhabiting extreme polar environments remain unknown. Here, we report widespread Giant Endogenous Viral Elements (GEVEs) in nine polar microalgae, revealing extensive viral integration. Most notably, Chlamydomonas sp. ICE-L, an Antarctic Sea ice alga, harbors over 400 GEVE regions spanning more than 26 Megabase pairs - the most extensive giant viral endogenization recorded in any eukaryote. These insertions, derived from multiple Nucleocytoviricota lineages, encode >25,000 genes, including those associated with replication, chromatin remodeling, stress response, and transposable elements. Transcriptomic analyses show that nearly 40% of GEVE genes are actively expressed, with hundreds differentially regulated under UV radiation, salinity, and temperature stress. Co-expression network analysis reveals modular regulation patterns, which suggests functional integration of viral genes into host transcriptional networks. Additionally, phylogenetic analysis supports giant viruses as important mediators of horizontal gene transfer of key freeze-tolerance proteins such as ice-binding proteins (IBPs) in polar algae. Our findings position giant viral endogenization as a key driver of genome content, regulatory complexity, and environmental adaptation in polar algae, and establish Chlamydomonas sp. ICE-L as a powerful model for studying virus-derived genomic innovation in extreme environments.        `
+    },
+    {
         id: 'expansion-ncldv', // Must be unique for publications
         type: 'publication',
         title: 'Expansion of the genomic and functional diversity of global ocean giant viruses',
@@ -30,11 +41,11 @@ Viruses in the kingdom Bamfordvirae, specifically giant viruses (NCLDVs) in the 
     {
         id: 'SPOT',
         type: 'publication',
-        title: 'Phylogenetic proximity drives temporal succession of marine giant viruses in a five-year metagenomic time-series',
+        title: 'Phylogenetic proximity is a key driver of temporal succession of marine giant viruses in a five-year metagenomic time-series',
         authors: 'Sarah Laperriere and Benjamin Minch et al.',
-        venue: 'bioRxviv',
-        date: '2024',
-        link: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11343133/',
+        venue: 'ISME communications',
+        date: '2025',
+        link: 'https://academic.oup.com/ismecommun/article/5/1/ycaf217/8339883',
         abstract: `
 Nucleocytoplasmic Large DNA Viruses (NCLDVs, also called giant viruses) are widespread in marine systems and infect a broad range of microbial eukaryotes (protists). Recent biogeographic work has provided global snapshots of NCLDV diversity and community composition across the world’s oceans, yet little information exists about the guiding ‘rules’ underpinning their community dynamics over time. We leveraged a five-year monthly metagenomic time-series to quantify the community composition of NCLDVs off the coast of Southern California and characterize these populations’ temporal dynamics. NCLDVs were dominated by Algavirales (Phycodnaviruses, 59%) and Imitervirales (Mimiviruses, 36%). We identified clusters of NCLDVs with distinct classes of seasonal and non-seasonal temporal dynamics. Overall, NCLDV population abundances were often highly dynamic with a strong seasonal signal. The Imitervirales group had highest relative abundance in the more oligotrophic late summer and fall, while Algavirales did so in winter. Generally, closely related strains had similar temporal dynamics, suggesting that evolutionary history is a key driver of the temporal niche of marine NCLDVs. However, a few closely-related strains had drastically different seasonal dynamics, suggesting that while phylogenetic proximity often indicates ecological similarity, occasionally phenology can shift rapidly, possibly due to host-switching. Finally, we identified distinct functional content and possible host interactions of two major NCLDV orders-including connections of Imitervirales with primary producers like the diatom Chaetoceros and widespread marine grazers like Paraphysomonas and Spirotrichea ciliates. Together, our results reveal key insights on season-specific effect of phylogenetically distinct giant virus communities on marine protist metabolism, biogeochemical fluxes and carbon cycling.
         `
