@@ -100,7 +100,7 @@ const cvData = {
   // --- AWARDS & GRANTS ---
   awards: [
     {
-      years: "2019-202",
+      years: "2019-2021",
       title: "NOAA Ernest F. Hollings Scholarship",
       organization: "National Oceanic and Atmospheric Administration",
       description: "Awarded as one of 120 nationally, this award recognizes academic achievement in the earth sciences and provides support for two years of schooling."
