@@ -23,10 +23,22 @@
         .prose pre { background-color: #1f2937; color: #f9fafb; padding: 1em; border-radius: 8px; overflow-x: auto; }
         .prose pre code { background-color: transparent; padding: 0; }
 
-        /* --- PDF GENERATION STYLES --- */
-        .cv-entry { 
-            page-break-inside: avoid; 
-            break-inside: avoid; 
+        /* --- PDF GENERATION STYLES & ORPHAN PREVENTION --- */
+        /* These rules prevent headers and sections from being chopped in half */
+        .cv-section, .cv-entry { 
+            page-break-inside: avoid !important; 
+            break-inside: avoid !important; 
+        }
+        .cv-section h2 {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* Forces a hard page break for the PDF engine */
+        .html2pdf__page-break {
+            page-break-before: always !important;
         }
 
         /* COMPACT MODE STYLES (Overrides for the Short PDF) */
@@ -49,11 +61,11 @@
         .compact-cv h3 { 
             font-size: 0.8rem !important; 
             line-height: 1.1 !important; 
-            margin-bottom: 0.05rem !important; /* Pushes the title closer to the text below */
+            margin-bottom: 0.05rem !important; 
         }
         .compact-cv .text-md {
             font-size: 0.75rem !important;
-            margin-top: 0 !important; /* Removes gap between Title and Organization/Authors */
+            margin-top: 0 !important; 
             line-height: 1.1 !important;
         }
         
@@ -64,24 +76,6 @@
         /* Hides specific sections when in compact mode */
         .compact-cv .hide-in-short {
             display: none !important;
-        }
-
-        /* Responsive Grid layout (Desktop: 2 columns, Mobile: 1 column) */
-        #cv-body-wrapper {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            align-items: start;
-        }
-        @media (min-width: 768px) {
-            #cv-body-wrapper { grid-template-columns: 1fr 1fr; }
-        }
-
-        /* Forces the two-column grid layout when generating the Short PDF */
-        .compact-cv #cv-body-wrapper {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 1rem !important;
         }
     </style>
 </head>
@@ -123,7 +117,7 @@
 
     <footer class="bg-white mt-12">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-500">
-            <p>&copy; 2025 Your Name. All rights reserved.</p>
+            <p>&copy; 2026 Benjamin Minch. All rights reserved.</p>
         </div>
     </footer>
 
@@ -181,9 +175,7 @@
             const recentPubs = contentData.filter(item => item.type === 'publication').slice(0, 1);
             contentRoot.innerHTML = `
                 <div class="w-full h-72 md:h-96 rounded-lg shadow-lg overflow-hidden mb-12">
-                    <img src="strasborg.jpg" 
-                         alt="Describe your image here for accessibility" 
-                         class="w-full h-full object-cover object-center">
+                    <img src="strasborg.jpg" alt="Header Image" class="w-full h-full object-cover object-center">
                 </div>
                 <div class="text-center mb-12">
                     <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Welcome to My Personal Website</h1>
@@ -217,71 +209,26 @@
         }
 
         function renderList(type, title, cardFn) {
-            const headerImages = {
-                'blog': 'carcassonne.jpg',
-                'podcasts': 'italy.jpg',
-                'interactive': 'greece.jpg',
-                'teaching': '',
-                'videos': ''
-            };
-
+            const headerImages = { 'blog': 'carcassonne.jpg', 'podcasts': 'italy.jpg', 'interactive': 'greece.jpg', 'teaching': '', 'videos': '' };
             const imagePath = headerImages[type];
-            let headerImageHtml = '';
-
-            if (imagePath) {
-                headerImageHtml = `
-                    <div class="w-full h-64 md:h-80 rounded-lg shadow-lg overflow-hidden mb-8">
-                        <img src="${imagePath}" 
-                             alt="${title} header" 
-                             class="w-full h-full object-cover object-center">
-                    </div>
-                `;
-            }
+            let headerImageHtml = imagePath ? `<div class="w-full h-64 md:h-80 rounded-lg shadow-lg overflow-hidden mb-8"><img src="${imagePath}" alt="${title} header" class="w-full h-full object-cover object-center"></div>` : '';
             const items = contentData.filter(item => item.type === type);
             const cardHtml = items.length > 0 ? items.map(cardFn).join('') : '<p>No content here yet. Check back soon!</p>';
             const gridClass = type === 'publication' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
-            contentRoot.innerHTML = `
-                ${headerImageHtml}
-                <h1 class="text-3xl font-bold mb-8 border-b pb-4">${title}</h1>
-                <div class="grid ${gridClass} gap-8">${cardHtml}</div>
-            `;
+            contentRoot.innerHTML = `${headerImageHtml}<h1 class="text-3xl font-bold mb-8 border-b pb-4">${title}</h1><div class="grid ${gridClass} gap-8">${cardHtml}</div>`;
         }
 
         function renderDetail(type, slug) {
             const item = contentData.find(d => d.type === type && d.id === slug);
-            if (!item) {
-                contentRoot.innerHTML = '<p class="text-center">Content not found.</p>';
-                return;
-            }
-
+            if (!item) { contentRoot.innerHTML = '<p class="text-center">Content not found.</p>'; return; }
             let detailHTML = '';
             if (type === 'teaching') {
                 contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-xl text-gray-500">Loading lesson...</p></div>';
-                
-                fetch(item.markdownUrl)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        return response.text();
-                    })
+                fetch(item.markdownUrl).then(response => { if (!response.ok) throw new Error('Network response was not ok'); return response.text(); })
                     .then(markdown => {
                         const contentHtml = markdownConverter.makeHtml(markdown);
-                        const html = `
-                            <article class="max-w-4xl mx-auto">
-                                <h1 class="text-4xl font-bold text-gray-900">${item.title}</h1>
-                                <p class="text-gray-500 mt-2 mb-8">
-                                    ${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                                </p>
-                                <div class="prose lg:prose-xl max-w-none">
-                                    ${contentHtml}
-                                </div>
-                            </article>
-                        `;
-                        contentRoot.innerHTML = html;
-                    })
-                    .catch(error => {
-                        console.error('Error loading markdown:', error);
-                        contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-red-500">Error loading lesson content. Please try again later.</p></div>';
-                    });
+                        contentRoot.innerHTML = `<article class="max-w-4xl mx-auto"><h1 class="text-4xl font-bold text-gray-900">${item.title}</h1><p class="text-gray-500 mt-2 mb-8">${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><div class="prose lg:prose-xl max-w-none">${contentHtml}</div></article>`;
+                    }).catch(error => { contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-red-500">Error loading lesson content. Please try again later.</p></div>'; });
                 return; 
             }
             if (type === 'blog') {
@@ -300,18 +247,19 @@
         }
 
         function renderCV() {
-            if (typeof cvData === 'undefined') {
-                contentRoot.innerHTML = '<p>CV data not found. Make sure cv.js is loaded.</p>';
-                return;
-            }
+            if (typeof cvData === 'undefined') { contentRoot.innerHTML = '<p>CV data not found. Make sure cv.js is loaded.</p>'; return; }
 
-            const publications = contentData.filter(item => item.type === 'publication');
-
-            // --- THE SPLIT LOGIC ---
-            // We split the experience array to balance the left and right columns physically
-            const expSplitIndex = 4; // Puts the first 4 on the left, remaining on the right
+            // --- SPLIT ARRAYS TO FORCE PAGINATION & CONT'D HEADERS ---
+            // Grabs the first 3 experiences for the left column, the rest for the right column
+            const expSplitIndex = 3; 
             const expLeft = cvData.experience ? cvData.experience.slice(0, expSplitIndex) : [];
             const expRight = cvData.experience ? cvData.experience.slice(expSplitIndex) : [];
+
+            // Grabs the first 3 publications for Page 2 Left, the rest for Page 2 Right
+            const publications = contentData.filter(item => item.type === 'publication');
+            const pubSplitIndex = 3;
+            const pubsLeft = publications.slice(0, pubSplitIndex);
+            const pubsRight = publications.slice(pubSplitIndex);
 
             contentRoot.innerHTML = `
                 <div id="cv-document" class="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8 md:p-12 relative">
@@ -334,20 +282,32 @@
                         </div>
                     </div>
 
-                    <div id="cv-body-wrapper">
-                        <div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 items-start">
+                        <div class="flex flex-col">
                             ${renderCVSection('Education', cvData.education, renderCVEntry)}
                             ${renderCVSection('Experience', expLeft, renderCVEntry)}
                         </div>
                         
-                        <div>
+                        <div class="flex flex-col">
                             ${expRight.length > 0 ? renderCVSection('Experience (Cont.)', expRight, renderCVEntry) : ''}
-                            ${renderCVSection('Skills', cvData.skills, renderSkillItem, 'hide-in-short')}
-                            ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
-                            ${renderCVSection('Teaching', cvData.teaching, renderCVEntry, 'hide-in-short')}
-                            ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
                         </div>
                     </div>
+
+                    <div class="html2pdf__page-break"></div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 items-start mt-8 md:mt-0">
+                        <div class="flex flex-col">
+                            ${renderCVSection('Skills', cvData.skills, renderSkillItem, 'hide-in-short')}
+                            ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
+                            ${pubsLeft.length > 0 ? renderCVSection('Publications', pubsLeft, renderPublicationEntry) : ''}
+                        </div>
+                        
+                        <div class="flex flex-col">
+                            ${renderCVSection('Teaching', cvData.teaching, renderCVEntry, 'hide-in-short')}
+                            ${pubsRight.length > 0 ? renderCVSection('Publications (Cont.)', pubsRight, renderPublicationEntry) : ''}
+                        </div>
+                    </div>
+
                 </div>
             `;
 
@@ -365,25 +325,21 @@
                 btn.innerText = 'Generating...';
                 btn.disabled = true;
 
-                if (isCompact) {
-                    element.classList.add('compact-cv');
-                }
+                if (isCompact) { element.classList.add('compact-cv'); }
 
                 const opt = {
                     margin:       [0.5, 0.5, 0.5, 0.5],
                     filename:     isCompact ? 'Benjamin_Minch_CV_Short.pdf' : 'Benjamin_Minch_CV.pdf',
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2 },
-                    pagebreak:    { mode: ['css', 'legacy'] }, 
+                    pagebreak:    { mode: ['css', 'legacy'] }, // Activates CSS pagebreak support
                     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
                 };
 
                 html2pdf().set(opt).from(element).save().then(() => {
                     btn.innerText = originalText;
                     btn.disabled = false;
-                    if (isCompact) {
-                        element.classList.remove('compact-cv'); 
-                    }
+                    if (isCompact) { element.classList.remove('compact-cv'); }
                 });
             });
         }
@@ -463,17 +419,9 @@
             return `
                 <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
                     <div class="aspect-w-16 aspect-h-9">
-                        <iframe src="https://www.youtube.com/embed/${item.youtubeId}" 
-                                title="${item.title}" 
-                                class="w-full h-64 border-0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen>
-                        </iframe>
+                        <iframe src="https://www.youtube.com/embed/${item.youtubeId}" title="${item.title}" class="w-full h-64 border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                     </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold text-gray-900">${item.title}</h3>
-                        <p class="mt-2 text-gray-600">${item.description}</p>
-                    </div>
+                    <div class="p-6"><h3 class="text-xl font-bold text-gray-900">${item.title}</h3><p class="mt-2 text-gray-600">${item.description}</p></div>
                 </div>
             `;
         }
