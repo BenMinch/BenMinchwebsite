@@ -24,15 +24,9 @@
         .prose pre code { background-color: transparent; padding: 0; }
 
         /* --- PDF GENERATION STYLES --- */
-        /* Prevent awkward page breaks inside individual CV entries */
         .cv-entry { 
             page-break-inside: avoid; 
             break-inside: avoid; 
-        }
-        /* Keep Section Headers attached to their content */
-        .cv-section h2 {
-            page-break-after: avoid;
-            break-after: avoid;
         }
 
         /* COMPACT MODE STYLES (Overrides for the Short PDF) */
@@ -42,30 +36,52 @@
         }
         .compact-cv .p-8, .compact-cv .md\:p-12 { padding: 1rem !important; }
         .compact-cv h1 { font-size: 1.75rem !important; }
-        .compact-cv h2 { font-size: 0.95rem !important; margin-bottom: 0.3rem !important; padding-bottom: 0.2rem !important; }
         
-        /* TIGHTENED BOLD HEADERS: Reduced font size, line height, and bottom margin */
+        /* Tightened spacing for Sections */
+        .compact-cv h2 { 
+            font-size: 0.95rem !important; 
+            margin-bottom: 0.3rem !important; 
+            padding-bottom: 0.2rem !important; 
+        }
+        .compact-cv .mb-10 { margin-bottom: 0.75rem !important; }
+        
+        /* TIGHTENED BOLD HEADERS & SUBTEXT */
         .compact-cv h3 { 
             font-size: 0.8rem !important; 
             line-height: 1.1 !important; 
-            margin-bottom: 0.1rem !important; 
+            margin-bottom: 0.05rem !important; /* Pushes the title closer to the text below */
+        }
+        .compact-cv .text-md {
+            font-size: 0.75rem !important;
+            margin-top: 0 !important; /* Removes gap between Title and Organization/Authors */
+            line-height: 1.1 !important;
         }
         
-        .compact-cv .mb-10 { margin-bottom: 0.75rem !important; }
         .compact-cv .space-y-6 > * + * { margin-top: 0.35rem !important; }
         .compact-cv .text-lg { font-size: 0.8rem !important; }
-        .compact-cv .text-md, .compact-cv .text-sm { font-size: 0.7rem !important; }
+        .compact-cv .text-sm { font-size: 0.7rem !important; }
 
         /* Hides specific sections when in compact mode */
         .compact-cv .hide-in-short {
             display: none !important;
         }
 
-        /* NEW NEWSPAPER LAYOUT: Forces sequential flow that fills columns one by one */
+        /* Responsive Grid layout (Desktop: 2 columns, Mobile: 1 column) */
+        #cv-body-wrapper {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+        @media (min-width: 768px) {
+            #cv-body-wrapper { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Forces the two-column grid layout when generating the Short PDF */
         .compact-cv #cv-body-wrapper {
-            display: block; /* Remove flex/grid */
-            column-count: 2;
-            column-gap: 1.5rem;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 1rem !important;
         }
     </style>
 </head>
@@ -291,6 +307,12 @@
 
             const publications = contentData.filter(item => item.type === 'publication');
 
+            // --- THE SPLIT LOGIC ---
+            // We split the experience array to balance the left and right columns physically
+            const expSplitIndex = 4; // Puts the first 4 on the left, remaining on the right
+            const expLeft = cvData.experience ? cvData.experience.slice(0, expSplitIndex) : [];
+            const expRight = cvData.experience ? cvData.experience.slice(expSplitIndex) : [];
+
             contentRoot.innerHTML = `
                 <div id="cv-document" class="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8 md:p-12 relative">
                     
@@ -313,12 +335,18 @@
                     </div>
 
                     <div id="cv-body-wrapper">
-                        ${renderCVSection('Education', cvData.education, renderCVEntry)}
-                        ${renderCVSection('Experience', cvData.experience, renderCVEntry)}
-                        ${renderCVSection('Skills', cvData.skills, renderSkillItem, 'hide-in-short')}
-                        ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
-                        ${renderCVSection('Teaching', cvData.teaching, renderCVEntry, 'hide-in-short')}
-                        ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
+                        <div>
+                            ${renderCVSection('Education', cvData.education, renderCVEntry)}
+                            ${renderCVSection('Experience', expLeft, renderCVEntry)}
+                        </div>
+                        
+                        <div>
+                            ${expRight.length > 0 ? renderCVSection('Experience (Cont.)', expRight, renderCVEntry) : ''}
+                            ${renderCVSection('Skills', cvData.skills, renderSkillItem, 'hide-in-short')}
+                            ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
+                            ${renderCVSection('Teaching', cvData.teaching, renderCVEntry, 'hide-in-short')}
+                            ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
+                        </div>
                     </div>
                 </div>
             `;
@@ -362,10 +390,8 @@
 
         function renderCVSection(title, items, renderItemFn, extraClass = '') {
             if (!items || items.length === 0) return '';
-            /* Note: Removed 'cv-section' from here to prevent whole sections from breaking awkwardly, 
-               instead letting columns break naturally between entries */
             return `
-                <section class="mb-10 ${extraClass}">
+                <section class="mb-10 cv-section ${extraClass}">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white border-b-2 border-blue-600 dark:border-cyan-400 pb-2 mb-6 font-serif">${title}</h2>
                     <div class="space-y-6">
                         ${items.map(renderItemFn).join('')}
