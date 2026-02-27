@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         #content-root { transition: opacity 0.3s ease-in-out; }
@@ -57,8 +58,7 @@
     </header>
 
     <main id="content-root" class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Dynamic Content -->
-    </main>
+        </main>
 
     <footer class="bg-white mt-12">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-500">
@@ -129,7 +129,7 @@
                     <p class="mt-4 text-lg text-gray-600">I am a Ph.D. student at the University of Miami studying ocean viruses! For inquiries email bsm122@miami.edu.</p>
                 </div>
                 <div class="text-center mb-16">
-                    <a href="#cv" class="inline-block bg-blue-600 text-white ...">
+                    <a href="#cv" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">
                         View My Curriculum Vitae
                     </a>
                 </div>
@@ -164,11 +164,9 @@
                 'videos': ''
             };
 
-            const imagePath = headerImages[type]; // Get the image for the current page type
-            let headerImageHtml = ''; // Default to no image
+            const imagePath = headerImages[type];
+            let headerImageHtml = '';
 
-            // --- 2. ADD THIS 'if' BLOCK ---
-            // If we found an image for this page, create the HTML for it
             if (imagePath) {
                 headerImageHtml = `
                     <div class="w-full h-64 md:h-80 rounded-lg shadow-lg overflow-hidden mb-8">
@@ -197,36 +195,34 @@
 
             let detailHTML = '';
             if (type === 'teaching') {
-        // Show loading state
-        contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-xl text-gray-500">Loading lesson...</p></div>';
-        
-        // Fetch the markdown file from the URL provided in content.js
-        fetch(item.markdownUrl)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.text();
-            })
-            .then(markdown => {
-                const contentHtml = markdownConverter.makeHtml(markdown);
-                const html = `
-                    <article class="max-w-4xl mx-auto">
-                        <h1 class="text-4xl font-bold text-gray-900">${item.title}</h1>
-                        <p class="text-gray-500 mt-2 mb-8">
-                            ${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                        </p>
-                        <div class="prose lg:prose-xl max-w-none">
-                            ${contentHtml}
-                        </div>
-                    </article>
-                `;
-                contentRoot.innerHTML = html;
-            })
-            .catch(error => {
-                console.error('Error loading markdown:', error);
-                contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-red-500">Error loading lesson content. Please try again later.</p></div>';
-            });
-        return; // Return early because we handled the HTML update asynchronously
-    }
+                contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-xl text-gray-500">Loading lesson...</p></div>';
+                
+                fetch(item.markdownUrl)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.text();
+                    })
+                    .then(markdown => {
+                        const contentHtml = markdownConverter.makeHtml(markdown);
+                        const html = `
+                            <article class="max-w-4xl mx-auto">
+                                <h1 class="text-4xl font-bold text-gray-900">${item.title}</h1>
+                                <p class="text-gray-500 mt-2 mb-8">
+                                    ${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                </p>
+                                <div class="prose lg:prose-xl max-w-none">
+                                    ${contentHtml}
+                                </div>
+                            </article>
+                        `;
+                        contentRoot.innerHTML = html;
+                    })
+                    .catch(error => {
+                        console.error('Error loading markdown:', error);
+                        contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-red-500">Error loading lesson content. Please try again later.</p></div>';
+                    });
+                return; 
+            }
             if (type === 'blog') {
                 const contentHtml = markdownConverter.makeHtml(item.content);
                 detailHTML = `<article class="max-w-4xl mx-auto"><h1 class="text-4xl font-bold text-gray-900">${item.title}</h1><p class="text-gray-500 mt-2 mb-8">${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><div class="prose lg:prose-xl max-w-none">${contentHtml}</div></article>`;
@@ -241,19 +237,18 @@
             }
             contentRoot.innerHTML = detailHTML;
         }
-         function renderCV() {
-            // Check if cvData exists
+
+        function renderCV() {
             if (typeof cvData === 'undefined') {
                 contentRoot.innerHTML = '<p>CV data not found. Make sure cv.js is loaded.</p>';
                 return;
             }
 
-            // Automatically find the publications from contentData to display in the CV
             const publications = contentData.filter(item => item.type === 'publication');
 
+            // ADDED: id="cv-document" to the main wrapper
             contentRoot.innerHTML = `
-                <div class="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8 md:p-12">
-                    <!-- Header Section -->
+                <div id="cv-document" class="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8 md:p-12">
                     <div class="text-center border-b dark:border-slate-700 pb-6 mb-8">
                         <h1 class="text-4xl md:text-5xl font-bold dark:text-white font-serif">${cvData.name}</h1>
                         <div class="flex justify-center space-x-4 mt-4 text-gray-600 dark:text-slate-400">
@@ -261,33 +256,53 @@
                             <span>&bull;</span>
                             <a href="${cvData.website}" target="_blank" class="text-blue-600 dark:text-cyan-400 hover:underline">${cvData.website}</a>
                         </div>
-                        <!-- Download PDF Button -->
-                        ${cvData.pdf ? `<div class="mt-8">
-                            <a href="${cvData.pdf}" target="_blank" rel="noopener" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 dark:bg-cyan-500 dark:text-slate-900 dark:hover:bg-cyan-400 transition-colors">
+                        
+                        <div class="mt-8" data-html2canvas-ignore="true">
+                            <button id="download-cv-btn" class="inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 dark:bg-cyan-500 dark:text-slate-900 dark:hover:bg-cyan-400 transition-colors">
                                 Download PDF
-                            </a>
-                        </div>` : ''}
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Dynamic Sections -->
                     ${renderCVSection('Education', cvData.education, renderCVEntry)}
                     ${renderCVSection('Experience', cvData.experience, renderCVEntry)}
                     ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
                     ${renderCVSection('Skills', cvData.skills, renderSkillItem)}
                     ${renderCVSection('Teaching', cvData.teaching, renderCVEntry)}
                     
-                    <!-- Special section for publications pulled from contentData -->
                     ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
                 </div>
             `;
+
+            // ADDED: Logic to handle the PDF download immediately after rendering the CV
+            const downloadBtn = document.getElementById('download-cv-btn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', () => {
+                    const element = document.getElementById('cv-document');
+                    
+                    // Show a little feedback while it generates
+                    const originalText = downloadBtn.innerText;
+                    downloadBtn.innerText = 'Generating PDF...';
+                    downloadBtn.disabled = true;
+
+                    // Configure formatting
+                    const opt = {
+                        margin:       [0.5, 0.5, 0.5, 0.5], // Top, Right, Bottom, Left margins in inches
+                        filename:     'Benjamin_Minch_CV.pdf',
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { scale: 2 }, // Higher scale = better text quality
+                        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                    };
+
+                    // Trigger the download and reset the button text when done
+                    html2pdf().set(opt).from(element).save().then(() => {
+                        downloadBtn.innerText = originalText;
+                        downloadBtn.disabled = false;
+                    });
+                });
+            }
         }
 
-        /**
-         * A helper function to render a full section of the CV
-         * @param {string} title - The section title (e.g., "Education")
-         * @param {Array} items - The list of items from cvData
-         * @param {Function} renderItemFn - The function to use for rendering each item
-         */
         function renderCVSection(title, items, renderItemFn) {
             if (!items || items.length === 0) return '';
             return `
@@ -300,9 +315,6 @@
             `;
         }
 
-        /**
-         * Renders a standard CV entry (for Education, Experience, Awards)
-         */
         function renderCVEntry(item) {
             return `
                 <div class="flex flex-col md:flex-row">
@@ -316,9 +328,6 @@
             `;
         }
 
-        /**
-         * Renders a Skill entry
-         */
         function renderSkillItem(item) {
             return `
                 <div class="flex flex-col md:flex-row">
@@ -330,9 +339,6 @@
             `;
         }
 
-        /**
-         * Renders a Publication entry (pulled from contentData)
-         */
         function renderPublicationEntry(item) {
              return `
                 <div class="flex flex-col md:flex-row">
@@ -392,4 +398,3 @@
     </script>
 </body>
 </html>
-
