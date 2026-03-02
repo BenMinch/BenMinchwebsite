@@ -322,6 +322,7 @@
                         ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
                         ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
                         ${renderCVSection('Teaching', cvData.teaching, renderCVEntry)}
+                        ${renderCVSection('Presentations', cvData.presentations, renderCVEntry)}
                     </div>
 
                 </div>
@@ -373,6 +374,7 @@
                 const rightCol = `
                     ${renderPdfSection('Skills', cvData.skills, renderPdfSkill)}
                     ${publications.length > 0 ? renderPdfSection('Publications', publications, renderPdfPublication) : ''}
+                    ${renderPdfSection('Presentations', cvData.presentations, renderPdfEntry)}
                 `;
 
                 const pdfEl = document.getElementById('cv-pdf-short');

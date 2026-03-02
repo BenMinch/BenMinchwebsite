@@ -168,10 +168,50 @@ const cvData = {
       organization: "Biola University",
       description: "Duties included twice-weekly instructional session where I would review material that was taught in class."
     }
-  ]
-  // --- ADD MORE SECTIONS AS NEEDED ---
-  // e.g., teaching, publications, presentations...
-  // publications: [ ... ],
-  // presentations: [ ... ],
+  ],
+ presentations: [
+    {
+      years: "November 2021",
+      title: "Thermal and potential climate effects on ELS of White Perch",
+      organization: "American Fisheries Society 151 (Baltimore, Maryland)",
+      description: "Oral presenter"
+    },
+    {
+      years: "June 2023",
+      title: "Phylogenetic diversity of large, cell-associated viruses in the Bay of Bengal",
+      organization: "Aquatic Virus Workshop 11 (Quebec city, Canada)",
+      description: "Poster presentation"
+    },
+    {
+      years: "February 2024",
+      title: "Transcriptional patterns underpinning the ecological dynamics of marine giant viruses in a high-resolution time series.",
+      organization: "Single-cell genomics workshop (Bigelow, Maine)",
+      description: "Oral presenter"
+    },
+    {
+      years: "March 2024",
+      title: "Active viral ecology in deep sea brine pools",
+      organization: "University of Miami Graduate Research Symposium",
+      description: "Oral presenter"
+    },
+    {
+      years: "January 2025",
+      title: "BEREN: an easy-to-use tool for giant virus recovery in metagenomes",
+      organization: "University of Miami, Rosenstiel Research Day",
+      description: "Oral presenter"
+    },
+    {
+      years: "March 2025",
+      title: "Dynamic ecology and non-traditional infection strategies of giant viruses",
+      organization: "University of Miami Graduate Research Symposium",
+      description: "Oral presenter"
+    },
+    {
+      years: "May 2025",
+      title: "Transcriptional underpinnings of giant virus ecological dynamics during an algal bloom ",
+      organization: "Aquatic Virus Workshop 12 (Banyuls-sur-mer, France)",
+      description: "Poster presentation"
+    }
+    ]
 
 };
