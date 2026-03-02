@@ -357,59 +357,179 @@
         }
 
         // Short PDF — builds a hidden 2-column compact div and exports that
-        function setupShortPDFDownload() {
-            const btn = document.getElementById('download-short-cv-btn');
-            if (!btn) return;
-            btn.addEventListener('click', () => {
-                const publications = contentData.filter(item => item.type === 'publication');
+	function setupShortPDFDownload() {
+	    const btn = document.getElementById('download-short-cv-btn');
+	    if (!btn) return;
+	    btn.addEventListener('click', () => {
+		const publications = contentData.filter(item => item.type === 'publication');
 
-                // Left column: Education, Experience, Awards
-                const leftCol = `
-                    ${renderPdfSection('Education', cvData.education, renderPdfEntry)}
-                    ${renderPdfSection('Experience', cvData.experience, renderPdfEntry)}
-                    ${renderPdfSection('Awards & Grants', cvData.awards, renderPdfEntry)}
-                `;
+		// --- Layout constants ---
+		const pageW = 794;        // ~A4 width in px at 96dpi (use 816 for letter)
+		const pageH = 1123;       // ~A4 height
+		const margin = 40;
+		const colGap = 24;
+		const colW = (pageW - margin * 2 - colGap) / 2;
+		const colX1 = margin;
+		const colX2 = margin + colW + colGap;
 
-                // Right column: Skills, Publications (no Teaching, no links)
-                const rightCol = `
-                    ${renderPdfSection('Skills', cvData.skills, renderPdfSkill)}
-                    ${publications.length > 0 ? renderPdfSection('Publications', publications, renderPdfPublication) : ''}
-                    ${renderPdfSection('Presentations', cvData.presentations, renderPdfEntry)}
-                `;
+		// Font sizes
+		const FS = { name: 28, sectionHead: 11, entryTitle: 9, entryMeta: 8, entryDetail: 7.5, contact: 8 };
+		const blue = '#2563eb';
+		const darkGray = '#111827';
+		const midGray = '#374151';
+		const lightGray = '#6b7280';
 
-                const pdfEl = document.getElementById('cv-pdf-short');
-                pdfEl.innerHTML = `
-                    <h1>${cvData.name}</h1>
-                    <div class="pdf-contact">${cvData.email} &bull; ${cvData.website}</div>
-                    <div class="pdf-cols">
-                        <div>${leftCol}</div>
-                        <div>${rightCol}</div>
-                    </div>
-                `;
+		// --- SVG text helper ---
+		let svgLines = [];
+		const t = (x, y, text, opts = {}) => {
+		    const { size = 9, fill = darkGray, weight = 'normal', italic = false, anchor = 'start' } = opts;
+		    svgLines.push(`<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" font-weight="${weight}" font-style="${italic ? 'italic' : 'normal'}" text-anchor="${anchor}" font-family="Inter, Arial, sans-serif">${escSvg(String(text))}</text>`);
+		};
+		const line = (x1, y1, x2, y2, color = blue, width = 1.5) => {
+		    svgLines.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}"/>`);
+		};
 
-                const originalText = btn.innerText;
-                btn.innerText = 'Generating...';
-                btn.disabled = true;
+		// --- Section header ---
+		const sectionHead = (x, y, title, width) => {
+		    t(x, y, title, { size: FS.sectionHead, fill: darkGray, weight: 'bold' });
+		    line(x, y + 3, x + width, y + 3, blue, 1.5);
+		    return y + 16;
+		};
 
-                // Briefly show so html2pdf can render it
-                pdfEl.style.display = 'block';
+		// --- Render an entry, returns new Y ---
+		const entry = (x, y, colWidth, item, dateKey = 'years') => {
+		    const dateStr = item[dateKey] || item.years || item.date || '';
+		    const dateW = 52;
+		    const bodyX = x + dateW;
+		    const bodyW = colWidth - dateW;
 
-                const opt = {
-                    margin: [0.4, 0.4, 0.4, 0.4],
-                    filename: 'Benjamin_Minch_CV_Short.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    pagebreak: { mode: ['css', 'legacy'] },
-                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                };
+		    t(x, y, dateStr, { size: FS.entryDetail, fill: lightGray });
+		    t(bodyX, y, item.title || '', { size: FS.entryTitle, fill: darkGray, weight: 'bold' });
+		    y += 11;
+		    if (item.organization) {
+		        t(bodyX, y, item.organization, { size: FS.entryMeta, fill: midGray });
+		        y += 10;
+		    }
+		    if (item.description) {
+		        // Wrap description text roughly
+		        const words = item.description.split(' ');
+		        let lineStr = '';
+		        const maxChars = Math.floor(bodyW / 4.2);
+		        for (const word of words) {
+		            if ((lineStr + ' ' + word).trim().length > maxChars) {
+		                t(bodyX, y, lineStr.trim(), { size: FS.entryDetail, fill: midGray });
+		                y += 9;
+		                lineStr = word;
+		            } else {
+		                lineStr += ' ' + word;
+		            }
+		        }
+		        if (lineStr.trim()) { t(bodyX, y, lineStr.trim(), { size: FS.entryDetail, fill: midGray }); y += 9; }
+		    }
+		    return y + 5;
+		};
 
-                html2pdf().set(opt).from(pdfEl).save().then(() => {
-                    pdfEl.style.display = 'none';
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                });
-            });
-        }
+		const pubEntry = (x, y, colWidth, item) => {
+		    const dateW = 52;
+		    const bodyX = x + dateW;
+		    t(x, y, item.date || '', { size: FS.entryDetail, fill: lightGray });
+		    // Wrap title
+		    const words = (item.title || '').split(' ');
+		    let lineStr = '';
+		    const maxChars = Math.floor((colWidth - dateW) / 4.2);
+		    for (const word of words) {
+		        if ((lineStr + ' ' + word).trim().length > maxChars) {
+		            t(bodyX, y, lineStr.trim(), { size: FS.entryTitle, fill: darkGray, weight: 'bold' });
+		            y += 10;
+		            lineStr = word;
+		        } else {
+		            lineStr += ' ' + word;
+		        }
+		    }
+		    if (lineStr.trim()) { t(bodyX, y, lineStr.trim(), { size: FS.entryTitle, fill: darkGray, weight: 'bold' }); y += 10; }
+		    t(bodyX, y, item.authors || '', { size: FS.entryDetail, fill: midGray });
+		    y += 9;
+		    t(bodyX, y, item.venue || '', { size: FS.entryDetail, fill: lightGray, italic: true });
+		    return y + 14;
+		};
+
+		const skillEntry = (x, y, colWidth, item) => {
+		    const labelW = 52;
+		    t(x, y, item.category || '', { size: FS.entryDetail, fill: lightGray });
+		    // Wrap items text
+		    const words = (item.items || '').split(' ');
+		    let lineStr = '';
+		    const maxChars = Math.floor((colWidth - labelW) / 4.2);
+		    const bodyX = x + labelW;
+		    for (const word of words) {
+		        if ((lineStr + ' ' + word).trim().length > maxChars) {
+		            t(bodyX, y, lineStr.trim(), { size: FS.entryDetail, fill: midGray });
+		            y += 9; lineStr = word;
+		        } else { lineStr += ' ' + word; }
+		    }
+		    if (lineStr.trim()) { t(bodyX, y, lineStr.trim(), { size: FS.entryDetail, fill: midGray }); y += 9; }
+		    return y + 4;
+		};
+
+		// ===== BUILD COLUMNS =====
+		let yL = margin + 70; // left col start Y (below header)
+		let yR = margin + 70; // right col start Y
+
+		// --- LEFT: Education, Experience, Awards ---
+		yL = sectionHead(colX1, yL, 'EDUCATION', colW);
+		for (const item of (cvData.education || [])) { yL = entry(colX1, yL, colW, item); }
+		yL += 6;
+
+		yL = sectionHead(colX1, yL, 'EXPERIENCE', colW);
+		for (const item of (cvData.experience || [])) { yL = entry(colX1, yL, colW, item); }
+		yL += 6;
+
+		yL = sectionHead(colX1, yL, 'AWARDS & GRANTS', colW);
+		for (const item of (cvData.awards || [])) { yL = entry(colX1, yL, colW, item); }
+
+		// --- RIGHT: Skills, Publications ---
+		yR = sectionHead(colX2, yR, 'SKILLS', colW);
+		for (const item of (cvData.skills || [])) { yR = skillEntry(colX2, yR, colW, item); }
+		yR += 6;
+
+		yR = sectionHead(colX2, yR, 'PUBLICATIONS', colW);
+		for (const item of publications) { yR = pubEntry(colX2, yR, colW, item); }
+
+		// ===== ASSEMBLE SVG =====
+		const totalH = Math.max(yL, yR) + margin;
+		const svgHeight = Math.max(totalH, pageH);
+
+		const header = `
+		    <text x="${pageW / 2}" y="${margin + 22}" font-size="${FS.name}" fill="${darkGray}" font-weight="bold" text-anchor="middle" font-family="Georgia, serif">${escSvg(cvData.name)}</text>
+		    <text x="${pageW / 2}" y="${margin + 38}" font-size="${FS.contact}" fill="${lightGray}" text-anchor="middle" font-family="Inter, Arial, sans-serif">${escSvg(cvData.email)} · ${escSvg(cvData.website)}</text>
+		    <line x1="${margin}" y1="${margin + 46}" x2="${pageW - margin}" y2="${margin + 46}" stroke="#e5e7eb" stroke-width="1"/>
+		`;
+
+		const svg = `<?xml version="1.0" encoding="UTF-8"?>
+	<svg xmlns="http://www.w3.org/2000/svg" width="${pageW}" height="${svgHeight}" viewBox="0 0 ${pageW} ${svgHeight}">
+	  <rect width="${pageW}" height="${svgHeight}" fill="white"/>
+	  ${header}
+	  ${svgLines.join('\n  ')}
+	</svg>`;
+
+		// Trigger download
+		const blob = new Blob([svg], { type: 'image/svg+xml' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = 'Benjamin_Minch_CV_Short.svg';
+		a.click();
+		URL.revokeObjectURL(url);
+	    });
+	}
+
+	function escSvg(str) {
+	    return String(str)
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
+	}
 
         // =====================================================
         // ON-SCREEN CV RENDERERS
