@@ -24,10 +24,9 @@
         .prose pre code { background-color: transparent; padding: 0; }
 
         /* --- PDF GENERATION STYLES & ORPHAN PREVENTION --- */
-        /* These rules prevent headers and sections from being chopped in half */
-        .cv-section, .cv-entry { 
-            page-break-inside: avoid !important; 
-            break-inside: avoid !important; 
+        .cv-section, .cv-entry {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
         }
         .cv-section h2 {
             page-break-after: avoid !important;
@@ -35,47 +34,82 @@
             page-break-inside: avoid !important;
             break-inside: avoid !important;
         }
-
-        /* Forces a hard page break for the PDF engine */
         .html2pdf__page-break {
             page-break-before: always !important;
         }
 
-        /* COMPACT MODE STYLES (Overrides for the Short PDF) */
-        .compact-cv {
-            font-size: 0.7rem !important; 
-            line-height: 1.2 !important;
+        /* =====================================================
+           SHORT PDF: hidden 2-column compact element
+           Only made visible during PDF export
+        ===================================================== */
+        #cv-pdf-short {
+            display: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.7rem;
+            line-height: 1.25;
+            color: #1f2937;
+            background: white;
+            padding: 0.75rem 1rem;
+            width: 7.5in;
         }
-        .compact-cv .p-8, .compact-cv .md\:p-12 { padding: 1rem !important; }
-        .compact-cv h1 { font-size: 1.75rem !important; }
-        
-        /* Tightened spacing for Sections */
-        .compact-cv h2 { 
-            font-size: 0.95rem !important; 
-            margin-bottom: 0.3rem !important; 
-            padding-bottom: 0.2rem !important; 
+        #cv-pdf-short h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 0 0 0.2rem 0;
         }
-        .compact-cv .mb-10 { margin-bottom: 0.75rem !important; }
-        
-        /* TIGHTENED BOLD HEADERS & SUBTEXT */
-        .compact-cv h3 { 
-            font-size: 0.8rem !important; 
-            line-height: 1.1 !important; 
-            margin-bottom: 0.05rem !important; 
+        #cv-pdf-short .pdf-contact {
+            text-align: center;
+            font-size: 0.65rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid #e5e7eb;
         }
-        .compact-cv .text-md {
-            font-size: 0.75rem !important;
-            margin-top: 0 !important; 
-            line-height: 1.1 !important;
+        #cv-pdf-short .pdf-cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1.5rem;
+            align-items: start;
         }
-        
-        .compact-cv .space-y-6 > * + * { margin-top: 0.35rem !important; }
-        .compact-cv .text-lg { font-size: 0.8rem !important; }
-        .compact-cv .text-sm { font-size: 0.7rem !important; }
-
-        /* Hides specific sections when in compact mode */
-        .compact-cv .hide-in-short {
-            display: none !important;
+        #cv-pdf-short h2 {
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 0.1rem;
+            margin: 0.55rem 0 0.35rem 0;
+            color: #111827;
+        }
+        #cv-pdf-short .pdf-entry {
+            display: flex;
+            gap: 0.35rem;
+            margin-bottom: 0.35rem;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        #cv-pdf-short .pdf-years {
+            min-width: 2.8rem;
+            max-width: 2.8rem;
+            font-size: 0.6rem;
+            color: #6b7280;
+            padding-top: 0.08rem;
+            flex-shrink: 0;
+        }
+        #cv-pdf-short .pdf-entry-body h3 {
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.2;
+        }
+        #cv-pdf-short .pdf-entry-body p {
+            margin: 0;
+            font-size: 0.63rem;
+            color: #374151;
+            line-height: 1.2;
+        }
+        #cv-pdf-short .pdf-entry-body .venue {
+            font-style: italic;
+            color: #6b7280;
         }
     </style>
 </head>
@@ -92,11 +126,11 @@
                     <a href="#interactive" class="nav-link text-gray-500 hover:text-gray-900 transition">Interactive</a>
                     <a href="#videos" class="nav-link text-gray-500 hover:text-gray-900 transition">Videos</a>
                     <a href="#teaching" class="nav-link text-gray-500 hover:text-gray-900 transition">Teaching</a>
-                    <a href="#cv" class="nav-link text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white transition">CV</a>
+                    <a href="#cv" class="nav-link text-gray-500 hover:text-gray-900 transition">CV</a>
                 </div>
                 <div class="sm:hidden">
                     <button id="mobile-menu-button" class="p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
                 </div>
             </div>
@@ -107,13 +141,16 @@
                 <a href="#interactive" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Interactive</a>
                 <a href="#videos" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Videos</a>
                 <a href="#teaching" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">Teaching</a>
-                <a href="#cv" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded">CV</a>
+                <a href="#cv" class="block py-2 px-4 text-sm text-gray-500 hover:bg-gray-100 rounded">CV</a>
             </div>
         </nav>
     </header>
 
     <main id="content-root" class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        </main>
+    </main>
+
+    <!-- Hidden 2-column element used ONLY for short PDF generation -->
+    <div id="cv-pdf-short"></div>
 
     <footer class="bg-white mt-12">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-500">
@@ -228,15 +265,15 @@
                     .then(markdown => {
                         const contentHtml = markdownConverter.makeHtml(markdown);
                         contentRoot.innerHTML = `<article class="max-w-4xl mx-auto"><h1 class="text-4xl font-bold text-gray-900">${item.title}</h1><p class="text-gray-500 mt-2 mb-8">${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><div class="prose lg:prose-xl max-w-none">${contentHtml}</div></article>`;
-                    }).catch(error => { contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-red-500">Error loading lesson content. Please try again later.</p></div>'; });
-                return; 
+                    }).catch(() => { contentRoot.innerHTML = '<div class="text-center py-12"><p class="text-red-500">Error loading lesson content. Please try again later.</p></div>'; });
+                return;
             }
             if (type === 'blog') {
                 const contentHtml = markdownConverter.makeHtml(item.content);
                 detailHTML = `<article class="max-w-4xl mx-auto"><h1 class="text-4xl font-bold text-gray-900">${item.title}</h1><p class="text-gray-500 mt-2 mb-8">${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><div class="prose lg:prose-xl max-w-none">${contentHtml}</div></article>`;
             } else if (type === 'podcast') {
-                 const showNotesHtml = markdownConverter.makeHtml(item.showNotes);
-                 detailHTML = `<div class="max-w-4xl mx-auto"><h1 class="text-4xl font-bold text-gray-900">${item.title}</h1><p class="text-gray-500 mt-2 mb-6">${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><audio controls class="w-full rounded-lg mb-8" src="${item.audioUrl}"></audio><h2 class="text-2xl font-bold mt-8 mb-4 border-b pb-2">Show Notes</h2><div class="prose lg:prose-xl max-w-none">${showNotesHtml}</div></div>`;
+                const showNotesHtml = markdownConverter.makeHtml(item.showNotes);
+                detailHTML = `<div class="max-w-4xl mx-auto"><h1 class="text-4xl font-bold text-gray-900">${item.title}</h1><p class="text-gray-500 mt-2 mb-6">${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><audio controls class="w-full rounded-lg mb-8" src="${item.audioUrl}"></audio><h2 class="text-2xl font-bold mt-8 mb-4 border-b pb-2">Show Notes</h2><div class="prose lg:prose-xl max-w-none">${showNotesHtml}</div></div>`;
             } else if (type === 'interactive') {
                 detailHTML = `<div class="max-w-4xl mx-auto mb-4"><h1 class="text-3xl font-bold">${item.title}</h1><p class="text-gray-600 mt-2">${item.description}</p></div><div class="w-full h-[80vh] bg-white rounded-lg shadow-lg overflow-hidden border"><iframe src="${item.htmlFile}" class="w-full h-full border-0" title="${item.title}"></iframe></div>`;
             } else if (type === 'publication') {
@@ -246,24 +283,20 @@
             contentRoot.innerHTML = detailHTML;
         }
 
+        // =====================================================
+        // CV RENDER — SINGLE COLUMN, FULL WIDTH
+        // =====================================================
         function renderCV() {
-            if (typeof cvData === 'undefined') { contentRoot.innerHTML = '<p>CV data not found. Make sure cv.js is loaded.</p>'; return; }
+            if (typeof cvData === 'undefined') {
+                contentRoot.innerHTML = '<p>CV data not found. Make sure cv.js is loaded.</p>';
+                return;
+            }
 
-            // --- SPLIT ARRAYS TO FORCE PAGINATION & CONT'D HEADERS ---
-            // Grabs the first 3 experiences for the left column, the rest for the right column
-            const expSplitIndex = 3; 
-            const expLeft = cvData.experience ? cvData.experience.slice(0, expSplitIndex) : [];
-            const expRight = cvData.experience ? cvData.experience.slice(expSplitIndex) : [];
-
-            // Grabs the first 3 publications for Page 2 Left, the rest for Page 2 Right
             const publications = contentData.filter(item => item.type === 'publication');
-            const pubSplitIndex = 3;
-            const pubsLeft = publications.slice(0, pubSplitIndex);
-            const pubsRight = publications.slice(pubSplitIndex);
 
             contentRoot.innerHTML = `
-                <div id="cv-document" class="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8 md:p-12 relative">
-                    
+                <div id="cv-document" class="w-full bg-white rounded-lg shadow-lg p-8 md:p-12 relative">
+
                     <div class="absolute top-4 right-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3" data-html2canvas-ignore="true">
                         <button id="download-cv-btn" class="bg-blue-600 text-white text-sm font-semibold py-2 px-4 rounded hover:bg-blue-700 transition-colors shadow">
                             Full PDF
@@ -273,82 +306,117 @@
                         </button>
                     </div>
 
-                    <div class="text-center border-b dark:border-slate-700 pb-6 mb-8 mt-8 sm:mt-0 cv-section">
-                        <h1 class="text-4xl md:text-5xl font-bold dark:text-white font-serif">${cvData.name}</h1>
-                        <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-4 text-gray-600 dark:text-slate-400">
+                    <div class="text-center border-b pb-6 mb-8 mt-8 sm:mt-0 cv-section">
+                        <h1 class="text-4xl md:text-5xl font-bold font-serif">${cvData.name}</h1>
+                        <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-4 text-gray-600">
                             <span>${cvData.email}</span>
                             <span class="hidden sm:inline">&bull;</span>
-                            <a href="${cvData.website}" target="_blank" class="text-blue-600 dark:text-cyan-400 hover:underline break-all">${cvData.website}</a>
+                            <a href="${cvData.website}" target="_blank" class="text-blue-600 hover:underline break-all">${cvData.website}</a>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 items-start">
-                        <div class="flex flex-col">
-                            ${renderCVSection('Education', cvData.education, renderCVEntry)}
-                            ${renderCVSection('Experience', expLeft, renderCVEntry)}
-                        </div>
-                        
-                        <div class="flex flex-col">
-                            ${expRight.length > 0 ? renderCVSection('Experience (Cont.)', expRight, renderCVEntry) : ''}
-                        </div>
-                    </div>
-
-                    <div class="html2pdf__page-break"></div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 items-start mt-8 md:mt-0">
-                        <div class="flex flex-col">
-                            ${renderCVSection('Skills', cvData.skills, renderSkillItem, 'hide-in-short')}
-                            ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
-                            ${pubsLeft.length > 0 ? renderCVSection('Publications', pubsLeft, renderPublicationEntry) : ''}
-                        </div>
-                        
-                        <div class="flex flex-col">
-                            ${renderCVSection('Teaching', cvData.teaching, renderCVEntry, 'hide-in-short')}
-                            ${pubsRight.length > 0 ? renderCVSection('Publications (Cont.)', pubsRight, renderPublicationEntry) : ''}
-                        </div>
+                    <div class="flex flex-col">
+                        ${renderCVSection('Education', cvData.education, renderCVEntry)}
+                        ${renderCVSection('Experience', cvData.experience, renderCVEntry)}
+                        ${renderCVSection('Skills', cvData.skills, renderSkillItem)}
+                        ${renderCVSection('Awards & Grants', cvData.awards, renderCVEntry)}
+                        ${publications.length > 0 ? renderCVSection('Publications', publications, renderPublicationEntry) : ''}
+                        ${renderCVSection('Teaching', cvData.teaching, renderCVEntry)}
                     </div>
 
                 </div>
             `;
 
-            setupPDFDownload('download-cv-btn', false);
-            setupPDFDownload('download-short-cv-btn', true);
+            setupFullPDFDownload();
+            setupShortPDFDownload();
         }
 
-        function setupPDFDownload(buttonId, isCompact) {
-            const btn = document.getElementById(buttonId);
+        // Full PDF — captures the on-screen single-column document
+        function setupFullPDFDownload() {
+            const btn = document.getElementById('download-cv-btn');
             if (!btn) return;
-
             btn.addEventListener('click', () => {
                 const element = document.getElementById('cv-document');
                 const originalText = btn.innerText;
                 btn.innerText = 'Generating...';
                 btn.disabled = true;
-
-                if (isCompact) { element.classList.add('compact-cv'); }
-
                 const opt = {
-                    margin:       [0.5, 0.5, 0.5, 0.5],
-                    filename:     isCompact ? 'Benjamin_Minch_CV_Short.pdf' : 'Benjamin_Minch_CV.pdf',
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2 },
-                    pagebreak:    { mode: ['css', 'legacy'] }, // Activates CSS pagebreak support
-                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                    margin: [0.5, 0.5, 0.5, 0.5],
+                    filename: 'Benjamin_Minch_CV.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    pagebreak: { mode: ['css', 'legacy'] },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
                 };
-
                 html2pdf().set(opt).from(element).save().then(() => {
                     btn.innerText = originalText;
                     btn.disabled = false;
-                    if (isCompact) { element.classList.remove('compact-cv'); }
                 });
             });
         }
 
-        function renderCVSection(title, items, renderItemFn, extraClass = '') {
+        // Short PDF — builds a hidden 2-column compact div and exports that
+        function setupShortPDFDownload() {
+            const btn = document.getElementById('download-short-cv-btn');
+            if (!btn) return;
+            btn.addEventListener('click', () => {
+                const publications = contentData.filter(item => item.type === 'publication');
+
+                // Left column: Education, Experience, Awards
+                const leftCol = `
+                    ${renderPdfSection('Education', cvData.education, renderPdfEntry)}
+                    ${renderPdfSection('Experience', cvData.experience, renderPdfEntry)}
+                    ${renderPdfSection('Awards & Grants', cvData.awards, renderPdfEntry)}
+                `;
+
+                // Right column: Skills, Publications (no Teaching, no links)
+                const rightCol = `
+                    ${renderPdfSection('Skills', cvData.skills, renderPdfSkill)}
+                    ${publications.length > 0 ? renderPdfSection('Publications', publications, renderPdfPublication) : ''}
+                `;
+
+                const pdfEl = document.getElementById('cv-pdf-short');
+                pdfEl.innerHTML = `
+                    <h1>${cvData.name}</h1>
+                    <div class="pdf-contact">${cvData.email} &bull; ${cvData.website}</div>
+                    <div class="pdf-cols">
+                        <div>${leftCol}</div>
+                        <div>${rightCol}</div>
+                    </div>
+                `;
+
+                const originalText = btn.innerText;
+                btn.innerText = 'Generating...';
+                btn.disabled = true;
+
+                // Briefly show so html2pdf can render it
+                pdfEl.style.display = 'block';
+
+                const opt = {
+                    margin: [0.4, 0.4, 0.4, 0.4],
+                    filename: 'Benjamin_Minch_CV_Short.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    pagebreak: { mode: ['css', 'legacy'] },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(pdfEl).save().then(() => {
+                    pdfEl.style.display = 'none';
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                });
+            });
+        }
+
+        // =====================================================
+        // ON-SCREEN CV RENDERERS
+        // =====================================================
+        function renderCVSection(title, items, renderItemFn) {
             if (!items || items.length === 0) return '';
             return `
-                <section class="mb-10 cv-section ${extraClass}">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white border-b-2 border-blue-600 dark:border-cyan-400 pb-2 mb-6 font-serif">${title}</h2>
+                <section class="mb-10 cv-section">
+                    <h2 class="text-2xl font-bold text-gray-900 border-b-2 border-blue-600 pb-2 mb-6 font-serif">${title}</h2>
                     <div class="space-y-6">
                         ${items.map(renderItemFn).join('')}
                     </div>
@@ -359,11 +427,11 @@
         function renderCVEntry(item) {
             return `
                 <div class="flex flex-col md:flex-row cv-entry">
-                    <div class="md:w-1/4 text-gray-600 dark:text-slate-400 font-medium mb-1 md:mb-0 pr-2">${item.years}</div>
-                    <div class="md:w-3/4">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-slate-100">${item.title}</h3>
-                        <p class="text-md font-semibold text-gray-700 dark:text-slate-300">${item.organization}</p>
-                        ${item.description ? `<p class="mt-2 text-gray-600 dark:text-slate-300">${item.description}</p>` : ''}
+                    <div class="md:w-1/6 text-gray-500 font-medium mb-1 md:mb-0 pr-4 shrink-0">${item.years || item.date || ''}</div>
+                    <div class="md:w-5/6">
+                        <h3 class="text-lg font-bold text-gray-900">${item.title}</h3>
+                        <p class="text-md font-semibold text-gray-700">${item.organization || ''}</p>
+                        ${item.description ? `<p class="mt-2 text-gray-600">${item.description}</p>` : ''}
                     </div>
                 </div>
             `;
@@ -372,28 +440,81 @@
         function renderSkillItem(item) {
             return `
                 <div class="flex flex-col md:flex-row cv-entry">
-                    <div class="md:w-1/4 text-gray-600 dark:text-slate-300 font-medium mb-1 md:mb-0 pr-2">${item.category}</div>
-                    <div class="md:w-3/4">
-                        <p class="text-gray-700 dark:text-slate-300">${item.items}</p>
+                    <div class="md:w-1/6 text-gray-500 font-medium mb-1 md:mb-0 pr-4 shrink-0">${item.category}</div>
+                    <div class="md:w-5/6">
+                        <p class="text-gray-700">${item.items}</p>
                     </div>
                 </div>
             `;
         }
 
         function renderPublicationEntry(item) {
-             return `
+            return `
                 <div class="flex flex-col md:flex-row cv-entry">
-                    <div class="md:w-1/4 text-gray-600 dark:text-slate-400 font-medium mb-1 md:mb-0 pr-2">${item.date}</div>
-                    <div class="md:w-3/4">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-slate-100">${item.title}</h3>
-                        <p class="text-md text-gray-700 dark:text-slate-300">${item.authors}</p>
-                        <p class="text-sm italic text-gray-600 dark:text-slate-400 mt-1">${item.venue}</p>
-                        <a href="${item.link}" target="_blank" rel="noopener" class="text-blue-600 dark:text-cyan-400 hover:underline text-sm font-medium hide-in-short">View Paper &rarr;</a>
+                    <div class="md:w-1/6 text-gray-500 font-medium mb-1 md:mb-0 pr-4 shrink-0">${item.date}</div>
+                    <div class="md:w-5/6">
+                        <h3 class="text-lg font-bold text-gray-900">${item.title}</h3>
+                        <p class="text-md text-gray-700">${item.authors}</p>
+                        <p class="text-sm italic text-gray-600 mt-1">${item.venue}</p>
+                        <a href="${item.link}" target="_blank" rel="noopener" class="text-blue-600 hover:underline text-sm font-medium">View Paper &rarr;</a>
                     </div>
                 </div>
             `;
         }
 
+        // =====================================================
+        // PDF-ONLY RENDERERS (compact 2-column)
+        // =====================================================
+        function renderPdfSection(title, items, renderFn) {
+            if (!items || items.length === 0) return '';
+            return `
+                <div>
+                    <h2>${title}</h2>
+                    ${items.map(renderFn).join('')}
+                </div>
+            `;
+        }
+
+        function renderPdfEntry(item) {
+            return `
+                <div class="pdf-entry">
+                    <div class="pdf-years">${item.years || item.date || ''}</div>
+                    <div class="pdf-entry-body">
+                        <h3>${item.title}</h3>
+                        <p>${item.organization || ''}</p>
+                        ${item.description ? `<p>${item.description}</p>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPdfSkill(item) {
+            return `
+                <div class="pdf-entry">
+                    <div class="pdf-years">${item.category}</div>
+                    <div class="pdf-entry-body">
+                        <p>${item.items}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPdfPublication(item) {
+            return `
+                <div class="pdf-entry">
+                    <div class="pdf-years">${item.date}</div>
+                    <div class="pdf-entry-body">
+                        <h3>${item.title}</h3>
+                        <p>${item.authors}</p>
+                        <p class="venue">${item.venue}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // =====================================================
+        // CARD RENDERERS
+        // =====================================================
         function createCard(item) {
             const link = `#${item.type}/${item.id}`;
             return `<div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col"><div class="p-6 flex-grow"><p class="text-sm text-gray-500">${new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><h3 class="text-xl font-bold mt-2 text-gray-900">${item.title}</h3><p class="mt-3 text-gray-600 flex-grow">${item.description}</p></div><div class="p-6 bg-gray-50"><a href="${link}" class="font-semibold text-blue-600 hover:text-blue-800 transition">Read More &rarr;</a></div></div>`;
@@ -414,8 +535,8 @@
                 </div>
             `;
         }
+
         function createVideoCard(item) {
-            const link = `#${item.type}/${item.id}`;
             return `
                 <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
                     <div class="aspect-w-16 aspect-h-9">
