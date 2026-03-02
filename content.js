@@ -121,6 +121,20 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
 * How these viruses may be influencing the chemistry of the pools.
         `
     },
+    {
+        id: 'OSR',
+        type: 'podcast',
+        title: 'They Might be Giants- The Ocean Viruses Bigger than Bacteria',
+        date: '2025-07-01',
+        description: 'Join us as we explore the fascinating world of giant viruses with Benjamin Minch, a PhD student at the University of Miami who has discovered over 230 previously unknown viral genomes using a revolutionary computational tool called BEREN. These microscopic monsters can hijack photosynthesis, manipulate their hosts like puppet masters, and dramatically reshape ocean food webs.',
+        audioUrl: 'https://open.spotify.com/episode/1RmQLC2sIyo1NKArqGPHBC?si=-xSIS0MlS-ehj649njNn9g',
+        showNotes: `
+### In this episode:
+* Dive into a new research paper on giant viruses.
+* The different life strategies that shape these viral communities.
+* How these viruses may be influencing the chemistry of the pools.
+        `
+    },
     // === Teaching ===
     {
         id: 'protein-prediction',
