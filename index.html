@@ -494,6 +494,10 @@
 
 		yR = sectionHead(colX2, yR, 'PUBLICATIONS', colW);
 		for (const item of publications) { yR = pubEntry(colX2, yR, colW, item); }
+		yR += 6;
+
+		yR = sectionHead(colX2, yR, 'PRESENTATIONS', colW);
+		for (const item of (cvData.presentations || [])) { yR = skillEntry(colX2, yR, colW, item); }
 
 		// ===== ASSEMBLE SVG =====
 		const totalH = Math.max(yL, yR) + margin;
