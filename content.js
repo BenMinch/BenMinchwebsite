@@ -223,6 +223,14 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
         htmlFile: 'interactive/volcanoplotter.html'
     },
     {
+        id: 'photiczone',
+        type: 'interactive',
+        title: 'PhoticZone Game',
+        date: '2026-04-06',
+        description: 'A fun oregon-trail-style game where you are a phytoplankton trying to survive in the ocean',
+        htmlFile: 'interactive/photiczone.html'
+    },
+    {
         id: 'virtual-bioinformatics',
         type: 'interactive',
         title: 'Virtual Bioinformatics Terminal',
