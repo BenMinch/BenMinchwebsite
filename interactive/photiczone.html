@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photic Zone — The Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #010a12;
+    --abyss: #020f1a;
+    --mid: #051929;
+    --photic: #0a3d5c;
+    --surface: #0e6b8c;
+    --biolum: #00e5ff;
+    --biolum-dim: #007fa3;
+    --sun: #ffd54f;
+    --danger: #ff4c4c;
+    --good: #69ffb0;
+    --text: #b0d8e8;
+    --text-bright: #e0f4ff;
+    --muted: #3a6070;
+    --border: #0d4a66;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--deep);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  /* Animated ocean background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 80%, rgba(0,100,150,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 10%, rgba(0,229,255,0.05) 0%, transparent 50%),
+      linear-gradient(180deg, #010a12 0%, #020f1a 40%, #051929 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Floating particles */
+  .particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--biolum);
+    opacity: 0;
+    animation: float linear infinite;
+  }
+
+  @keyframes float {
+    0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10%  { opacity: 0.4; }
+    90%  { opacity: 0.2; }
+    100% { transform: translateY(-10vh) translateX(20px); opacity: 0; }
+  }
+
+  #game-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 780px;
+    padding: 20px 16px 60px;
+  }
+
+  /* TITLE */
+  .title-block {
+    text-align: center;
+    padding: 32px 0 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .title-block pre {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(5px, 1.4vw, 11px);
+    color: var(--biolum);
+    line-height: 1.3;
+    text-shadow: 0 0 10px rgba(0,229,255,0.6);
+    display: inline-block;
+    text-align: left;
+  }
+
+  .title-sub {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    letter-spacing: 6px;
+    color: var(--biolum-dim);
+    margin-top: 10px;
+    text-transform: uppercase;
+  }
+
+  /* PANELS */
+  .panel {
+    background: rgba(5, 25, 41, 0.85);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 16px;
+    backdrop-filter: blur(4px);
+  }
+
+  .panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--biolum-dim);
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+
+  /* STATUS GRID */
+  .status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .stat-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 14px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-family: 'Orbitron', sans-serif;
+    color: var(--text-bright);
+  }
+
+  .stat-value.warn { color: var(--sun); }
+  .stat-value.danger { color: var(--danger); }
+
+  /* DEPTH METER */
+  .depth-meter {
+    margin: 14px 0 10px;
+  }
+
+  .depth-track {
+    width: 100%;
+    height: 18px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .depth-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--photic), var(--surface), var(--biolum));
+    transition: width 0.6s ease;
+    position: relative;
+  }
+
+  .depth-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: white;
+    box-shadow: 0 0 8px var(--biolum);
+  }
+
+  .depth-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ENERGY BAR */
+  .energy-bar-wrap {
+    margin: 10px 0;
+  }
+
+  .energy-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .energy-track {
+    width: 100%;
+    height: 10px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .energy-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--danger), var(--sun), var(--good));
+    transition: width 0.5s ease;
+    border-radius: 2px;
+  }
+
+  /* UPGRADES / STATUS */
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .tag {
+    font-size: 9px;
+    padding: 3px 8px;
+    border: 1px solid var(--biolum-dim);
+    border-radius: 2px;
+    color: var(--biolum);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .tag.warn { border-color: #e57373; color: #ff8a80; }
+  .tag.good { border-color: var(--good); color: var(--good); }
+
+  /* OUTPUT LOG */
+  #output-log {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text);
+    min-height: 120px;
+    max-height: 280px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+
+  #output-log p {
+    margin-bottom: 2px;
+    animation: fadein 0.2s ease;
+  }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateX(-6px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  #output-log .em-danger  { color: var(--danger); }
+  #output-log .em-good    { color: var(--good); }
+  #output-log .em-warn    { color: var(--sun); }
+  #output-log .em-biolum  { color: var(--biolum); }
+  #output-log .em-muted   { color: var(--muted); }
+  #output-log .em-system  { color: var(--biolum-dim); font-size: 11px; letter-spacing: 1px; }
+  #output-log .separator  { color: var(--border); }
+
+  /* CHOICES */
+  #choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .choice-btn {
+    width: 100%;
+    text-align: left;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .choice-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--biolum);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .choice-btn:hover {
+    border-color: var(--biolum);
+    color: var(--biolum);
+    box-shadow: 0 0 12px rgba(0,229,255,0.15);
+  }
+
+  .choice-btn:hover::before { opacity: 0.04; }
+  .choice-btn:active { transform: scale(0.99); }
+
+  .choice-btn .choice-num {
+    color: var(--biolum-dim);
+    margin-right: 10px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+  }
+
+  /* CONTINUE */
+  #continue-btn {
+    width: 100%;
+    padding: 13px;
+    background: transparent;
+    border: 1px solid var(--biolum-dim);
+    border-radius: 3px;
+    color: var(--biolum);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  #continue-btn:hover {
+    background: rgba(0,229,255,0.06);
+    box-shadow: 0 0 16px rgba(0,229,255,0.2);
+  }
+
+  /* GAME OVER / WIN */
+  #end-screen {
+    text-align: center;
+    padding: 30px 20px;
+  }
+
+  #end-screen .end-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 22px;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+  }
+
+  #end-screen .end-title.win { color: var(--sun); text-shadow: 0 0 20px rgba(255,213,79,0.5); }
+  #end-screen .end-title.lose { color: var(--danger); text-shadow: 0 0 20px rgba(255,76,76,0.3); }
+
+  #end-screen p {
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.9;
+    margin-bottom: 6px;
+  }
+
+  #restart-btn {
+    margin-top: 24px;
+    padding: 14px 32px;
+    background: transparent;
+    border: 1px solid var(--biolum);
+    border-radius: 3px;
+    color: var(--biolum);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  #restart-btn:hover {
+    background: rgba(0,229,255,0.08);
+    box-shadow: 0 0 20px rgba(0,229,255,0.25);
+  }
+
+  /* PLANKTON ASCII */
+  .plankton {
+    text-align: center;
+    font-size: 13px;
+    color: var(--biolum-dim);
+    line-height: 1.3;
+    margin: 8px 0;
+    text-shadow: 0 0 8px rgba(0,229,255,0.3);
+  }
+
+  /* INTRO */
+  #intro-screen p {
+    font-size: 13px;
+    line-height: 1.9;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  /* STORE */
+  .store-item {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+
+  .store-item-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+  }
+
+  .store-item-desc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .store-item-cost {
+    font-size: 10px;
+    color: var(--sun);
+  }
+
+  .buy-btn {
+    padding: 7px 14px;
+    background: transparent;
+    border: 1px solid var(--biolum-dim);
+    border-radius: 2px;
+    color: var(--biolum);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    float: right;
+  }
+
+  .buy-btn:hover {
+    background: rgba(0,229,255,0.07);
+    border-color: var(--biolum);
+  }
+
+  .buy-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .store-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Hidden */
+  .hidden { display: none !important; }
+
+  /* Phases */
+  #phase-intro, #phase-game, #phase-store, #phase-end { width: 100%; }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div id="game-container">
+
+  <!-- TITLE -->
+  <div class="title-block">
+    <pre>
+ ____  _           _   _        _____
+|  _ \| |__   ___ | |_(_) ___  |__  /___  _ __   ___
+| |_) | '_ \ / _ \| __| |/ __|   / // _ \| '_ \ / _ \
+|  __/| | | | (_) | |_| | (__   / /| (_) | | | |  __/
+|_|   |_| |_|\___/ \__|_|\___| /____\___/|_| |_|\___|
+    </pre>
+    <div class="title-sub">T H E &nbsp; G A M E</div>
+  </div>
+
+  <!-- ===== INTRO ===== -->
+  <div id="phase-intro">
+    <div class="panel">
+      <div class="panel-title">// MISSION BRIEFING</div>
+      <div id="intro-screen">
+        <div class="plankton"><pre>
+        ,
+       / \
+      / _ \
+     | / \ |
+     | \_/ |
+      \ _ /
+       \ /
+        '</pre></div>
+        <p>You are <strong style="color:var(--biolum)">Micromonas</strong>, a tiny phytoplankton.</p>
+        <p>You have been knocked deep into the ocean, down to <strong>360 meters</strong>.</p>
+        <p>You are far below the <em style="color:var(--sun)">'photic zone'</em> — the layer of water where sunlight reaches.</p>
+        <p>You must ascend to <strong style="color:var(--sun)">60 meters</strong> or less to photosynthesize and survive.</p>
+        <p>You have <strong>100 energy</strong>. Manage it wisely. Good luck.</p>
+      </div>
+    </div>
+    <button id="start-btn" class="choice-btn" style="text-align:center;font-family:'Orbitron',sans-serif;letter-spacing:3px;font-size:11px;">
+      BEGIN ASCENT
+    </button>
+  </div>
+
+  <!-- ===== MAIN GAME ===== -->
+  <div id="phase-game" class="hidden">
+
+    <!-- Status -->
+    <div class="panel">
+      <div class="panel-title">// STATUS — DAY <span id="stat-day">1</span></div>
+      <div class="status-grid">
+        <div class="stat-box">
+          <div class="stat-label">Current Depth</div>
+          <div class="stat-value" id="stat-depth">360m</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Target Depth</div>
+          <div class="stat-value" style="color:var(--sun)">60m</div>
+        </div>
+      </div>
+      <div class="depth-meter">
+        <div class="depth-track">
+          <div class="depth-fill" id="depth-fill" style="width:0%"></div>
+        </div>
+        <div class="depth-labels">
+          <span>360m (abyss)</span>
+          <span>60m (photic zone ☀)</span>
+        </div>
+      </div>
+      <div class="energy-bar-wrap">
+        <div class="energy-label">
+          <span>ENERGY</span>
+          <span><span id="stat-energy">100</span> / <span id="stat-max-energy">100</span></span>
+        </div>
+        <div class="energy-track"><div class="energy-fill" id="energy-fill" style="width:100%"></div></div>
+      </div>
+      <div class="tags" id="tags-area"></div>
+    </div>
+
+    <!-- Log -->
+    <div class="panel">
+      <div class="panel-title">// LOG</div>
+      <div id="output-log"></div>
+    </div>
+
+    <!-- Action choices -->
+    <div class="panel hidden" id="choice-panel">
+      <div class="panel-title" id="choice-panel-title">// CHOOSE ACTION</div>
+      <div id="choices"></div>
+    </div>
+
+    <!-- Continue button -->
+    <button id="continue-btn" class="hidden">[ PRESS TO CONTINUE ]</button>
+  </div>
+
+  <!-- ===== EVOLUTION STORE ===== -->
+  <div id="phase-store" class="hidden">
+    <div class="panel">
+      <div class="store-header-row">
+        <div class="panel-title" style="margin:0">// EVOLUTION STORE</div>
+        <span style="font-size:12px;color:var(--sun)">Energy: <span id="store-energy">0</span></span>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">A strange calm falls over you. You feel a genetic shift... Spend energy on permanent adaptations.</p>
+      <div id="store-items"></div>
+    </div>
+    <button id="store-done-btn" class="choice-btn" style="text-align:center;font-family:'Orbitron',sans-serif;letter-spacing:3px;font-size:11px;">
+      CONTINUE JOURNEY
+    </button>
+  </div>
+
+  <!-- ===== END SCREEN ===== -->
+  <div id="phase-end" class="hidden">
+    <div class="panel">
+      <div id="end-screen"></div>
+    </div>
+    <button id="restart-btn">RESTART</button>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  PHOTIC ZONE — JS PORT
+// ============================================================
+
+// --- Particles ---
+(function() {
+  const c = document.getElementById('particles');
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 3 + 1;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      animation-duration:${8+Math.random()*14}s;
+      animation-delay:${Math.random()*12}s;
+    `;
+    c.appendChild(p);
+  }
+})();
+
+// --- Game state ---
+let G = {};
+
+function initState() {
+  G = {
+    depth: 360,
+    energy: 100,
+    maxEnergy: 100,
+    day: 1,
+    photicDepth: 60,
+    upgrades: new Set(),
+    symbiont: null,
+    virophage: null,
+    cystFormReady: false,
+  };
+}
+
+// --- Random util ---
+function rnd(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function chance(p) { return Math.random() < p; }
+
+// --- UI helpers ---
+const phases = ['intro','game','store','end'];
+function showPhase(name) {
+  phases.forEach(p => {
+    const el = document.getElementById('phase-' + p);
+    if (el) el.classList.toggle('hidden', p !== name);
+  });
+}
+
+const log = document.getElementById('output-log');
+function print(text, cls = '') {
+  const p = document.createElement('p');
+  p.innerHTML = cls ? `<span class="${cls}">${text}</span>` : text;
+  log.appendChild(p);
+  log.scrollTop = log.scrollHeight;
+}
+function separator() { print('───────────────────────────────────', 'separator'); }
+function clearLog() { log.innerHTML = ''; }
+
+// --- Update HUD ---
+function updateHUD() {
+  document.getElementById('stat-day').textContent = G.day;
+  document.getElementById('stat-depth').textContent = G.depth + 'm';
+  document.getElementById('stat-energy').textContent = G.energy;
+  document.getElementById('stat-max-energy').textContent = G.maxEnergy;
+
+  // Depth bar: 0% = 360m (deep), 100% = 60m (surface)
+  const pct = Math.max(0, Math.min(100, ((360 - G.depth) / (360 - 60)) * 100));
+  document.getElementById('depth-fill').style.width = pct + '%';
+
+  // Energy bar
+  const ePct = Math.max(0, Math.min(100, (G.energy / G.maxEnergy) * 100));
+  document.getElementById('energy-fill').style.width = ePct + '%';
+
+  // Tags
+  const tags = document.getElementById('tags-area');
+  tags.innerHTML = '';
+  G.upgrades.forEach(u => {
+    tags.innerHTML += `<span class="tag">${u.replace(/_/g,' ')}</span>`;
+  });
+  if (G.symbiont) {
+    const cls = G.symbiont === 'good' ? 'good' : 'warn';
+    tags.innerHTML += `<span class="tag ${cls}">symbiont: ${G.symbiont}</span>`;
+  }
+  if (G.virophage === 'active') tags.innerHTML += `<span class="tag good">virophage active</span>`;
+  if (G.cystFormReady) tags.innerHTML += `<span class="tag">cyst form ready</span>`;
+
+  // Depth stat color
+  const depthEl = document.getElementById('stat-depth');
+  depthEl.className = 'stat-value' + (G.depth <= G.photicDepth ? ' warn' : '');
+}
+
+// --- Choice system ---
+function showChoices(title, options, callback) {
+  document.getElementById('choice-panel').classList.remove('hidden');
+  document.getElementById('choice-panel-title').textContent = '// ' + title.toUpperCase();
+  const area = document.getElementById('choices');
+  area.innerHTML = '';
+  options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = `<span class="choice-num">[${i+1}]</span> ${opt}`;
+    btn.onclick = () => {
+      document.getElementById('choice-panel').classList.add('hidden');
+      callback(i);
+    };
+    area.appendChild(btn);
+  });
+}
+
+function hideChoices() {
+  document.getElementById('choice-panel').classList.add('hidden');
+}
+
+// --- Continue button ---
+let continueCallback = null;
+document.getElementById('continue-btn').onclick = function() {
+  this.classList.add('hidden');
+  if (continueCallback) { const cb = continueCallback; continueCallback = null; cb(); }
+};
+
+function waitContinue(cb) {
+  continueCallback = cb;
+  document.getElementById('continue-btn').classList.remove('hidden');
+}
+
+// ============================================================
+//  EVENTS
+// ============================================================
+
+function eventCopepod(next) {
+  separator();
+  print('!!! A COPEPOD !!!', 'em-danger');
+  if (G.cystFormReady) {
+    showChoices('Cyst Form Available!', ['Yes, use it!', 'No, save it.'], idx => {
+      if (idx === 0) {
+        G.cystFormReady = false;
+        print('You form a hard cyst! The copepod bumps uselessly off you and leaves.', 'em-good');
+        updateHUD();
+        separator();
+        waitContinue(next);
+        return;
+      }
+      copepodAttack(next);
+    });
+    return;
+  }
+  copepodAttack(next);
+}
+
+function copepodAttack(next) {
+  print('A massive, hungry grazer lunges at you from the gloom!');
+  let loss = rnd(20, 35);
+  if (G.upgrades.has('toxin_defense')) {
+    loss = Math.floor(loss * 0.6);
+    print('Your toxins make the copepod recoil! Reduced damage.', 'em-warn');
+  }
+  G.energy -= loss;
+  print(`You expend <span class="em-danger">${loss} energy</span> in a desperate evasion maneuver and escape!`);
+  updateHUD();
+  separator();
+  waitContinue(next);
+}
+
+function eventVirus(next) {
+  separator();
+  print('!!! A VIRUS ATTACKS !!!', 'em-danger');
+  print("A giant virus latches onto your cell wall!");
+  let base = 0.5;
+  if (G.upgrades.has('viral_resistance')) base -= 0.2;
+  if (G.virophage === 'active') base = 0.1;
+
+  if (chance(base)) {
+    const loss = rnd(15, 30);
+    G.energy -= loss;
+    print(`Your defenses fight, but it costs you <span class="em-danger">${loss} energy</span>.`);
+  } else {
+    if (G.virophage === 'active') {
+      print('Your integrated Virophage attacks the giant virus! It is neutralized!', 'em-good');
+    } else {
+      print('Your defenses activate just in time and neutralize the viral particle!', 'em-good');
+    }
+  }
+  updateHUD();
+  separator();
+  waitContinue(next);
+}
+
+function eventUpwelling(next) {
+  separator();
+  print('...An Upwelling Current...', 'em-biolum');
+  print('You are caught in a powerful column of rising water!');
+  const gain = rnd(20, 50);
+  G.depth = Math.max(0, G.depth - gain);
+  print(`Free ride! You are pushed <span class="em-good">${gain}m</span> closer to the surface!`);
+  updateHUD();
+  separator();
+  waitContinue(next);
+}
+
+function eventDownwelling(next) {
+  separator();
+  print('...A Downwelling Current...', 'em-warn');
+  print('A cold, heavy current drags you back down into the dark...');
+  const loss = rnd(15, 40);
+  G.depth = Math.min(360, G.depth + loss);
+  print(`You fight against it, but are pulled <span class="em-danger">${loss}m</span> deeper.`);
+  updateHUD();
+  separator();
+  waitContinue(next);
+}
+
+function eventMarineSnow(next) {
+  separator();
+  print('...Marine Snow...', 'em-biolum');
+  print("A particle of nutrient-rich 'marine snow' drifts past.");
+  const gain = rnd(15, 25);
+  G.energy = Math.min(G.maxEnergy, G.energy + gain);
+  print(`You absorb it, gaining <span class="em-good">+${gain} energy</span>!`);
+  updateHUD();
+  separator();
+  waitContinue(next);
+}
+
+function eventSymbiosis(next) {
+  if (G.symbiont !== null) {
+    print('...A strange bacteria approaches, but you already have a symbiont.', 'em-muted');
+    waitContinue(next);
+    return;
+  }
+  separator();
+  print('...Symbiosis Opportunity...', 'em-biolum');
+  print('A small, quivering bacterium bumps into you. It seems to want to attach.');
+  showChoices('Allow symbiosis?', ['Yes, take the risk.', 'No, stay independent.'], idx => {
+    if (idx === 0) {
+      if (chance(0.5)) {
+        G.symbiont = 'good';
+        print("It's a helpful symbiont! It begins producing trace nutrients for you.", 'em-good');
+      } else {
+        G.symbiont = 'bad';
+        print("It's a parasite! It starts slowly draining your energy.", 'em-danger');
+      }
+    } else {
+      print('You reject the bacterium and it drifts away.', 'em-muted');
+    }
+    updateHUD();
+    separator();
+    waitContinue(next);
+  });
+}
+
+function eventVirophage(next) {
+  if (G.virophage !== null) {
+    print('...A virophage floats by, but your genome is already occupied.', 'em-muted');
+    waitContinue(next);
+    return;
+  }
+  separator();
+  print('...Virophage Detected...', 'em-biolum');
+  print('A tiny virophage (a virus that infects viruses) is nearby. Integrate its DNA?');
+  showChoices('Integrate virophage DNA?', ['Yes, high risk high reward.', 'No, too dangerous.'], idx => {
+    if (idx === 0) {
+      if (chance(0.75)) {
+        G.virophage = 'active';
+        print('Success! The virophage DNA is now part of your genome, ready to defend you.', 'em-good');
+      } else {
+        G.virophage = 'failed';
+        const loss = rnd(30, 45);
+        G.energy -= loss;
+        print(`Integration failed! Massive energy loss: <span class="em-danger">-${loss}</span>!`);
+      }
+    } else {
+      print('You decide against tampering with your genome.', 'em-muted');
+    }
+    updateHUD();
+    separator();
+    waitContinue(next);
+  });
+}
+
+function eventBioluminescence(next) {
+  separator();
+  print('...Bioluminescence...', 'em-biolum');
+  print('You have the ability to produce a faint glow to attract nutrients.');
+  showChoices('Activate your glow?', ['Yes, light up.', 'No, stay dark.'], idx => {
+    if (idx === 0) {
+      if (chance(0.6)) {
+        const gain = rnd(20, 30);
+        G.energy = Math.min(G.maxEnergy, G.energy + gain);
+        print(`It worked! Nutrients drift towards your light. <span class="em-good">+${gain} energy</span>.`);
+      } else {
+        print('Your glow attracts the wrong attention... a Copepod appears!', 'em-danger');
+        updateHUD();
+        waitContinue(() => eventCopepod(next));
+        return;
+      }
+    } else {
+      print('You remain hidden in the dark.', 'em-muted');
+    }
+    updateHUD();
+    separator();
+    waitContinue(next);
+  });
+}
+
+function eventDeadZone(next) {
+  separator();
+  print('...Anoxic Dead Zone...', 'em-danger');
+  print("You drift into a patch of water with no oxygen. It's suffocating.");
+  const loss = rnd(5, 15);
+  G.energy -= loss;
+  print(`You expend <span class="em-danger">${loss} energy</span> just to survive until you drift out.`);
+  updateHUD();
+  separator();
+  waitContinue(next);
+}
+
+const EVENTS = [
+  eventCopepod, eventCopepod,
+  eventVirus, eventVirus,
+  eventDownwelling, eventDownwelling,
+  eventUpwelling,
+  eventMarineSnow,
+  eventSymbiosis,
+  eventVirophage,
+  eventBioluminescence,
+  eventDeadZone,
+];
+
+// ============================================================
+//  EVOLUTION STORE
+// ============================================================
+
+const UPGRADES = {
+  flagella:        { name: 'Flagella',          cost: 15, desc: 'Reduces energy cost of swimming upwards by 30%.' },
+  toxin_defense:   { name: 'Toxin Defense',     cost: 9,  desc: 'Reduces energy loss from Copepod attacks by 40%.' },
+  cyst_form:       { name: 'Cyst Form (1×)',    cost: 12, desc: 'One-time ability to completely block one Copepod attack.' },
+  nutrient_sensors:{ name: 'Nutrient Sensors',  cost: 18, desc: 'Increases chance and amount of energy from Rest or Hunt.' },
+  viral_resistance:{ name: 'Viral Resistance',  cost: 10, desc: 'Reduces chance of energy loss from virus attacks.' },
+  energy_storage:  { name: 'Energy Storage',    cost: 10, desc: 'Increases maximum energy from 100 to 130.' },
+};
+
+function runStore(next) {
+  showPhase('store');
+  document.getElementById('store-energy').textContent = G.energy;
+
+  const available = Object.entries(UPGRADES).filter(([k]) => {
+    if (G.upgrades.has(k)) return false;
+    if (k === 'cyst_form' && G.cystFormReady) return false;
+    return true;
+  });
+
+  const offered = available.sort(() => Math.random() - 0.5).slice(0, 3);
+  renderStore(offered, next);
+}
+
+function renderStore(offered, next) {
+  document.getElementById('store-energy').textContent = G.energy;
+  const area = document.getElementById('store-items');
+  area.innerHTML = '';
+
+  if (offered.length === 0) {
+    area.innerHTML = '<p style="color:var(--muted);font-size:12px">You have already evolved every available advantage!</p>';
+  }
+
+  offered.forEach(([key, upg], i) => {
+    const canAfford = G.energy >= upg.cost;
+    const div = document.createElement('div');
+    div.className = 'store-item';
+    div.innerHTML = `
+      <div style="overflow:hidden">
+        <button class="buy-btn" id="buy-${i}" ${canAfford ? '' : 'disabled'}>BUY</button>
+        <div class="store-item-title">${upg.name}</div>
+        <div class="store-item-desc">${upg.desc}</div>
+        <div class="store-item-cost">Cost: ${upg.cost} energy</div>
+      </div>
+    `;
+    area.appendChild(div);
+    document.getElementById('buy-' + i).onclick = () => {
+      G.energy -= upg.cost;
+      if (key === 'cyst_form') { G.cystFormReady = true; }
+      else if (key === 'energy_storage') { G.maxEnergy += 30; G.energy += 30; G.upgrades.add(key); }
+      else { G.upgrades.add(key); }
+      offered.splice(i, 1);
+      updateHUD();
+      renderStore(offered, next);
+    };
+  });
+}
+
+document.getElementById('store-done-btn').onclick = () => {
+  showPhase('game');
+  updateHUD();
+  gameLoop();
+};
+
+// ============================================================
+//  ACTIONS
+// ============================================================
+
+function resolveAction(choice, next) {
+  const inPhotic = G.depth <= G.photicDepth;
+  clearLog();
+
+  if (inPhotic) {
+    if (choice === 0) {
+      let cost = rnd(10, 15);
+      if (G.upgrades.has('flagella')) { cost = Math.floor(cost * 0.7); print('Your flagella makes swimming easier!', 'em-good'); }
+      const gain = rnd(15, 30);
+      G.energy -= cost;
+      G.depth = Math.max(0, G.depth - gain);
+      print(`You burn <span class="em-warn">${cost} energy</span> and swim <span class="em-good">${gain}m</span> closer to the sun!`);
+    } else if (choice === 1) {
+      const gain = rnd(15, 25);
+      const sink = rnd(2, 8);
+      G.energy = Math.min(G.maxEnergy, G.energy + gain);
+      G.depth = Math.min(360, G.depth + sink);
+      print(`You soak in weak sunlight, gaining <span class="em-good">+${gain} energy</span>.`);
+      print(`While resting, you sink <span class="em-warn">${sink}m</span>.`);
+    } else {
+      const cost = rnd(5, 10);
+      const sink = rnd(10, 20);
+      G.energy -= cost;
+      G.depth = Math.min(360, G.depth + sink);
+      print(`You dive back down <span class="em-warn">${sink}m</span>, costing <span class="em-warn">${cost} energy</span>...`);
+      let pct = G.upgrades.has('nutrient_sensors') ? 0.8 : 0.6;
+      if (chance(pct)) {
+        let gain = rnd(20, 30) + (G.upgrades.has('nutrient_sensors') ? rnd(5, 10) : 0);
+        G.energy = Math.min(G.maxEnergy, G.energy + gain);
+        print(`Success! You find a nutrient pocket and gain <span class="em-good">+${gain} energy</span>!`);
+      } else {
+        print('...but you find nothing.', 'em-muted');
+      }
+    }
+  } else {
+    if (choice === 0) {
+      let cost = rnd(12, 18);
+      if (G.upgrades.has('flagella')) { cost = Math.floor(cost * 0.7); print('Your flagella makes swimming easier!', 'em-good'); }
+      const gain = rnd(20, 35);
+      G.energy -= cost;
+      G.depth = Math.max(0, G.depth - gain);
+      print(`You burn <span class="em-warn">${cost} energy</span> and swim <span class="em-good">${gain}m</span> up.`);
+    } else if (choice === 1) {
+      const cost = rnd(2, 5);
+      const sink = rnd(3, 10);
+      G.energy -= cost;
+      G.depth = Math.min(360, G.depth + sink);
+      print(`You rest, consuming <span class="em-warn">${cost} energy</span> and sinking <span class="em-warn">${sink}m</span>.`);
+      let pct = G.upgrades.has('nutrient_sensors') ? 0.5 : 0.3;
+      if (chance(pct)) {
+        let gain = rnd(5, 10) + (G.upgrades.has('nutrient_sensors') ? rnd(3, 6) : 0);
+        G.energy = Math.min(G.maxEnergy, G.energy + gain);
+        print(`You absorbed some trace nutrients, gaining <span class="em-good">+${gain} energy</span>!`);
+      }
+    } else {
+      const cost = rnd(5, 10);
+      G.energy -= cost;
+      print(`You spend <span class="em-warn">${cost} energy</span> hunting for a nutrient pocket...`);
+      let pct = G.upgrades.has('nutrient_sensors') ? 0.75 : 0.5;
+      if (chance(pct)) {
+        let gain = rnd(15, 30) + (G.upgrades.has('nutrient_sensors') ? rnd(5, 10) : 0);
+        G.energy = Math.min(G.maxEnergy, G.energy + gain);
+        print(`Success! You find one and gain <span class="em-good">+${gain} energy</span>!`);
+      } else {
+        print('...but you come up empty.', 'em-muted');
+      }
+    }
+  }
+
+  G.depth = Math.max(0, Math.min(360, G.depth));
+  updateHUD();
+  next();
+}
+
+// ============================================================
+//  MAIN LOOP
+// ============================================================
+
+function gameLoop() {
+  // Daily persistent effects
+  if (G.symbiont === 'good') { G.energy = Math.min(G.maxEnergy, G.energy + 3); }
+  else if (G.symbiont === 'bad') { G.energy -= 4; }
+
+  updateHUD();
+
+  // Check store
+  if (G.day > 1 && G.day % 10 === 0) {
+    runStore(() => {});
+    return; // store done btn resumes game
+  }
+
+  checkConditions(() => {
+    if (G.energy <= 0) { endGame(false, 'You ran out of energy and dissolved into the deep.'); return; }
+    if (G.depth <= G.photicDepth) { endGame(true); return; }
+    showPlayerChoices();
+  });
+}
+
+function checkConditions(next) {
+  if (G.energy <= 0) { endGame(false, 'You ran out of energy and dissolved into the deep.'); return; }
+  if (G.depth <= G.photicDepth) { endGame(true); return; }
+  next();
+}
+
+function showPlayerChoices() {
+  const inPhotic = G.depth <= G.photicDepth;
+  clearLog();
+  if (inPhotic) {
+    print(`You are in the Photic Zone! You can feel the sun on your membrane.`, 'em-warn');
+    showChoices('CHOOSE ACTION', [
+      'Swim for the surface (High energy cost)',
+      'Photosynthesize (Gain energy, but sink slightly)',
+      'Dive for nutrients (Risk depth for energy)',
+    ], idx => {
+      resolveAction(idx, () => {
+        if (G.energy <= 0) { endGame(false, 'Your last action drained your remaining energy. You dissolve...'); return; }
+        if (G.depth <= G.photicDepth) { endGame(true); return; }
+        triggerEvent();
+      });
+    });
+  } else {
+    print(`You are in the dark, far from the sun. Depth: <span class="em-warn">${G.depth}m</span>. Conserve energy.`);
+    showChoices('CHOOSE ACTION', [
+      'Swim upwards (High energy cost)',
+      'Rest and absorb (Low cost, chance for trace nutrients)',
+      'Hunt for nutrient pockets (Medium cost, bigger chance)',
+    ], idx => {
+      resolveAction(idx, () => {
+        if (G.energy <= 0) { endGame(false, 'Your last action drained your remaining energy. You dissolve...'); return; }
+        if (G.depth <= G.photicDepth) { endGame(true); return; }
+        triggerEvent();
+      });
+    });
+  }
+}
+
+function triggerEvent() {
+  if (chance(0.40)) {
+    print('...Something is happening!...', 'em-system');
+    const fn = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+    fn(() => {
+      G.day++;
+      updateHUD();
+      gameLoop();
+    });
+  } else {
+    G.day++;
+    updateHUD();
+    gameLoop();
+  }
+}
+
+// ============================================================
+//  END GAME
+// ============================================================
+
+function endGame(win, deathMsg) {
+  showPhase('end');
+  const es = document.getElementById('end-screen');
+  if (win) {
+    es.innerHTML = `
+      <div class="end-title win">☀ YOU REACHED THE PHOTIC ZONE ☀</div>
+      <p>You are bathed in glorious, life-giving sunlight at <strong>${G.depth}m</strong>.</p>
+      <p>You can photosynthesize, grow, and divide.</p>
+      <p>Your perilous journey is over. You have succeeded!</p>
+      <p style="margin-top:16px;color:var(--biolum)">Days survived: <strong>${G.day}</strong></p>
+      <p style="color:var(--biolum)">Final depth: <strong>${G.depth}m</strong></p>
+      <p style="color:var(--biolum)">Remaining energy: <strong>${G.energy}</strong></p>
+    `;
+  } else {
+    es.innerHTML = `
+      <div class="end-title lose">— GAME OVER —</div>
+      <p>${deathMsg}</p>
+      <p style="margin-top:16px;color:var(--muted)">Days survived: <strong style="color:var(--text)">${G.day}</strong></p>
+      <p style="color:var(--muted)">Final depth: <strong style="color:var(--text)">${G.depth}m</strong></p>
+    `;
+  }
+}
+
+// --- Start & Restart ---
+document.getElementById('start-btn').onclick = () => {
+  initState();
+  showPhase('game');
+  clearLog();
+  updateHUD();
+  print('Your journey begins. The surface is far above...', 'em-system');
+  print(`Target: reach <span class="em-warn">60m</span> or less. Current depth: <span class="em-danger">360m</span>.`);
+  waitContinue(gameLoop);
+};
+
+document.getElementById('restart-btn').onclick = () => {
+  initState();
+  showPhase('game');
+  clearLog();
+  updateHUD();
+  print('You reconstitute yourself. The journey begins again.', 'em-system');
+  waitContinue(gameLoop);
+};
+</script>
+</body>
+</html>
