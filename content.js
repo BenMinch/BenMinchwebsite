@@ -105,6 +105,19 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
 * [Scientists uncover 230 giant ocean viruses that hijack photosynthesis](https://www.sciencedaily.com/releases/2025/06/250606193228.htm) by ScienceDaily
         `
     },
+    {
+        id: 'news-curbio',
+        type: 'blog',
+        title: 'News articles for Polar Algae viruses paper',
+        date: '2026-04-06',
+        description: 'Our recent paper "Extensive Array of Endogenous Giant Viral Elements in a Polar Alga Shows Dynamic Transcriptional Response to Abiotic Stress" has been picked up by many local and international news sources. Read about it here.',
+        content: `
+## News coverage for Extensive Array of Endogenous Giant Viral Elements in a Polar Alga Shows Dynamic Transcriptional Response to Abiotic Stress.
+* [Giant virus DNA may help polar algae survive harsh environments](https://phys.org/news/2026-03-giant-virus-dna-polar-algae.html) by Phys.org
+* [Genes from giant viruses help polar algae survive frigid waters and harsh sunlight](https://www.science.org/content/article/genes-giant-viruses-help-polar-algae-survive-frigid-waters-and-harsh-sun) by Science
+* [Study finds viral DNA embedded in polar algae may help them survive extreme environments](https://www.eurekalert.org/news-releases/1121865) by EurekAlert
+        `
+    },
 
     // === PODCASTS ===
     {
