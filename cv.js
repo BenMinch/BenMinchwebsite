@@ -100,6 +100,18 @@ const cvData = {
   // --- AWARDS & GRANTS ---
   awards: [
     {
+      years: "2026",
+      title: "University of Miami Rosenstiel Research Day, Best Student Presentation",
+      organization: "University of Miami",
+      description: "Awarded best student presentation out of 22 other presentations by graduate students and faculty at the University of Miami's Rosenstiel School.
+    },
+    {
+      years: "2026",
+      title: "University of Miami Graduate Research Symposium, Best Oral Presenter",
+      organization: "University of Miami",
+      description: "Awarded best oral presentation for my talk, 'Giant viruses commit widespread key fraud using genomic islands' out of 56 other presentations by graduate students at the University of Miami. This was judged by a panel of professors in diverse fields.
+    },
+    {
       years: "2019-2021",
       title: "NOAA Ernest F. Hollings Scholarship",
       organization: "National Oceanic and Atmospheric Administration",
