@@ -112,6 +112,12 @@ const cvData = {
       description: "Awarded best oral presentation for my talk, 'Giant viruses commit widespread key fraud using genomic islands' out of 56 other presentations by graduate students at the University of Miami. This was judged by a panel of professors in diverse fields."
     },
     {
+      years: "2024-2025",
+      title: "Marine Biology and Ecology best department seminar award",
+      organization: "University of Miami",
+      description: "Award for best student presentation during department seminar for the year out of 45 talks."
+    },
+    {
       years: "2019-2021",
       title: "NOAA Ernest F. Hollings Scholarship",
       organization: "National Oceanic and Atmospheric Administration",
