@@ -241,7 +241,7 @@ const cvData = {
       title: "The genomic island landscape of giant viruses",
       organization: "University of Miami Rosenstiel Research Day",
       description: "Oral presenter"
-    },
+    }
     ]
 
 };
