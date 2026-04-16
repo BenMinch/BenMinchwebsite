@@ -4,6 +4,17 @@
 const contentData = [
     // === PUBLICATIONS ===
     {
+        id: 'GIs', // Must be unique for publications
+        type: 'publication',
+        title: 'Widespread Genomic Islands in Giant Viruses Shape Genome Plasticity and Mosaicism',
+        authors: 'Benjamin Minch, Mohammad Moniruzzaman',
+        venue: 'bioRxiv',
+        date: '2026', // Just the year is fine for publications
+        link: 'https://www.biorxiv.org/content/10.64898/2026.04.13.718226v1', // Link to the paper (PDF, DOI, or a page)
+        abstract: `
+Giant viruses in the phylum Nucleocytoviricota possess exceptionally large and mosaic genomes, yet the mechanisms underlying their remarkable genomic plasticity remain poorly understood. Genomic islands are large dynamic genomic regions that are major drivers of genome diversification and adaptation in bacteria. However, their contribution to genome evolution in giant viruses remains largely unexplored. Here, we systematically characterize the genomic island landscape of giant viruses using 369 high-quality genomes spanning cultured isolates and long-read metagenome-assembled genomes. We identify 307 genomic islands across >50% of the genomes, demonstrating that these regions are pervasive across Nucleocytoviricota diversity. Giant virus genomic islands are frequently associated with genomic hypervariability and enriched in genes involved in host interaction, particularly surface adhesion proteins, suggesting key roles in host adaptation during virus-host arms race. Comparative analyses further reveal these islands to be major hotspots of genome diversification, exhibiting frequent gain, loss, and rearrangement even among highly similar genomes, with evidence that entire island regions can be exchanged among closely related viral populations. Notably, 37% of genomic islands are enriched in bacterial homologs, and several exhibit striking synteny with genomic regions recovered from environmentally co-occurring bacterial genomes, supporting large-scale genetic exchange between bacteria and giant viruses. Together, these findings identify genomic islands as pervasive and dynamic drivers of giant virus genome evolution, providing a mechanistic framework for genome plasticity, mosaicism, and adaptive potential of giant viruses.`    },
+    },
+    {
         id: 'ICEL', // Must be unique for publications
         type: 'publication',
         title: 'Extensive Array of Endogenous Giant Viral Elements in a Polar Alga Shows Dynamic Transcriptional Response to Abiotic Stress',
