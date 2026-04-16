@@ -229,7 +229,19 @@ const cvData = {
       title: "Transcriptional underpinnings of giant virus ecological dynamics during an algal bloom ",
       organization: "Aquatic Virus Workshop 12 (Banyuls-sur-mer, France)",
       description: "Poster presentation"
-    }
+    },
+   {
+      years: "March 2026",
+      title: "Giant viruses commit widespread key fraud using genomic islands",
+      organization: "University of Miami Graduate Research Symposium",
+      description: "Oral presenter"
+    },
+   {
+      years: "March 2026",
+      title: "The genomic island landscape of giant viruses",
+      organization: "University of Miami Rosenstiel Research Day",
+      description: "Oral presenter"
+    },
     ]
 
 };
