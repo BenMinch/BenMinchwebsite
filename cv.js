@@ -185,6 +185,12 @@ const cvData = {
       title: "Teaching assistant for General Chemistry",
       organization: "Biola University",
       description: "Duties included twice-weekly instructional session where I would review material that was taught in class."
+    },
+    {
+      years: "Jan 2024- Jan 2026",
+      title: "Guest lecturer MBE309, Marine Viruses",
+      organization: "University of Miami",
+      description: "Have given 4 guest lectures on different aspects of viral diversity and ecology in MBE309."
     }
   ],
  presentations: [
