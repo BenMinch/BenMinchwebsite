@@ -4,6 +4,16 @@
 const contentData = [
     // === PUBLICATIONS ===
     {
+        id: 'Shroud-paper', // Must be unique for publications
+        type: 'publication',
+        title: 'The first comprehensive analysis of the viruses associated with the Shroud of Turin',
+        authors: 'Benjamin Minch',
+        venue: 'Research Square',
+        date: '2026', // Just the year is fine for publications
+        link: 'https://www.researchsquare.com/article/rs-10618646/v1', // Link to the paper (PDF, DOI, or a page)
+        abstract:  `
+The Shroud of Turin, one of the most extensively studied historical artifacts and the debated burial cloth of Jesus of Nazareth, has recently been the subject of shotgun metagenomic sequencing, revealing novel insights into bacterial, archaeal, and eukaryotic signatures consistent with human handling and saline preservation conditions. However, the viruses associated with this artifact have been previously overlooked. Here, we utilize the metagenomic data from five Shroud-associated sampling sites (feet, hands, and glutei regions) and the sample collector using recently developed viral bioinformatic tools to provide the first comprehensive survey of viruses associated with the Shroud of Turin. We identified 2,765 viral sequences, including both DNA and RNA viruses, with viral DNA comprising between 1.8% and 20.4% of sequencing reads across sites. Viral communities exhibited pronounced spatial heterogeneity as the AB1 site (a frequently handled edge) was dominated by Papillomaviruses consistent with recent human handling and contamination, while other sites were dominated by bacteriophages showing distinct sample-specific host-association patterns. This included halophilic archaea-infecting viruses, consistent with the Shroud’s high-salinity preservation environment. In addition, we recovered two complete Papillomavirus genomes, one Polyomavirus genome, and a putative novel single-stranded DNA virus representing a new member of the recently described family Gandrviridae, which we have provisionally named Sindonivirus turinense. We further identified a filamentous phage (family Inoviridae) integrated into an Acinetobacter baylyi genome adjacent to heavy-metal resistance and aromatic catabolism operons, offering a plausible molecular link to the 1532 Chambery fire and subsequent metal-container storage of the cloth. Collectively, these findings establish viral metagenomics as a complementary tool to traditional human and plant DNA profiling of historical artifacts, providing new molecular evidence of the handling history, preservation conditions, and microbial ecology of the Shroud of Turin.        `},
+    {
         id: 'GIs-paper', // Must be unique for publications
         type: 'publication',
         title: 'Widespread Genomic Islands in Giant Viruses Shape Genome Plasticity and Mosaicism',
