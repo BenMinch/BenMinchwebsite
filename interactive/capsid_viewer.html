@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Phage Capsid Sketchbook — Caspar-Klug Builder</title>
+  <!-- Google Fonts for Sketchbook / Coloring Book Vibe -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --paper: #fcfaf2;
+      --paper-card: #ffffff;
+      --ink: #202124;
+      --ink-muted: #5f6368;
+      --dot-grid: #dcd7c6;
+      /* Google Marker Palette */
+      --g-blue: #4285F4;
+      --g-blue-soft: #e8f0fe;
+      --g-red: #EA4335;
+      --g-red-soft: #fce8e6;
+      --g-yellow: #FBBC04;
+      --g-yellow-soft: #fef7e0;
+      --g-green: #34A853;
+      --g-green-soft: #e6f4ea;
+      --g-purple: #a142f4;
+      --g-purple-soft: #f3e8fd;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: var(--paper);
+      /* Tactile Dot-Grid Sketchbook Background */
+      background-image: 
+        radial-gradient(var(--dot-grid) 1.65px, transparent 1.65px),
+        radial-gradient(var(--dot-grid) 1.65px, var(--paper) 1.65px);
+      background-size: 24px 24px;
+      background-position: 0 0, 12px 12px;
+      color: var(--ink);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Handwritten / Sketch Fonts */
+    .font-sketch {
+      font-family: 'Fredoka', cursive, sans-serif;
+    }
+    .font-hand {
+      font-family: 'Patrick Hand', cursive, sans-serif;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Sketchbook Ink Borders & Hard Shadows */
+    .sketch-box {
+      background: var(--paper-card);
+      border: 2.5px solid var(--ink);
+      border-radius: 16px;
+      box-shadow: 4px 4px 0px var(--ink);
+    }
+
+    .sketch-box-sm {
+      background: var(--paper-card);
+      border: 2px solid var(--ink);
+      border-radius: 12px;
+      box-shadow: 3px 3px 0px var(--ink);
+    }
+
+    /* Organic hand-drawn wobble border radius utility */
+    .wobble-card {
+      border-radius: 18px 14px 20px 15px / 15px 19px 14px 18px;
+    }
+
+    /* Tactile Marker Buttons */
+    .sketch-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 9px 16px;
+      border: 2.5px solid var(--ink);
+      border-radius: 12px;
+      box-shadow: 3px 3px 0px var(--ink);
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+      user-select: none;
+    }
+    .sketch-btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0px var(--ink);
+    }
+    .sketch-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px var(--ink);
+    }
+
+    .btn-blue { background-color: var(--g-blue); color: #fff; }
+    .btn-blue:hover { background-color: #3367d6; }
+    .btn-yellow { background-color: var(--g-yellow); color: var(--ink); }
+    .btn-yellow:hover { background-color: #f29900; }
+    .btn-green { background-color: var(--g-green); color: #fff; }
+    .btn-green:hover { background-color: #2d9249; }
+    .btn-red { background-color: var(--g-red); color: #fff; }
+    .btn-white { background-color: #ffffff; color: var(--ink); }
+    .btn-white:hover { background-color: var(--g-yellow-soft); }
+
+    /* Highlighter text effect */
+    .highlighter-yellow {
+      background: linear-gradient(104deg, rgba(251, 188, 4, 0) 0.9%, rgba(251, 188, 4, 0.65) 2.4%, rgba(251, 188, 4, 0.45) 5.8%, rgba(251, 188, 4, 0.35) 93%, rgba(251, 188, 4, 0.6) 96%, rgba(251, 188, 4, 0) 98%), linear-gradient(183deg, rgba(251, 188, 4, 0) 0%, rgba(251, 188, 4, 0.3) 7.9%, rgba(251, 188, 4, 0) 15%);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    /* Spiral Notebook Left Binding Decoration */
+    aside {
+      width: 410px;
+      min-width: 410px;
+      padding: 18px 18px 28px 26px;
+      overflow-y: auto;
+      border-right: 3px solid var(--ink);
+      background-color: #fffdf7;
+      background-image: linear-gradient(to bottom, transparent 23px, #ece7d5 24px);
+      background-size: 100% 24px;
+      max-height: 100vh;
+      position: relative;
+      box-shadow: 4px 0 0 rgba(32, 33, 36, 0.08);
+    }
+
+    /* Red Margin Line in Notebook */
+    aside::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 16px;
+      width: 2px;
+      background-color: rgba(234, 67, 53, 0.35);
+      pointer-events: none;
+    }
+
+    main {
+      flex: 1;
+      padding: 20px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      max-height: 100vh;
+      overflow-y: auto;
+    }
+
+    /* Form Controls inside #f */
+    .section-card {
+      background: #ffffff;
+      border: 2px solid var(--ink);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      box-shadow: 3px 3px 0px var(--ink);
+      transition: transform 0.15s ease;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      margin: 0;
+      padding-bottom: 6px;
+      border-bottom: 2px dashed #e0dcd0;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--ink);
+    }
+
+    .badge-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1.5px solid var(--ink);
+      border-radius: 999px;
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    label.ctrl-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #3c4043;
+      padding: 3px 4px;
+      border-radius: 6px;
+    }
+    label.ctrl-row:hover {
+      background-color: rgba(251, 188, 4, 0.12);
+    }
+
+    input[type=number],
+    input[type=text],
+    select {
+      width: 112px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: var(--ink);
+      background-color: var(--paper);
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      box-shadow: 2px 2px 0px var(--ink);
+      outline: none;
+      transition: all 0.12s ease;
+    }
+
+    input[type=number]:focus,
+    input[type=text]:focus,
+    select:focus {
+      background-color: var(--g-yellow-soft);
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0px var(--ink);
+    }
+
+    input[type=checkbox] {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--ink);
+      border-radius: 6px;
+      background-color: var(--paper);
+      box-shadow: 2px 2px 0px var(--ink);
+      cursor: pointer;
+      position: relative;
+      margin: 0;
+    }
+    input[type=checkbox]:checked {
+      background-color: var(--g-green);
+    }
+    input[type=checkbox]:checked::after {
+      content: "✓";
+      position: absolute;
+      color: white;
+      font-weight: 900;
+      font-size: 13px;
+      left: 3px;
+      top: -1px;
+    }
+
+    /* File Input Sketch Styling */
+    .file-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 6px 8px;
+      margin: 6px 0;
+      background: var(--paper);
+      border: 1.5px dashed #80868b;
+      border-radius: 10px;
+      transition: all 0.15s ease;
+    }
+    .file-row.has-file {
+      background: var(--g-green-soft);
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0px var(--ink);
+    }
+    .file-row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    input[type=file] {
+      width: 100%;
+      font-size: 11px;
+      color: var(--ink-muted);
+      cursor: pointer;
+    }
+    input[type=file]::file-selector-button {
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 600;
+      font-size: 11px;
+      padding: 3px 10px;
+      margin-right: 8px;
+      color: var(--ink);
+      background-color: #ffffff;
+      border: 1.5px solid var(--ink);
+      border-radius: 6px;
+      box-shadow: 1.5px 1.5px 0px var(--ink);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    input[type=file]::file-selector-button:hover {
+      background-color: var(--g-yellow);
+    }
+
+    /* Drawing Easel / Masking Tape Frame for Canvas */
+    .easel-wrapper {
+      position: relative;
+      padding: 18px;
+      background: #ffffff;
+      border: 3px solid var(--ink);
+      border-radius: 22px;
+      box-shadow: 7px 7px 0px var(--ink);
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
+    }
+
+    /* Masking Tape Corners */
+    .tape-tl, .tape-tr {
+      position: absolute;
+      width: 76px;
+      height: 24px;
+      background-color: rgba(251, 188, 4, 0.55);
+      border: 1.5px dashed rgba(32, 33, 36, 0.45);
+      z-index: 10;
+      pointer-events: none;
+    }
+    .tape-tl {
+      top: -10px;
+      left: -18px;
+      transform: rotate(-28deg);
+    }
+    .tape-tr {
+      top: -10px;
+      right: -18px;
+      transform: rotate(25deg);
+    }
+
+    canvas#cv {
+      max-width: 100%;
+      max-height: 62vh;
+      width: auto;
+      height: auto;
+      border: 2.5px solid var(--ink);
+      border-radius: 12px;
+      background-color: #ffffff;
+      /* Subtle checkerboard when transparent */
+      background-image: 
+        linear-gradient(45deg, #f3f1e9 25%, transparent 25%), 
+        linear-gradient(-45deg, #f3f1e9 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #f3f1e9 75%), 
+        linear-gradient(-45deg, transparent 75%, #f3f1e9 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+
+    /* Status Sticky Note */
+    #st {
+      font-family: 'Patrick Hand', cursive, sans-serif;
+      font-size: 17px;
+      line-height: 1.3;
+      color: var(--ink);
+      background-color: var(--g-yellow-soft);
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+      box-shadow: 3px 3px 0px var(--ink);
+      padding: 6px 16px;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--paper);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c4bfb0;
+      border-radius: 99px;
+      border: 2px solid var(--ink);
+    }
+
+    @media (max-width: 960px) {
+      body {
+        flex-direction: column;
+      }
+      aside {
+        width: 100%;
+        min-width: 0;
+        max-height: none;
+        border-right: none;
+        border-bottom: 3px solid var(--ink);
+      }
+      main {
+        max-height: none;
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LEFT SIDEBAR: FIELD NOTEBOOK -->
+  <aside>
+    <!-- Notebook Header Banner -->
+    <div class="sketch-box wobble-card p-3.5 mb-4 bg-white relative">
+      <div class="flex items-center gap-3">
+        <!-- Hand-drawn Phage SVG Icon -->
+        <div class="w-12 h-12 rounded-xl border-2 border-[#202124] bg-[#e8f0fe] flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#202124]">
+          <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Icosahedral head -->
+            <polygon points="32,4 50,15 50,33 32,44 14,33 14,15" fill="#4285F4" stroke="#202124" stroke-width="3.5" stroke-linejoin="round"/>
+            <polyline points="14,15 32,25 50,15" stroke="#202124" stroke-width="2.5" stroke-linejoin="round"/>
+            <line x1="32" y1="4" x2="32" y2="25" stroke="#202124" stroke-width="2.5"/>
+            <line x1="32" y1="25" x2="32" y2="44" stroke="#202124" stroke-width="2.5"/>
+            <!-- Portal & Tail -->
+            <rect x="27" y="43" width="10" height="4" fill="#FBBC04" stroke="#202124" stroke-width="2.5"/>
+            <rect x="29" y="47" width="6" height="10" fill="#34A853" stroke="#202124" stroke-width="2.5"/>
+            <!-- Tail fibers -->
+            <path d="M29 56 L16 62 M35 56 L48 62 M29 54 L20 57 M35 54 L44 57" stroke="#EA4335" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="badge-pill bg-[#fef7e0] text-[#202124]">LAB NOTEBOOK</span>
+            <span class="badge-pill bg-[#e6f4ea] text-[#202124]">100% LOCAL</span>
+          </div>
+          <h1 class="font-sketch text-xl font-bold text-[#202124] mt-0.5 tracking-tight">
+            <span class="highlighter-yellow">Phage Capsid Builder</span>
+          </h1>
+        </div>
+      </div>
+      <p class="text-xs text-[#5f6368] mt-2 leading-relaxed font-medium">
+        Caspar-Klug icosahedral lattice model built directly from your MCP structure; portal, tail, and fibers assemble schematically on the tail axis.
+      </p>
+
+      <!-- Instant Demo Phage Generator Button -->
+      <div class="mt-3 pt-2.5 border-t-2 dashed border-[#e0dcd0] flex flex-wrap gap-2">
+        <button id="demoBtn" type="button" class="sketch-btn btn-yellow w-full text-xs py-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+          </svg>
+          <span>Load Demo Phage (Synthetic T=7 + Tail)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Dynamic Form Container (#f) preserved for script compatibility -->
+    <div id="f"></div>
+  </aside>
+
+  <!-- MAIN VIEWPORT: THE DRAWING BOARD -->
+  <main>
+    <!-- Top Floating Action Bar -->
+    <div class="w-full max-w-4xl flex flex-wrap items-center justify-between gap-3 mb-4">
+      <!-- Primary Render & Export Controls -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <button id="go" class="sketch-btn btn-blue">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Render Capsid
+        </button>
+        <button id="png" class="sketch-btn btn-green">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          Save PNG
+        </button>
+        <button id="pdf" class="sketch-btn btn-white">
+          <svg class="w-4 h-4 text-[#EA4335]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+          </svg>
+          Save Figure PDF
+        </button>
+      </div>
+
+      <!-- Coloring Book / Sketch Shader Mode Switcher -->
+      <div class="sketch-box-sm px-2.5 py-1.5 flex items-center gap-1.5 bg-white">
+        <span class="font-sketch text-xs font-bold px-1.5 text-[#5f6368]">ART STYLE:</span>
+        <button type="button" data-art="coloring" class="art-mode-btn px-2.5 py-1 rounded-lg text-xs font-sketch font-semibold border-2 border-[#202124] bg-[#fef7e0] shadow-[2px_2px_0px_#202124]">
+          🖍️ Coloring Book
+        </button>
+        <button type="button" data-art="classic" class="art-mode-btn px-2.5 py-1 rounded-lg text-xs font-sketch font-semibold border-2 border-transparent hover:border-[#202124]">
+          🔮 3D Spheres
+        </button>
+        <button type="button" data-art="lineart" class="art-mode-btn px-2.5 py-1 rounded-lg text-xs font-sketch font-semibold border-2 border-transparent hover:border-[#202124]">
+          ✒️ B&amp;W Line Art
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Camera View & Cutaway Strip -->
+    <div class="w-full max-w-4xl flex flex-wrap items-center justify-between gap-2 mb-4">
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="font-hand text-base font-bold text-[#5f6368] mr-1">Camera Angle:</span>
+        <button type="button" data-qview="side" class="qview-btn badge-pill bg-[#e8f0fe] hover:bg-[#4285F4] hover:text-white cursor-pointer transition">Side Axis</button>
+        <button type="button" data-qview="5" class="qview-btn badge-pill bg-white hover:bg-[#4285F4] hover:text-white cursor-pointer transition">5-Fold</button>
+        <button type="button" data-qview="3" class="qview-btn badge-pill bg-white hover:bg-[#4285F4] hover:text-white cursor-pointer transition">3-Fold</button>
+        <button type="button" data-qview="2" class="qview-btn badge-pill bg-white hover:bg-[#4285F4] hover:text-white cursor-pointer transition">2-Fold</button>
+        <button type="button" data-qview="back" class="qview-btn badge-pill bg-white hover:bg-[#4285F4] hover:text-white cursor-pointer transition">Top / Back</button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button type="button" id="toggleCutBtn" class="badge-pill bg-white hover:bg-[#fce8e6] cursor-pointer transition flex items-center gap-1">
+          <span>✂️ Toggle Half-Cutaway</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- THE EASEL: Canvas Frame with Masking Tape -->
+    <div class="easel-wrapper my-auto">
+      <div class="tape-tl"></div>
+      <div class="tape-tr"></div>
+
+      <canvas id="cv" width="800" height="800"></canvas>
+
+      <!-- Dynamic Marker Swatch Legend Bar -->
+      <div id="legendBar" class="w-full mt-3 pt-2.5 border-t-2 dashed border-[#e0dcd0] flex flex-wrap items-center justify-center gap-3 text-xs font-sketch">
+        <span class="text-[#5f6368] font-hand text-base">Marker Palette:</span>
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-[#202124] bg-[#fcfaf2]">
+          <span class="w-3 h-3 rounded-full border border-[#202124]" style="background:#4C78A8"></span>MCP Hexamer
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-[#202124] bg-[#fcfaf2]">
+          <span class="w-3 h-3 rounded-full border border-[#202124]" style="background:#E45756"></span>MCP Pentamer
+        </span>
+      </div>
+    </div>
+
+    <!-- Status Sticky Note Banner (#st) -->
+    <div class="mt-4 text-center">
+      <div id="st">Upload a capsid PDB (or click "Load Demo Phage") and press Render!</div>
+    </div>
+  </main>
+
+<script>
+const $=i=>document.getElementById(i),PHI=(1+Math.sqrt(5))/2,TAU=Math.PI*2;
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],mul=(a,k)=>[a[0]*k,a[1]*k,a[2]*k],dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],len=a=>Math.hypot(a[0],a[1],a[2]),unit=a=>mul(a,1/len(a));
+const am=v=>{const a=v.map(Math.abs);return a.indexOf(Math.min(...a))},perp=v=>unit(cross(v,[0,1,2].map(j=>+(j==am(v)))));
+const FILES=[['mcp','Capsid MCP PDB(s) *',1],['portal','Portal'],['tail','Tail tube / sheath'],['tapemeasure','Tape measure'],['baseplate','Baseplate'],['tailfiber','Tail fiber'],['decoration','Decoration'],['spike','Spike protein']];
+const SET=[['Capsid',['T','text','7','T (e.g. 7, 7l, 13d)'],['diameter','number','','Diameter A (blank=auto)'],['roundness','number','0.5','Roundness 0-1'],['radial','sel','minor,mid,major','MCP outward axis'],['flip','chk',0,'Flip MCP'],['twist','number','0','Subunit twist deg']],
+['Portal',['portalN','number','12','Copies if 1 chain'],['keepPenton','chk',0,'Keep MCP pentamer']],
+['Tail',['tailLen','number','1000','Length A'],['tailN','number','6','Subunits / ring'],['tailRise','number','40','Rise A'],['tailTwist','number','18','Twist deg']],
+['Baseplate',['baseN','number','6','Copies if 1 chain']],
+['Tail fibers',['fiberN','number','6','Number'],['fiberAngle','number','60','Angle from tail axis']],
+['Decoration',['decoSite','sel','3fold,hexon,penton,2fold','Site'],['decoN','number','','Copies/site (blank=auto)']],
+['Spike',['spikeSite','sel','penton,hexon,3fold,2fold','Site'],['spikeN','number','3','Copies/site if 1 chain']],
+['Render',['view','sel','side,5,3,2,back','View'],['cut','number','','Cutaway (0=half, blank=off)'],['size','number','1000','Pixels'],['radius','number','3.6','Sphere radius A'],['bg','sel','white,black,transparent','Background'],['color','sel','capsomer,uniform','Capsid color']]];
+
+// Build Notebook-Styled Sidebar Sections while keeping all exact IDs
+const SEC_COLORS = {
+  'Structures (PDB)': '#e8f0fe',
+  'Capsid': '#fef7e0',
+  'Portal': '#f3e8fd',
+  'Tail': '#e6f4ea',
+  'Baseplate': '#fce8e6',
+  'Tail fibers': '#fef7e0',
+  'Decoration': '#e8f0fe',
+  'Spike': '#fce8e6',
+  'Render': '#e6f4ea'
+};
+
+$('f').innerHTML = 
+  `<div class="section-card">
+    <div class="section-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+      <span class="section-title">
+        <span class="badge-pill" style="background:${SEC_COLORS['Structures (PDB)']}">01</span>
+        Structures (PDB Files)
+      </span>
+      <span class="text-xs font-bold text-[#5f6368]">▾</span>
+    </div>
+    <div class="section-body">
+      ${FILES.map(f=>`
+        <div class="file-row" id="row_${f[0]}">
+          <div class="file-row-top">
+            <span>${f[1]}</span>
+            <span id="badge_${f[0]}" class="text-[10px] font-mono-code px-1.5 py-0.5 rounded bg-white border border-[#202124] hidden">Loaded</span>
+          </div>
+          <input type="file" id="${f[0]}" accept=".pdb,.ent,.txt"${f[2]?' multiple':''}>
+        </div>
+      `).join('')}
+    </div>
+  </div>` +
+  SET.map((g, idx) => `
+    <div class="section-card">
+      <div class="section-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+        <span class="section-title">
+          <span class="badge-pill" style="background:${SEC_COLORS[g[0]] || '#fef7e0'}">0${idx+2}</span>
+          ${g[0]}
+        </span>
+        <span class="text-xs font-bold text-[#5f6368]">▾</span>
+      </div>
+      <div class="section-body">
+        ${g.slice(1).map(s=>`
+          <label class="ctrl-row">
+            <span>${s[3]}</span>
+            ${s[1]=='sel'
+              ? `<select id="${s[0]}">${s[2].split(',').map(o=>`<option>${o}</option>`).join('')}</select>`
+              : s[1]=='chk'
+                ? `<input type="checkbox" id="${s[0]}">`
+                : `<input type="${s[1]}" id="${s[0]}" value="${s[2]}" step="any">`
+            }
+          </label>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+// Highlight file rows when user selects local PDB files
+FILES.forEach(f => {
+  const inp = $(f[0]);
+  inp.addEventListener('change', () => {
+    const row = $('row_' + f[0]);
+    const badge = $('badge_' + f[0]);
+    if (inp.files && inp.files.length > 0) {
+      row.classList.add('has-file');
+      badge.classList.remove('hidden');
+      badge.textContent = inp.files.length > 1 ? `${inp.files.length} files` : inp.files[0].name.slice(0, 14);
+      demoStructures = null; // Real uploaded file takes priority
+    } else {
+      row.classList.remove('has-file');
+      badge.classList.add('hidden');
+    }
+  });
+});
+
+// Art Style state ('coloring' | 'classic' | 'lineart')
+let artStyle = 'coloring';
+let demoStructures = null;
+
+function cfg(){const c={};SET.forEach(g=>g.slice(1).forEach(s=>{const e=$(s[0]);c[s[0]]=s[1]=='chk'?e.checked:s[1]=='number'?(e.value===''?null:+e.value):e.value}));return c}
+// ---- PDB / linear algebra
+function parse(t){const ch={};for(const l of t.split('\n')){if(l.startsWith('ENDMDL'))break;if(!(l.startsWith('ATOM')||l.startsWith('HETATM')&&l.substr(17,3)=='MSE'))continue;if(l.substr(12,4).trim()!='CA'||' A1'.indexOf(l[16])<0)continue;(ch[l[21]]=ch[l[21]]||[]).push(+l.substr(30,8),+l.substr(38,8),+l.substr(46,8))}return Object.values(ch).filter(a=>a.length>=60).map(a=>Float64Array.from(a))}
+const cen=X=>{const n=X.length/3,c=[0,0,0];for(let i=0;i<X.length;i++)c[i%3]+=X[i]/n;return c};
+const cat=A=>{const o=new Float64Array(A.reduce((s,a)=>s+a.length,0));let p=0;A.forEach(a=>{o.set(a,p);p+=a.length});return o};
+function cov(X,c){const C=[[0,0,0],[0,0,0],[0,0,0]];for(let i=0;i<X.length;i+=3){const d=[X[i]-c[0],X[i+1]-c[1],X[i+2]-c[2]];for(let a=0;a<3;a++)for(let b=0;b<3;b++)C[a][b]+=d[a]*d[b]}return C}
+function eig(C){const A=C.map(r=>r.slice()),V=[[1,0,0],[0,1,0],[0,0,1]];for(let it=0;it<60;it++){let p=0,q=1,m=Math.abs(A[0][1]);if(Math.abs(A[0][2])>m){q=2;m=Math.abs(A[0][2])}if(Math.abs(A[1][2])>m){p=1;q=2;m=Math.abs(A[1][2])}if(m<1e-12)break;const th=(A[q][q]-A[p][p])/(2*A[p][q]),t=Math.sign(th||1)/(Math.abs(th)+Math.sqrt(th*th+1)),c=1/Math.sqrt(t*t+1),s=t*c;for(const M of[A,V])for(let k=0;k<3;k++){const a=M[k][p],b=M[k][q];M[k][p]=c*a-s*b;M[k][q]=s*a+c*b}for(let k=0;k<3;k++){const a=A[p][k],b=A[q][k];A[p][k]=c*a-s*b;A[q][k]=s*a+c*b}}const ix=[0,1,2].sort((i,j)=>A[j][j]-A[i][i]);return{w:ix.map(i=>A[i][i]),v:ix.map(i=>[V[0][i],V[1][i],V[2][i]])}}
+function toLocal(X,c,F){const Y=new Float64Array(X.length);for(let i=0;i<X.length;i+=3){const d=[X[i]-c[0],X[i+1]-c[1],X[i+2]-c[2]];for(let k=0;k<3;k++)Y[i+k]=dot(d,F[k])}return Y}
+function pframe(X,pref,flip){const c=cen(X);let ax=eig(cov(X,c)).v.map(a=>{let s=0;for(let i=0;i<X.length;i+=3){const t=(X[i]-c[0])*a[0]+(X[i+1]-c[1])*a[1]+(X[i+2]-c[2])*a[2];s+=t*t*t}return s>=0?a:mul(a,-1)});const o={minor:[0,1,2],mid:[0,2,1],major:[1,2,0]}[pref],e1=ax[o[0]];let e2=ax[o[1]];if(dot(cross(e1,e2),ax[o[2]])<0)e2=mul(e2,-1);let F=[e1,e2,cross(e1,e2)];if(flip)F=[e1,mul(e2,-1),mul(F[2],-1)];return toLocal(X,c,F)}
+const rzY=(Y,t)=>{const c=Math.cos(t),s=Math.sin(t),o=new Float64Array(Y.length);for(let i=0;i<Y.length;i+=3){o[i]=c*Y[i]-s*Y[i+1];o[i+1]=s*Y[i]+c*Y[i+1];o[i+2]=Y[i+2]}return o};
+const place=(Y,F,o)=>{const a=new Float64Array(Y.length);for(let i=0;i<Y.length;i+=3)for(let k=0;k<3;k++)a[i+k]=o[k]+Y[i]*F[0][k]+Y[i+1]*F[1][k]+Y[i+2]*F[2][k];return a};
+const rng=(Y,k)=>{let a=1e9,b=-1e9;for(let i=k;i<Y.length;i+=3){a=Math.min(a,Y[i]);b=Math.max(b,Y[i])}return[a,b]};
+// part unit in local frame (z = particle axis): single chain -> principal frame + ring of n; multi-chain -> used as assembled
+function unitOf(ch,n,pref,o={}){let Y;const X=cat(ch);if(ch.length>1){const cs=ch.map(cen),cc=cen(cat(cs.map(c=>Float64Array.from(c)))),e=eig(cov(cat(cs.map(c=>Float64Array.from(c))),cc));const a=ch.length<3?eig(cov(X,cen(X))).v[0]:(e.w[0]>3*e.w[1]?e.v[0]:e.v[2]),c=cen(X),P=new Float64Array(X.length);for(let i=0;i<X.length;i+=3){const d=[X[i]-c[0],X[i+1]-c[1],X[i+2]-c[2]],h=dot(d,a);for(let k=0;k<3;k++)P[i+k]=d[k]-h*a[k]}let e1=eig(cov(P,[0,0,0])).v[0];e1=unit(sub(e1,mul(a,dot(e1,a))));let F=[e1,cross(a,e1),a];if(o.flip)F=[e1,mul(F[1],-1),mul(a,-1)];Y=toLocal(X,c,F);n=1}else Y=pframe(X,pref,o.flip);
+ if(o.twist)Y=rzY(Y,o.twist*Math.PI/180);
+ if(n>1){const rho=Math.max(n*(rng(Y,1)[1]-rng(Y,1)[0])*.9/TAU,.5*(rng(Y,0)[1]-rng(Y,0)[0])+15),Z=[];for(let i=0;i<n;i++){const T=Y.slice();for(let j=0;j<T.length;j+=3)T[j]+=rho;Z.push(rzY(T,TAU*i/n))}Y=cat(Z)}
+ const[zlo,zhi]=rng(Y,2);let rad=0;for(let i=0;i<Y.length;i+=3)rad=Math.max(rad,Math.hypot(Y[i],Y[i+1]));return{Y,zlo,zhi,rad}}
+function hullArea(Y){const P=[];for(let i=0;i<Y.length;i+=3)P.push([Y[i],Y[i+1]]);P.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]),H=[];for(const p of P){while(H.length>=2&&cr(H[H.length-2],H[H.length-1],p)<=0)H.pop();H.push(p)}const t=H.length+1;for(let i=P.length-2;i>=0;i--){const p=P[i];while(H.length>=t&&cr(H[H.length-2],H[H.length-1],p)<=0)H.pop();H.push(p)}H.pop();let a=0;H.forEach((p,i)=>{const q=H[(i+1)%H.length];a+=p[0]*q[1]-q[0]*p[1]});return Math.abs(a)/2}
+// ---- icosahedron + Caspar-Klug lattice
+function ico(){const V=[];for(const a of[1,-1])for(const b of[1,-1])V.push([0,a,b*PHI],[a,b*PHI,0],[b*PHI,0,a]);const U=V.map(unit);let E=1e9;for(let i=0;i<12;i++)for(let j=i+1;j<12;j++)E=Math.min(E,len(sub(U[i],U[j])));const ok=(a,b)=>Math.abs(len(sub(U[a],U[b]))-E)<1e-6,F=[];for(let i=0;i<12;i++)for(let j=i+1;j<12;j++)for(let k=j+1;k<12;k++)if(ok(i,j)&&ok(j,k)&&ok(i,k)){const a=U[i],b=U[j],c=U[k];F.push(dot(cross(sub(b,a),sub(c,a)),add(add(a,b),c))>0?[i,j,k]:[i,k,j])}return{U,F,E,ok}}
+function parseT(s){s=String(s).trim().toLowerCase();let hd='d';if(/[dl]$/.test(s)){hd=s.slice(-1);s=s.slice(0,-1)}const T=+s;for(let h=0;h<40;h++)for(let k=0;k<=h;k++)if(h*h+h*k+k*k==T)return(hd=='d'||k==0||k==h)?[h,k]:[k,h];throw Error('T='+s+' is not a valid Caspar-Klug number (1,3,4,7,9,12,13,16,19,21,25...)')}
+function lattice(h,k){const{U,F,E,ok}=ico(),s3=Math.sqrt(3)/2,P1=[h+k*.5,k*s3],P2=[-k+(h+k)*.5,(h+k)*s3],det=P1[0]*P2[1]-P2[0]*P1[1],inv=(x,y)=>[(P2[1]*x-P2[0]*y)/det,(-P1[1]*x+P1[0]*y)/det],pts=[],ns=[],key={},n=h+k+1;
+ for(const f of F){const A=U[f[0]],B=U[f[1]],C=U[f[2]],fn=unit(cross(sub(B,A),sub(C,A)));for(let i=-n;i<=n;i++)for(let j=-n;j<=n;j++){const b=inv(i+j*.5,j*s3),b0=1-b[0]-b[1];if(b[0]>-1e-9&&b[1]>-1e-9&&b0>-1e-9){const p=add(add(mul(A,b0),mul(B,b[0])),mul(C,b[1])),kk=p.map(v=>Math.round(v*1e4)+0).join();if(!(kk in key)){key[kk]=pts.length;pts.push(p);ns.push([0,0,0])}const q=ns[key[kk]];q[0]+=fn[0];q[1]+=fn[1];q[2]+=fn[2]}}}
+ return{pts,ns:ns.map(unit),pent:pts.map(p=>len(p)>1-1e-6),E,U,F,ok}}
+
+const PAL=['#4C78A8','#E45756','#8FB0D9','#8C564B','#59A14F','#E7298A','#9467BD','#FF9F1C','#17BECF','#D62728'].map(h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16))),PN={3:'portal',4:'tail',5:'tape measure',6:'tail fibers',7:'decoration',8:'baseplate',9:'spike'};
+
+function build(c,F){const out={x:[],c:[],u:[]};let uid=0;const emit=(a,ci)=>{uid++;for(let i=0;i<a.length;i++)out.x.push(a[i]);for(let i=0;i<a.length;i+=3){out.c.push(ci);out.u.push(uid)}};
+ const[h,k]=parseT(c.T),T=h*h+h*k+k*k,L=lattice(h,k),s=c.roundness,Rs=Math.sqrt(5*Math.sqrt(3)*L.E*L.E/(4*Math.PI)),vf=1-s+s*Rs,bl=p=>add(mul(p,1-s),mul(unit(p),s*Rs));
+ const Pb=L.pts.map(bl),Nb=L.ns.map((n,i)=>unit(add(mul(n,1-s),mul(unit(L.pts[i]),s))));
+ const Ys=F.mcp.map(t=>pframe(t,c.radial,c.flip)),zmax=Math.max(...Ys.map(y=>rng(y,2)[1]));
+ const S=c.diameter?(c.diameter/2-zmax)/vf:Math.sqrt(60*T*hullArea(Ys[0])*.8/(5*Math.sqrt(3)))/L.E;
+ const d=unit([0,1,PHI]),skip=F.portal&&!c.keepPenton,hexT=Ys.length>1?Ys.slice(1):[Ys[0]],dU=L.E/Math.sqrt(T),psi=c.twist*Math.PI/180;let nsub=0;
+ Pb.forEach((P,ci)=>{const pent=L.pent[ci];if(pent&&skip&&dot(unit(P),d)>.98)return;const nm=Nb[ci],n=pent?5:6,t1=perp(nm),t2=cross(nm,t1);
+  const nb=Pb.map((q,j)=>[j,len(sub(q,P))]).sort((a,b)=>a[1]-b[1]).slice(1,n+1);let sx=0,sy=0;nb.forEach(([j])=>{const dv=sub(Pb[j],P),a=Math.atan2(dot(dv,t2),dot(dv,t1));sx+=Math.cos(n*a);sy+=Math.sin(n*a)});const p0=Math.atan2(sy,sx)/n;
+  for(let j=0;j<n;j++){const th=p0+TAU*j/n,u=add(mul(t1,Math.cos(th)),mul(t2,Math.sin(th))),m=add(mul(u,Math.cos(psi)),mul(cross(nm,u),Math.sin(psi)));emit(place(pent?Ys[0]:hexT[j%hexT.length],[m,cross(nm,m),nm],mul(add(P,mul(u,dU/3*(pent?.85:1))),S)),pent?1:0);nsub++}});
+ let Rc=0;for(let i=0;i<out.x.length;i+=3)Rc=Math.max(Rc,Math.hypot(out.x[i],out.x[i+1],out.x[i+2]));
+ const axial=['portal','tail','tapemeasure','baseplate','tailfiber'].some(k=>F[k]),ea=perp(d),eb=cross(d,ea),Fw=[ea,eb,d],at=z=>mul(d,z);let zEnd=S*vf+zmax,tailRad=null,used=[];
+ if(F.portal){const U=unitOf(F.portal,c.portalN,'major'),Lp=U.zhi-U.zlo;emit(place(U.Y,Fw,at(zEnd+.25*Lp-U.zhi)),3);zEnd+=.25*Lp;used.push(3)}
+ if(F.tail){const U=unitOf(F.tail,c.tailN,'minor'),n=Math.max(1,Math.round(c.tailLen/c.tailRise)),z0=F.portal?zEnd-15:zEnd-5;for(let i=0;i<n;i++)emit(place(rzY(U.Y,i*c.tailTwist*Math.PI/180),Fw,at(z0-U.zlo+i*c.tailRise)),4);zEnd=z0+(n-1)*c.tailRise+U.zhi-U.zlo;tailRad=U.rad;used.push(4)}
+ if(F.tapemeasure){const U=unitOf(F.tapemeasure,1,'major');emit(place(U.Y,Fw,at(zEnd-U.zhi)),5);used.push(5)}
+ if(F.baseplate){const U=unitOf(F.baseplate,c.baseN,'minor');emit(place(U.Y,Fw,at(zEnd-10-U.zlo)),8);zEnd+=U.zhi-U.zlo-10;tailRad=Math.max(tailRad||0,U.rad*.9);used.push(8)}
+ if(F.tailfiber){const U=unitOf(F.tailfiber,1,'major'),th=c.fiberAngle*Math.PI/180;for(let i=0;i<c.fiberN;i++){const ph=TAU*i/c.fiberN,u=add(mul(ea,Math.cos(ph)),mul(eb,Math.sin(ph))),f=add(mul(d,Math.cos(th)),mul(u,Math.sin(th))),x=add(mul(d,-Math.sin(th)),mul(u,Math.cos(th)));emit(place(U.Y,[x,cross(f,x),f],add(add(at(zEnd),mul(u,tailRad||45)),mul(f,-U.zlo))),6)}used.push(6)}
+ const siteList=k=>{const s=[];if(k=='hexon'||k=='penton')Pb.forEach((P,i)=>{if(L.pent[i]==(k=='penton'))s.push([mul(P,S),Nb[i]])});else if(k=='3fold')L.F.forEach(f=>{const p=mul(add(add(L.U[f[0]],L.U[f[1]]),L.U[f[2]]),1/3);s.push([mul(bl(p),S),unit(p)])});else for(let i=0;i<12;i++)for(let j=i+1;j<12;j++)if(L.ok(i,j)){const p=mul(add(L.U[i],L.U[j]),.5);s.push([mul(bl(p),S),unit(p)])}return s};
+ const put=(name,site,nD,pref,ci)=>{const U=unitOf(F[name],nD,pref);for(const[p,n]of siteList(site)){if(axial&&dot(n,d)>.98)continue;const t=perp(n);emit(place(U.Y,[t,cross(n,t),n],add(p,mul(n,zmax-U.zlo))),ci)}used.push(ci)};
+ if(F.decoration)put('decoration',c.decoSite,c.decoN||{hexon:6,penton:5,'3fold':3,'2fold':2}[c.decoSite],'minor',7);
+ if(F.spike)put('spike',c.spikeSite,c.spikeN||3,'major',9);
+ return{out,Rc,nsub,T,d,used,S}}
+
+// ---- renderer (supports Classic 3D Shaded + Coloring Book Ink Outlines + B&W Line Art)
+const mm=(A,B)=>A.map(r=>[0,1,2].map(j=>r[0]*B[0][j]+r[1]*B[1][j]+r[2]*B[2][j]));
+function viewRot(a){const z=[0,0,1],v=cross(a,z),s=len(v),c=dot(a,z);if(s<1e-9)return c>0?[[1,0,0],[0,1,0],[0,0,1]]:[[1,0,0],[0,-1,0],[0,0,-1]];const K=[[0,-v[2],v[1]],[v[2],0,-v[0]],[-v[1],v[0],0]],K2=mm(K,K);return[0,1,2].map(i=>[0,1,2].map(j=>(i==j)+K[i][j]+K2[i][j]*(1-c)/(s*s)))}
+
+function render(b,c,cv){const n=b.out.c.length,X=b.out.x,R=c.radius,size=Math.max(200,Math.min(2500,c.size|0)),S=size*2;let M=viewRot(b.d);const v=c.view;if(v=='5'){}else if(v=='3')M=viewRot(unit([1,1,1]));else if(v=='2')M=viewRot([0,0,1]);else if(v=='back')M=viewRot(mul(b.d,-1));else if(v=='side')M=mm([[1,0,0],[0,0,-1],[0,1,0]],M);
+ const P=new Float32Array(3*n);let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(let i=0;i<n;i++){for(let r=0;r<3;r++)P[3*i+r]=M[r][0]*X[3*i]+M[r][1]*X[3*i+1]+M[r][2]*X[3*i+2];x0=Math.min(x0,P[3*i]);x1=Math.max(x1,P[3*i]);y0=Math.min(y0,P[3*i+1]);y1=Math.max(y1,P[3*i+1])}
+ const half=Math.max(x1-x0,y1-y0)/2+R,cx=(x0+x1)/2,cy=(y0+y1)/2,sc=S*.94/(2*half),cutz=c.cut==null?1e9:c.cut*b.Rc,cell=4,G=Math.ceil(2*half/cell)+2,zm=new Float32Array(G*G).fill(-1e9),gi=i=>(((P[3*i+1]-cy+half)/cell)|0)*G+(((P[3*i]-cx+half)/cell)|0);
+ for(let i=0;i<n;i++)if(P[3*i+2]<=cutz){const g=gi(i);zm[g]=Math.max(zm[g],P[3*i+2])}
+ const keep=[];for(let i=0;i<n;i++)if(P[3*i+2]<=cutz&&P[3*i+2]>=zm[gi(i)]-45)keep.push(i);keep.sort((a,b)=>P[3*a+2]-P[3*b+2]);
+ const rp=Math.max(2,Math.round(R*sc)),w=2*rp+1,tab=new Float32Array(w*w).fill(-1);for(let dy=-rp;dy<=rp;dy++)for(let dx=-rp;dx<=rp;dx++){const q=(dx*dx+dy*dy)/(rp*rp);if(q<=1)tab[(dy+rp)*w+dx+rp]=Math.sqrt(1-q)}
+ const zb=new Float32Array(S*S).fill(-1e9),ab=new Int32Array(S*S).fill(-1),ob=new Int32Array(S*S);
+ for(const i of keep){const px=Math.round((P[3*i]-cx)*sc+S/2),py=Math.round(-(P[3*i+1]-cy)*sc+S/2),z=P[3*i+2];for(let dy=-rp;dy<=rp;dy++){const yy=py+dy;if(yy<0||yy>=S)continue;for(let dx=-rp;dx<=rp;dx++){const t=tab[(dy+rp)*w+dx+rp],xx=px+dx;if(t<0||xx<0||xx>=S)continue;const p=yy*S+xx,dz=z+R*t;if(dz>zb[p]){zb[p]=dz;ab[p]=i;ob[p]=(dy+rp)*w+dx+rp}}}}
+ const L=unit([-.45,.55,.7]),H=unit(add(L,[0,0,1])),img=new ImageData(S,S),D=img.data,bgc=c.bg=='black'?0:255;let zlo=1e9,zhi=-1e9;for(let p=0;p<S*S;p++)if(ab[p]>=0){zlo=Math.min(zlo,zb[p]);zhi=Math.max(zhi,zb[p])}
+ const isSketch = artStyle === 'coloring' || artStyle === 'lineart';
+ const U = b.out.u;
+ for(let p=0;p<S*S;p++){
+  const a=ab[p],o=4*p;
+  if(a<0){D[o]=D[o+1]=D[o+2]=bgc;D[o+3]=c.bg=='transparent'?0:255;continue}
+  const dx=ob[p]%w-rp,dy=((ob[p]/w)|0)-rp,nz=Math.sqrt(Math.max(0,1-(dx*dx+dy*dy)/(rp*rp))),nv=[dx/rp,-dy/rp,nz],ci=b.out.c[a],col=PAL[c.color=='uniform'&&ci<2?2:ci];
+  if(!isSketch){
+   const sh=(.38+.62*Math.max(0,dot(nv,L)))*(.8+.2*(zb[p]-zlo)/(zhi-zlo+1e-9)),sp=Math.pow(Math.max(0,dot(nv,H)),40)*76;
+   for(let r=0;r<3;r++)D[o+r]=Math.min(255,col[r]*sh+sp);D[o+3]=255;
+  } else {
+   // Sketchbook / Coloring Book Edge Detection (Subunit boundaries + Depth silhouettes)
+   const x=p%S, y=(p/S)|0;
+   let edge = false;
+   const u0 = U ? U[a] : ci;
+   const z0 = zb[p];
+   const step = Math.max(1, Math.round(S / 900));
+   if (x >= step && x < S - step && y >= step && y < S - step) {
+     const n1 = ab[p - step], n2 = ab[p + step], n3 = ab[p - step * S], n4 = ab[p + step * S];
+     if (n1 < 0 || n2 < 0 || n3 < 0 || n4 < 0) {
+       edge = true; // Outer silhouette ink line
+     } else if (Math.abs(zb[p - step] - z0) > R * 2.2 || Math.abs(zb[p + step] - z0) > R * 2.2 || Math.abs(zb[p - step * S] - z0) > R * 2.2 || Math.abs(zb[p + step * S] - z0) > R * 2.2) {
+       edge = true; // Crease / depth jump ink line
+     } else if (U && (U[n1] !== u0 || U[n2] !== u0 || U[n3] !== u0 || U[n4] !== u0)) {
+       // Subunit boundary line
+       if (Math.abs(zb[p - step] - z0) > R * 0.65 || Math.abs(zb[p - step * S] - z0) > R * 0.65 || b.out.c[n1] !== ci || b.out.c[n3] !== ci) {
+         edge = true;
+       }
+     }
+   }
+   if (edge) {
+     // Crisp Charcoal Ink Outline (#202124)
+     D[o] = 32; D[o+1] = 33; D[o+2] = 36; D[o+3] = 255;
+   } else if (artStyle === 'lineart') {
+     // Pure B&W Coloring Book Page with subtle cel-shaded stipple
+     const diff = dot(nv, L);
+     const tone = diff < 0.15 ? 236 : 255;
+     D[o] = D[o+1] = D[o+2] = tone; D[o+3] = 255;
+   } else {
+     // Coloring Book Marker Cel-Shading (Pastel/Vibrant Marker Fill)
+     const diff = Math.max(0, dot(nv, L));
+     const cel = diff > 0.65 ? 1.06 : (diff > 0.25 ? 0.94 : 0.78);
+     const depthBoost = 0.88 + 0.12 * (z0 - zlo) / (zhi - zlo + 1e-9);
+     for (let r = 0; r < 3; r++) {
+       const mixed = col[r] * 0.85 + 255 * 0.15;
+       D[o+r] = Math.min(255, mixed * cel * depthBoost);
+     }
+     D[o+3] = 255;
+   }
+  }
+ }
+ const t=document.createElement('canvas');t.width=t.height=S;t.getContext('2d').putImageData(img,0,0);cv.width=cv.height=size;const g=cv.getContext('2d');g.imageSmoothingQuality='high';g.clearRect(0,0,size,size);g.drawImage(t,0,0,size,size);return{size,pxA:sc/2}}
+
+// ---- PDF (vector text/scale bar/legend, embedded JPEG render)
+function makePDF(jpg,st){const enc=new TextEncoder(),B=[],O=[];let N=0;const w=s=>{const q=typeof s=='string'?enc.encode(s):s;B.push(q);N+=q.length},ob=(n,f)=>{O[n]=N;w(n+' 0 obj\n');f();w('\nendobj\n')},esc=s=>s.replace(/[\\()]/g,'\\$&'),M=520,x0=46,y0=150,k=M/st.size;
+ const bar=[10,20,50,100,200,500].reduce((a,b)=>Math.abs(b*st.pxA-.2*st.size)<Math.abs(a*st.pxA-.2*st.size)?b:a);
+ let cs=`q ${M} 0 0 ${M} ${x0} ${y0} cm /Im0 Do Q\nBT /F1 11 Tf 46 750 Td (${esc(st.title)}) Tj ET\n0 g 2 w 0 0 0 RG ${x0+10} ${y0+12} m ${x0+10+bar*st.pxA*k} ${y0+12} l S BT /F1 9 Tf ${x0+10} ${y0+17} Td (${bar} \\305) Tj ET\n`;
+ st.legend.forEach((l,i)=>{const x=46+(i%4)*130,y=110-Math.floor(i/4)*16;cs+=`${l[1].map(v=>(v/255).toFixed(3)).join(' ')} rg ${x} ${y} 9 9 re f 0 g BT /F1 9 Tf ${x+13} ${y} Td (${esc(l[0])}) Tj ET\n`});
+ w('%PDF-1.4\n');ob(1,()=>w('<</Type/Catalog/Pages 2 0 R>>'));ob(2,()=>w('<</Type/Pages/Kids[3 0 R]/Count 1>>'));ob(3,()=>w('<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Resources<</XObject<</Im0 5 0 R>>/Font<</F1 6 0 R>>>>/Contents 4 0 R>>'));ob(4,()=>w(`<</Length ${cs.length}>>\nstream\n${cs}\nendstream`));
+ ob(5,()=>{w(`<</Type/XObject/Subtype/Image/Width ${st.size}/Height ${st.size}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${jpg.length}>>\nstream\n`);w(jpg);w('\nendstream')});ob(6,()=>w('<</Type/Font/Subtype/Type1/BaseFont/Helvetica/Encoding/WinAnsiEncoding>>'));
+ const xr=N;let t='xref\n0 7\n0000000000 65535 f \n';for(let i=1;i<7;i++)t+=String(O[i]).padStart(10,'0')+' 00000 n \n';w(t+`trailer\n<</Size 7/Root 1 0 R>>\nstartxref\n${xr}\n%%EOF`);return new Blob(B,{type:'application/pdf'})}
+
+const dl=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5e3)},st=m=>$('st').textContent=m;let cache=null,state=null;
+
+// Update Marker Legend Swatches in UI
+function updateLegendUI(leg) {
+  const bar = $('legendBar');
+  if (!bar) return;
+  bar.innerHTML = `<span class="text-[#5f6368] font-hand text-base">Marker Palette:</span>` +
+    leg.map(l => {
+      const rgb = `rgb(${l[1][0]},${l[1][1]},${l[1][2]})`;
+      return `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border-2 border-[#202124] bg-[#fcfaf2] shadow-[1.5px_1.5px_0px_#202124]">
+        <span class="w-3 h-3 rounded-full border border-[#202124]" style="background:${rgb}"></span>
+        <span class="capitalize">${l[0]}</span>
+      </span>`;
+    }).join('');
+}
+
+// Synthetic Demo Phage Generator (creates realistic HK97-like MCP fold + Portal + Tail + Fibers in memory)
+function createDemoPhageStructures() {
+  // 1. MCP Subunit (~180 CA atoms arranged in a realistic wedge/capsomer fold: 35x24x14 A)
+  const mcp = [];
+  for (let i = 0; i < 180; i++) {
+    const t = i / 179;
+    const x = Math.sin(t * Math.PI * 5) * 16 + (t - 0.5) * 14;
+    const y = Math.cos(t * Math.PI * 3) * 11;
+    const z = Math.sin(t * Math.PI * 9) * 5.5;
+    mcp.push(x, y, z);
+  }
+  // 2. Portal monomer (~90 CA atoms)
+  const portal = [];
+  for (let i = 0; i < 90; i++) {
+    const t = i / 89;
+    portal.push(Math.cos(t * TAU * 2) * 8, Math.sin(t * TAU * 2) * 7, (t - 0.5) * 42);
+  }
+  // 3. Tail tube/sheath subunit (~75 CA atoms)
+  const tail = [];
+  for (let i = 0; i < 75; i++) {
+    const t = i / 74;
+    tail.push(Math.cos(t * TAU * 2) * 11, Math.sin(t * TAU * 2) * 8, (t - 0.5) * 26);
+  }
+  // 4. Baseplate wedge (~80 CA atoms)
+  const baseplate = [];
+  for (let i = 0; i < 80; i++) {
+    const t = i / 79;
+    baseplate.push(Math.cos(t * TAU * 2) * 14, Math.sin(t * TAU * 2) * 11, (t - 0.5) * 28);
+  }
+  // 5. Long Tail Fiber (~110 CA atoms along major axis)
+  const tailfiber = [];
+  for (let i = 0; i < 110; i++) {
+    const t = i / 109;
+    tailfiber.push((t - 0.5) * 260, Math.sin(t * TAU * 3) * 3.5, Math.cos(t * TAU * 3) * 3.2);
+  }
+  return {
+    mcp: [Float64Array.from(mcp)],
+    portal: [Float64Array.from(portal)],
+    tail: [Float64Array.from(tail)],
+    baseplate: [Float64Array.from(baseplate)],
+    tailfiber: [Float64Array.from(tailfiber)]
+  };
+}
+
+$('go').onclick=async()=>{try{const c=cfg(),F={};for(const f of FILES){const fl=[...$(f[0]).files];if(fl.length){F[f[0]]=[];for(const x of fl)F[f[0]].push(...parse(await x.text()))}}
+ if((!F.mcp||!F.mcp.length) && demoStructures){Object.assign(F, demoStructures);}
+ if(!F.mcp||!F.mcp.length)return st('Upload a capsid (MCP) PDB or click "Load Demo Phage" first!');for(const k in F)if(!F[k].length)return st('No protein chains found in '+k);
+ st('✏️ Sketching Caspar-Klug lattice…');await new Promise(r=>setTimeout(r,30));
+ const cacheKey = JSON.stringify([c,Object.keys(F),Boolean(demoStructures)].concat(FILES.map(f=>[...$(f[0]).files].map(x=>x.name+x.size+x.lastModified))));
+ if(!cache||cache.key!=cacheKey)cache={key:cacheKey,b:build(c,F)};
+ st('🖍️ Coloring & shading spheres…');await new Promise(r=>setTimeout(r,30));const b=cache.b,r=render(b,c,$('cv'));const leg=[[c.color=='uniform'?'capsid (MCP)':'MCP hexamer',PAL[c.color=='uniform'?2:0]]].concat(c.color=='uniform'?[]:[['MCP pentamer',PAL[1]]],b.used.map(i=>[PN[i],PAL[i]]));
+ updateLegendUI(leg);
+ state={size:r.size,pxA:r.pxA,legend:leg,bg:c.bg,title:`T=${b.T} lattice model, ${b.nsub} MCP subunits, capsid diameter ~${Math.round(2*b.Rc)} A (${c.view} view)`};st('✨ ' + state.title)}catch(e){st('Error: '+e.message)}};
+
+$('png').onclick=()=>state?$('cv').toBlob(b=>dl(b,'phage_capsid.png')):st('Render first before saving PNG.');
+$('pdf').onclick=()=>{if(!state)return st('Render first before saving PDF.');const t=document.createElement('canvas');t.width=t.height=state.size;const g=t.getContext('2d');g.fillStyle=state.bg=='black'?'#000':'#fff';g.fillRect(0,0,t.width,t.height);g.drawImage($('cv'),0,0);const bin=atob(t.toDataURL('image/jpeg',.95).split(',')[1]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);dl(makePDF(u,state),'phage_capsid.pdf')};
+
+// Demo Button Handler
+$('demoBtn').onclick = () => {
+  demoStructures = createDemoPhageStructures();
+  ['mcp', 'portal', 'tail', 'baseplate', 'tailfiber'].forEach(k => {
+    const row = $('row_' + k);
+    const badge = $('badge_' + k);
+    if (row && badge) {
+      row.classList.add('has-file');
+      badge.classList.remove('hidden');
+      badge.textContent = 'Synthetic PDB';
+    }
+  });
+  $('tailLen').value = '480';
+  cache = null;
+  $('go').click();
+};
+
+// Art Style Switcher Buttons
+document.querySelectorAll('.art-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    artStyle = btn.dataset.art;
+    document.querySelectorAll('.art-mode-btn').forEach(b => {
+      b.className = 'art-mode-btn px-2.5 py-1 rounded-lg text-xs font-sketch font-semibold border-2 border-transparent hover:border-[#202124]';
+    });
+    btn.className = 'art-mode-btn px-2.5 py-1 rounded-lg text-xs font-sketch font-semibold border-2 border-[#202124] bg-[#fef7e0] shadow-[2px_2px_0px_#202124]';
+    if (cache || demoStructures) $('go').click();
+  });
+});
+
+// Quick Camera Angle Pill Buttons
+document.querySelectorAll('.qview-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $('view').value = btn.dataset.qview;
+    document.querySelectorAll('.qview-btn').forEach(b => {
+      b.classList.remove('bg-[#e8f0fe]');
+      b.classList.add('bg-white');
+    });
+    btn.classList.remove('bg-white');
+    btn.classList.add('bg-[#e8f0fe]');
+    if (cache || demoStructures) $('go').click();
+  });
+});
+
+// Half-Cutaway Quick Toggle Button
+$('toggleCutBtn').addEventListener('click', () => {
+  const cutInput = $('cut');
+  if (cutInput.value === '' || cutInput.value === null) {
+    cutInput.value = '0';
+    $('toggleCutBtn').classList.add('bg-[#fce8e6]');
+    $('toggleCutBtn').classList.remove('bg-white');
+  } else {
+    cutInput.value = '';
+    $('toggleCutBtn').classList.remove('bg-[#fce8e6]');
+    $('toggleCutBtn').classList.add('bg-white');
+  }
+  if (cache || demoStructures) $('go').click();
+});
+
+// Auto-load the Demo Phage on startup so the canvas is immediately vibrant and interactive
+window.addEventListener('load', () => {
+  $('demoBtn').click();
+});
+</script>
+</body>
+</html>
