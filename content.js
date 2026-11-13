@@ -220,6 +220,14 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
         htmlFile: 'interactive/virus_capsid.html'
     },
     {
+        id: 'capsid_builder',
+        type: 'interactive',
+        title: 'Build a Virus',
+        date: '2025-06-27',
+        description: 'A fun visualization of viral capsids',
+        htmlFile: 'interactive/capsid_viewer.html'
+    },
+    {
         id: 'textguesser',
         type: 'interactive',
         title: 'TextGuesser',
