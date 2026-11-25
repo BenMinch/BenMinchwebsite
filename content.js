@@ -260,6 +260,14 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
         htmlFile: 'interactive/photiczone.html'
     },
     {
+        id: 'hindex',
+        type: 'interactive',
+        title: 'H-index comparison',
+        date: '2026-04-06',
+        description: 'See how you stack up against other researchers',
+        htmlFile: 'interactive/hindex.html'
+    },
+    {
         id: 'virtual-bioinformatics',
         type: 'interactive',
         title: 'Virtual Bioinformatics Terminal',
