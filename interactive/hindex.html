@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>h-index Compare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+/* VOICE: graphics-desk clear, a scientist checking where they stand
+   IDEA: a growth chart from a paediatric clinic, but for citations
+   PICTURE: big scatter of peers by career age with your point in hot pink
+   COLOUR and TYPE: ice ground, ink text, one hot pink for "you"; Space Grotesk + Inter
+   LAYOUT: search band, headline stats, main chart, then distribution + trajectory, table */
+:root{color-scheme:light dark;
+ --bg:light-dark(#dff1f7,#06222e);--panel:light-dark(#ffffff,#0b2f3e);--ink:light-dark(#06222e,#e6f4f9);
+ --muted:light-dark(#4a6470,#8fb0bd);--line:light-dark(#b9d6e0,#1f4a5b);--you:#ff2e7e;
+ --peer:light-dark(#5b8696,#6fa3b6);--band:light-dark(rgba(6,34,46,.10),rgba(223,241,247,.12))}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;font-weight:600;line-height:1.08;margin:0;text-wrap:balance}
+h1{font-size:clamp(32px,5vw,52px)}h2{font-size:24px;margin-bottom:6px}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}.wrap{max-width:1240px;margin:0 auto}
+.lede{color:var(--muted);max-width:68ch;margin:12px 0 22px}
+form.search{display:flex;gap:10px;flex-wrap:wrap}
+input,select,button{font:inherit;font-size:16px;min-height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);padding:0 14px}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--you);outline-offset:2px}
+#q{flex:1 1 320px}
+button{cursor:pointer;font-weight:600}button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:disabled{opacity:.5;cursor:wait}
+details.key{margin-top:14px;color:var(--muted);font-size:14px}details.key summary{cursor:pointer;min-height:32px}
+details.key .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}details.key input{flex:1 1 280px}
+.status{min-height:24px;margin-top:12px;font-size:14px;color:var(--muted)}.status.err{color:var(--you);font-weight:600}
+.cands{display:grid;gap:8px;margin-top:14px}
+.cand{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;cursor:pointer}
+.cand input{min-height:22px;width:22px;height:22px;accent-color:var(--you)}
+.cand b{display:block}.cand small{color:var(--muted);display:block}.cand .h{font-family:"Space Grotesk";font-size:22px;text-align:right;white-space:nowrap}
+.hint{font-size:14px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:end;margin:18px 0 4px}
+.controls label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+.controls .chk{display:flex;gap:8px;align-items:center;min-height:44px;font-size:15px;color:var(--ink)}
+.controls .chk input{min-height:20px;width:20px;accent-color:var(--you)}
+#results[hidden],#pickwrap[hidden]{display:none}
+.who{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;margin-bottom:18px}
+.who .meta{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:22px}
+.stat{background:var(--panel);border-radius:14px;padding:14px 16px}
+.stat .v{font-family:"Space Grotesk";font-size:clamp(28px,4vw,40px);line-height:1.1}.stat .v.you{color:var(--you)}
+.stat .l{font-size:13px;color:var(--muted)}
+.card{background:var(--panel);border-radius:16px;padding:18px clamp(12px,2vw,22px);margin-bottom:18px}
+.card p.sub{color:var(--muted);margin:0 0 8px;font-size:14px}
+.fig{position:relative;height:340px;width:100%}.fig.big{height:460px}@media(max-width:600px){.fig.big{height:380px}}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:18px}
+.grid2 .card{margin:0}
+.meters{display:grid;gap:12px}
+.meter{display:grid;grid-template-columns:9.5em minmax(0,1fr) 4.5em;gap:10px;align-items:center;font-size:15px}
+.meter .track{height:14px;border-radius:7px;background:var(--band);position:relative;overflow:hidden}
+.meter .fill{position:absolute;inset:0 auto 0 0;background:var(--you);border-radius:7px}
+.meter .pct{text-align:right;font-family:"Space Grotesk";white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:500}td.n,th.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+tr.me td{color:var(--you);font-weight:600}
+a{color:inherit;text-decoration-color:var(--you);text-underline-offset:3px}
+.notes{font-size:14px;color:var(--muted)}.notes li{margin:4px 0}
+.scroll{overflow-x:auto}
+@media(max-width:600px){.meter{grid-template-columns:7em minmax(0,1fr) 3.6em}table{font-size:13px}
+ .stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}
+ .stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;color:var(--muted)}}
+@media (prefers-reduced-motion:no-preference){.meter .fill{transition:width .6s ease}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<section class="band"><div class="wrap">
+  <h1>Where does your h-index sit?</h1>
+  <p class="lede">Search for a researcher and see how their h-index compares with a random sample of people working on the same topic, especially those who started publishing around the same year. Data comes live from OpenAlex.</p>
+  <form class="search" id="sform">
+    <input id="q" type="search" placeholder="Name, ORCID (0000-0002-…) or OpenAlex ID (A123…)" autocomplete="off" required>
+    <button class="primary" id="sbtn" type="submit">Search</button>
+  </form>
+  <details class="key" id="keybox">
+    <summary>OpenAlex API key (free, needed for more than a couple of searches a day)</summary>
+    <div class="row">
+      <input id="apikey" type="password" placeholder="Paste key from openalex.org/settings/api" autocomplete="off">
+      <button type="button" id="savekey">Save in this browser</button>
+    </div>
+    <p>Get one at <a href="https://openalex.org/settings/api" target="_blank" rel="noopener">openalex.org/settings/api</a>. It's stored only in this browser's localStorage and sent only to api.openalex.org.</p>
+  </details>
+  <div class="status" id="status" role="status"></div>
+  <div id="pickwrap" hidden>
+    <p class="hint">OpenAlex sometimes splits one person into several profiles. Tick every profile that's you, then press Compare.</p>
+    <div class="cands" id="cands"></div>
+    <div style="margin-top:12px"><button class="primary" id="go" type="button">Compare</button></div>
+  </div>
+</div></section>
+
+<section class="band" id="results" hidden style="padding-top:0"><div class="wrap">
+  <div class="who"><h2 id="whoName"></h2><span class="meta" id="whoMeta"></span></div>
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <label>Compare against
+      <select id="scope"></select></label>
+    <label>Career start year
+      <input id="startYear" type="number" min="1900" max="2100" style="width:8em"></label>
+    <label>Same career stage = ± years
+      <select id="win"><option>1</option><option selected>2</option><option>3</option><option>5</option></select></label>
+    <label class="chk"><input type="checkbox" id="country"> <span id="countryLbl">Same country only</span></label>
+    <label class="chk"><input type="checkbox" id="ghost" checked> Ignore profiles with fewer than 3 works</label>
+    <button type="button" id="refresh">Update peers</button>
+  </div>
+  <p class="hint" id="peerInfo"></p>
+
+  <div class="card"><h2>h-index by career age</h2>
+    <p class="sub">Each grey dot is a sampled peer. The line is the median for each career age, and the band covers the middle 50%. Pink is you. Click a dot to open that profile.</p>
+    <div class="fig big" id="scatter"></div></div>
+
+  <div class="grid2">
+    <div class="card"><h2>Among peers at your career stage</h2>
+      <p class="sub" id="histSub"></p><div class="fig" id="hist"></div></div>
+    <div class="card"><h2>Your trajectory against the typical curve</h2>
+      <p class="sub">Your h-index at the end of each year, rebuilt from per-year citation counts, against the peer median at that career age.</p>
+      <div class="fig" id="traj"></div></div>
+  </div>
+
+  <div class="card" style="margin-top:18px"><h2>Percentile among career-stage peers</h2>
+    <p class="sub">The share of career-stage peers you're ahead of, counting ties as half.</p>
+    <div class="meters" id="meters"></div></div>
+
+  <div class="card"><h2>Closest peers</h2>
+    <p class="sub">Career-stage peers ranked by h-index, with you in pink.</p>
+    <div class="scroll"><table id="ptable"></table></div></div>
+
+  <div class="card notes"><h2 style="color:var(--ink)">How this is calculated</h2><ul>
+    <li>Peers are a random sample of up to 300 OpenAlex author profiles with the chosen topic, subfield or field among their top topics. Rerunning with the same settings gives the same sample.</li>
+    <li>Career age = years since the first indexed work. For peers it comes from OpenAlex's per-year counts, which only go back about ten years, so anyone who started earlier goes into one "established" group on the right.</li>
+    <li>Your h-index is recomputed from all works in the profiles you ticked, so merged profiles are counted correctly. OpenAlex citation counts usually come out lower than Google Scholar's and closer to Scopus.</li>
+    <li>The trajectory is reconstructed, and the peer curve is cross-sectional (different people at each age), so treat it as a guide, not a growth chart.</li>
+  </ul></div>
+</div></section>
+
+<script>
+{
+const API='https://api.openalex.org';
+const NOW=new Date().getFullYear();
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sid=u=>String(u||'').replace('https://openalex.org/','');
+let KEY='';try{KEY=localStorage.getItem('oa_key')||''}catch(e){}
+$('apikey').value=KEY;if(!KEY)$('keybox').open=true;
+$('savekey').onclick=()=>{KEY=$('apikey').value.trim();try{localStorage.setItem('oa_key',KEY)}catch(e){}setStatus(KEY?'Key saved.':'Key cleared.')};
+
+const S={cands:[],me:null,works:[],peers:[],scopeOpts:[]};
+function setStatus(t,err){const s=$('status');s.textContent=t;s.className='status'+(err?' err':'')}
+
+async function oa(path,params={}){
+  const u=new URL(API+path);
+  for(const[k,v]of Object.entries(params))if(v!==undefined&&v!=='')u.searchParams.set(k,v);
+  if(KEY)u.searchParams.set('api_key',KEY);
+  for(let a=0;a<4;a++){
+    const r=await fetch(u);
+    if(r.ok)return r.json();
+    if(r.status===429||r.status>=500){await new Promise(z=>setTimeout(z,800*2**a));continue}
+    let msg=r.status+' '+r.statusText;try{const j=await r.json();msg=j.message||j.error||msg}catch(e){}
+    if(r.status===401||r.status===403)msg+=' (check your API key)';
+    throw new Error(msg);
+  }
+  throw new Error('OpenAlex is rate-limiting requests. Add a free API key or try again in a minute.');
+}
+
+// ---------- search ----------
+const AUTH_SEL='id,display_name,orcid,works_count,cited_by_count,summary_stats,last_known_institutions,topics,counts_by_year';
+$('sform').onsubmit=async e=>{
+  e.preventDefault();const q=$('q').value.trim();if(!q)return;
+  $('sbtn').disabled=true;setStatus('Searching…');$('pickwrap').hidden=true;
+  try{
+    let list;
+    const orcid=q.match(/\d{4}-\d{4}-\d{4}-\d{3}[\dX]/i),aid=q.match(/\bA\d{5,}\b/i);
+    if(orcid)list=[await oa('/authors/orcid:'+orcid[0].toUpperCase(),{select:AUTH_SEL})];
+    else if(aid)list=[await oa('/authors/'+aid[0].toUpperCase(),{select:AUTH_SEL})];
+    else list=(await oa('/authors',{search:q,per_page:12,select:AUTH_SEL})).results;
+    S.cands=list||[];
+    if(!S.cands.length){setStatus('No matching author profiles. Try another spelling or your ORCID.',true);return}
+    $('cands').innerHTML=S.cands.map((a,i)=>{
+      const inst=a.last_known_institutions?.[0]?.display_name||'No recent institution';
+      const top=a.topics?.[0]?.display_name||'';
+      return `<label class="cand"><input type="checkbox" data-i="${i}" ${i===0&&S.cands.length===1?'checked':''}>
+        <span><b>${esc(a.display_name)}</b><small>${esc(inst)}${top?' · '+esc(top):''}</small>
+        <small>${esc(a.works_count)} works · ${esc((a.cited_by_count||0).toLocaleString())} citations${a.orcid?' · ORCID':''}</small></span>
+        <span class="h">h ${esc(a.summary_stats?.h_index??'–')}</span></label>`}).join('');
+    $('pickwrap').hidden=false;setStatus(S.cands.length+' profile'+(S.cands.length>1?'s':'')+' found.');
+  }catch(err){setStatus(err.message,true)}
+  finally{$('sbtn').disabled=false}
+};
+
+$('go').onclick=async()=>{
+  const picked=[...document.querySelectorAll('#cands input:checked')].map(x=>S.cands[+x.dataset.i]);
+  if(!picked.length){setStatus('Tick at least one profile.',true);return}
+  $('go').disabled=true;
+  try{await loadMe(picked);buildScopes();await loadPeers();render();$('results').hidden=false;$('results').scrollIntoView({behavior:'smooth'})}
+  catch(err){setStatus(err.message,true)}
+  finally{$('go').disabled=false}
+};
+
+// ---------- me ----------
+function hIndex(arr){const s=arr.filter(x=>x>0).sort((a,b)=>b-a);let h=0;while(h<s.length&&s[h]>=h+1)h++;return h}
+async function loadMe(profiles){
+  const ids=profiles.map(p=>sid(p.id));
+  const works=new Map();let page=1,total=Infinity;
+  while((page-1)*100<total&&page<=30){
+    setStatus(`Loading works… ${works.size}${total<Infinity?' of '+total:''}`);
+    const r=await oa('/works',{filter:'authorships.author.id:'+ids.join('|'),per_page:100,page,select:'id,publication_year,cited_by_count,counts_by_year,type'});
+    total=r.meta.count;r.results.forEach(w=>works.set(w.id,w));if(r.results.length<100)break;page++;
+  }
+  S.works=[...works.values()].filter(w=>w.type!=='paratext'&&w.type!=='erratum');
+  const yrs=S.works.map(w=>w.publication_year).filter(y=>y>1900&&y<=NOW+1);
+  const cites=S.works.map(w=>w.cited_by_count||0);
+  const main=profiles.slice().sort((a,b)=>b.works_count-a.works_count)[0];
+  const topicCounts=new Map();
+  profiles.forEach(p=>(p.topics||[]).forEach(t=>{const o=topicCounts.get(t.id)||{...t,count:0};o.count+=t.count||0;topicCounts.set(t.id,o)}));
+  S.me={ids,name:main.display_name,inst:main.last_known_institutions?.[0],
+    country:main.last_known_institutions?.[0]?.country_code||'',
+    topics:[...topicCounts.values()].sort((a,b)=>b.count-a.count),
+    h:hIndex(cites),i10:cites.filter(c=>c>=10).length,cites:cites.reduce((a,b)=>a+b,0),
+    works:S.works.length,start:yrs.length?Math.min(...yrs):NOW};
+  $('startYear').value=S.me.start;
+}
+function myAge(){const y=+$('startYear').value||S.me.start;return Math.max(0,NOW-y)}
+function trajectory(){
+  const start=+$('startYear').value||S.me.start,out=[];
+  for(let Y=start;Y<=NOW;Y++){
+    const c=S.works.filter(w=>w.publication_year&&w.publication_year<=Y).map(w=>{
+      const later=(w.counts_by_year||[]).filter(k=>k.year>Y).reduce((a,k)=>a+k.cited_by_count,0);
+      return Math.max(0,(w.cited_by_count||0)-later)});
+    out.push({age:Y-start,year:Y,h:hIndex(c)});
+  }
+  return out;
+}
+
+// ---------- peers ----------
+function buildScopes(){
+  const t=S.me.topics,opts=[];
+  t.slice(0,5).forEach(x=>opts.push({f:'topics.id:'+sid(x.id),label:'Topic: '+x.display_name}));
+  const seen=new Set();
+  t.slice(0,3).forEach(x=>{if(x.subfield&&!seen.has(x.subfield.id)){seen.add(x.subfield.id);opts.push({f:'topics.subfield.id:'+sid(x.subfield.id).replace(/\D/g,''),label:'Subfield: '+x.subfield.display_name})}});
+  if(t[0]?.field)opts.push({f:'topics.field.id:'+sid(t[0].field.id).replace(/\D/g,''),label:'Field: '+t[0].field.display_name});
+  if(!opts.length)opts.push({f:'',label:'All of OpenAlex'});
+  S.scopeOpts=opts;
+  $('scope').innerHTML=opts.map((o,i)=>`<option value="${i}">${esc(o.label)}</option>`).join('');
+  $('country').disabled=!S.me.country;
+  $('countryLbl').textContent=S.me.country?`Same country only (${S.me.country})`:'Same country only (unknown)';
+}
+let WSTART=NOW-9;
+function peerStart(a){
+  const cby=(a.counts_by_year||[]).filter(k=>k.works_count>0);
+  if(!cby.length)return null;
+  const sum=cby.reduce((s,k)=>s+k.works_count,0),minY=Math.min(...cby.map(k=>k.year));
+  return sum>=a.works_count-Math.max(1,a.works_count*.05)?minY:null; // null = started before window
+}
+async function loadPeers(){
+  const o=S.scopeOpts[+$('scope').value||0];
+  const f=[o.f,$('ghost').checked?'works_count:>2':'',$('country').checked&&S.me.country?'last_known_institutions.country_code:'+S.me.country:''].filter(Boolean).join(',');
+  setStatus('Sampling peers…');
+  const pages=await Promise.all([1,2,3].map(page=>oa('/authors',{filter:f,sample:300,seed:42,per_page:100,page,select:'id,display_name,works_count,cited_by_count,summary_stats,last_known_institutions,counts_by_year'}).catch(()=>({results:[]}))));
+  const mine=new Set(S.me.ids);const map=new Map();
+  pages.flatMap(p=>p.results||[]).forEach(a=>{if(!mine.has(sid(a.id)))map.set(a.id,a)});
+  const all=[...map.values()];
+  const ys=all.flatMap(a=>(a.counts_by_year||[]).map(k=>k.year));WSTART=ys.length?Math.min(...ys):NOW-9;
+  S.peers=all.map(a=>{const st=peerStart(a);return{id:sid(a.id),name:a.display_name,inst:a.last_known_institutions?.[0]?.display_name||'',
+    h:a.summary_stats?.h_index||0,i10:a.summary_stats?.i10_index||0,cites:a.cited_by_count||0,works:a.works_count||0,
+    start:st,age:st==null?null:NOW-st}});
+  S.scopeLabel=o.label;
+  setStatus(S.peers.length?`Compared with ${S.peers.length} sampled peers.`:'No peers found for this scope. Try a broader one.',!S.peers.length);
+}
+$('refresh').onclick=async()=>{$('refresh').disabled=true;try{await loadPeers();render()}catch(e){setStatus(e.message,true)}finally{$('refresh').disabled=false}};
+$('scope').onchange=$('refresh').onclick;$('country').onchange=$('refresh').onclick;$('ghost').onchange=$('refresh').onclick;
+$('win').onchange=()=>render();$('startYear').onchange=()=>render();
+
+// ---------- stats helpers ----------
+const EST=()=>NOW-WSTART+1; // x position for established group
+function stagePeers(){
+  const age=myAge(),w=+$('win').value,est=EST();
+  if(age>=est-w)return S.peers.filter(p=>p.age==null||p.age>=age-w); // you're established: compare with established + late-window
+  return S.peers.filter(p=>p.age!=null&&Math.abs(p.age-age)<=w);
+}
+function pct(vals,x){if(!vals.length)return null;let lo=0,eq=0;vals.forEach(v=>{if(v<x)lo++;else if(v===x)eq++});return 100*(lo+eq/2)/vals.length}
+function q(arr,p){const s=arr.slice().sort((a,b)=>a-b);if(!s.length)return NaN;const i=(s.length-1)*p,f=Math.floor(i);return s[f]+(s[Math.min(f+1,s.length-1)]-s[f])*(i-f)}
+function bins(){
+  const out=[],est=EST();
+  for(let a=0;a<=est;a++){
+    const v=S.peers.filter(p=>a===est?p.age==null:p.age===a).map(p=>p.h);
+    if(v.length>=5)out.push({x:a,n:v.length,q1:q(v,.25),med:q(v,.5),q3:q(v,.75)});
+  }
+  return out;
+}
+const probe=document.createElement('i');probe.style.display='none';document.body.appendChild(probe);
+const css=n=>{probe.style.color=`var(${n})`;return getComputedStyle(probe).color}; // resolves light-dark() to rgb
+function theme(){return{paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'Inter, sans-serif',size:13,color:css('--ink')||'#06222e'},
+  margin:{l:48,r:12,t:16,b:46},autosize:true,hoverlabel:{font:{family:'Inter'}},showlegend:false,
+  xaxis:{gridcolor:css('--line'),zeroline:false},yaxis:{gridcolor:css('--line'),zeroline:false,rangemode:'tozero'}}}
+const CFG={displaylogo:false,responsive:true,modeBarButtonsToRemove:['lasso2d','select2d','autoScale2d']};
+
+// ---------- render ----------
+function render(){
+  const me=S.me,age=myAge(),est=EST(),stage=stagePeers();
+  const meX=age>=est?est:age;
+  const m=age>0?me.h/age:me.h;
+  $('whoName').textContent=me.name;
+  $('whoMeta').textContent=[me.inst?.display_name,me.country,`first indexed work ${NOW-age}`].filter(Boolean).join(' · ');
+  const pH=pct(stage.map(p=>p.h),me.h),pAll=pct(S.peers.map(p=>p.h),me.h);
+  const medStage=stage.length?q(stage.map(p=>p.h),.5):NaN;
+  const ord=n=>{if(n==null)return'–';const r=Math.round(n),t=r%100;return r+((t>=11&&t<=13)?'th':({1:'st',2:'nd',3:'rd'}[r%10]||'th'))};
+  const tiles=[[me.h,'your h-index',true],[ord(pH),`percentile, same career stage (n=${stage.length})`],
+    [isNaN(medStage)?'–':medStage.toFixed(1),'median h at your stage'],[ord(pAll),`percentile, all sampled peers (n=${S.peers.length})`],
+    [m.toFixed(2),'m-quotient (h ÷ career years)'],[me.i10,'i10-index'],[me.cites.toLocaleString(),'citations']];
+  $('stats').innerHTML=tiles.map(([v,l,y])=>`<div class="stat"><div class="v${y?' you':''}">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join('');
+  $('peerInfo').textContent=`${S.scopeLabel} · ${S.peers.length} sampled peers, ${stage.length} at your career stage (${age>=est-+$('win').value?'established group':'±'+$('win').value+' yrs'}).`;
+
+  // scatter
+  const B=bins(),T=theme(),peer=css('--peer'),you=css('--you'),band=css('--band');
+  const jit=id=>{let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))|0;return(Math.abs(h%1000)/1000-.5)*.5};
+  const px=S.peers.map(p=>(p.age==null?est:p.age)+jit(p.id)),py=S.peers.map(p=>p.h);
+  const tickv=[...Array(est+1).keys()],tickt=tickv.map(v=>v===est?`${est}+`:String(v));
+  Plotly.react('scatter',[
+    {x:B.map(b=>b.x),y:B.map(b=>b.q3),mode:'lines',line:{width:0},hoverinfo:'skip'},
+    {x:B.map(b=>b.x),y:B.map(b=>b.q1),mode:'lines',line:{width:0},fill:'tonexty',fillcolor:band,hoverinfo:'skip'},
+    {x:px,y:py,mode:'markers',type:'scattergl',marker:{size:7,color:peer,opacity:.55},
+     customdata:S.peers.map(p=>[p.name,p.inst,p.h,p.works,p.cites,p.id,p.age==null?`started before ${WSTART}`:`${p.age} yrs`]),
+     hovertemplate:'<b>%{customdata[0]}</b><br>%{customdata[1]}<br>h %{customdata[2]} · %{customdata[3]} works · %{customdata[4]:,} cites<br>career: %{customdata[6]}<extra></extra>'},
+    {x:B.map(b=>b.x),y:B.map(b=>b.med),mode:'lines+markers',line:{color:css('--ink'),width:2.5},marker:{size:5},
+     customdata:B.map(b=>b.n),hovertemplate:'median h %{y:.1f} (n=%{customdata})<extra></extra>'},
+    {x:[meX],y:[me.h],mode:'markers+text',marker:{size:18,color:you,symbol:'star',line:{width:1.5,color:css('--panel')}},
+     text:['You'],textposition:'top center',textfont:{color:you,size:14,family:'Space Grotesk'},hovertemplate:`<b>${esc(me.name)}</b><br>h ${me.h}<extra></extra>`}
+  ],{...T,xaxis:{...T.xaxis,title:$('scatter').clientWidth<520?'Career age (years)':'Career age (years since first indexed work)',tickvals:tickv,ticktext:tickt},yaxis:{...T.yaxis,title:'h-index'}},CFG);
+  const sc=$('scatter');sc.removeAllListeners?.('plotly_click');
+  sc.on('plotly_click',ev=>{const p=ev.points[0];if(p&&p.customdata&&p.customdata[5])window.open('https://openalex.org/authors/'+p.customdata[5],'_blank','noopener')});
+
+  // histogram
+  const hv=stage.map(p=>p.h);
+  $('histSub').textContent=stage.length?`${stage.length} peers. Median h ${medStage.toFixed(1)}; you're at ${me.h}.`:'Not enough peers at this career stage. Widen the window or the scope.';
+  Plotly.react('hist',[{x:hv,type:'histogram',xbins:{size:1},marker:{color:peer,line:{color:css('--panel'),width:1}},hovertemplate:'h %{x}: %{y} peers<extra></extra>'}],
+    {...T,bargap:.05,xaxis:{...T.xaxis,title:'h-index'},yaxis:{...T.yaxis,title:'peers'},
+     shapes:[{type:'line',x0:me.h,x1:me.h,yref:'paper',y0:0,y1:1,line:{color:you,width:3}}],
+     annotations:[{x:me.h,yref:'paper',y:1,text:'You',showarrow:false,yanchor:'bottom',font:{color:you,family:'Space Grotesk',size:14}}]},CFG);
+
+  // trajectory
+  const tr=trajectory();
+  Plotly.react('traj',[
+    {x:B.filter(b=>b.x<est).map(b=>b.x),y:B.filter(b=>b.x<est).map(b=>b.q3),mode:'lines',line:{width:0},hoverinfo:'skip'},
+    {x:B.filter(b=>b.x<est).map(b=>b.x),y:B.filter(b=>b.x<est).map(b=>b.q1),mode:'lines',line:{width:0},fill:'tonexty',fillcolor:band,hoverinfo:'skip'},
+    {x:B.filter(b=>b.x<est).map(b=>b.x),y:B.filter(b=>b.x<est).map(b=>b.med),mode:'lines',line:{color:css('--ink'),width:2,dash:'dot'},hovertemplate:'peer median %{y:.1f}<extra></extra>'},
+    {x:tr.map(t=>t.age),y:tr.map(t=>t.h),customdata:tr.map(t=>t.year),mode:'lines+markers',line:{color:you,width:3},marker:{size:7,color:you},hovertemplate:'%{customdata}: h %{y}<extra></extra>'}
+  ],{...T,xaxis:{...T.xaxis,title:'Career age (years)'},yaxis:{...T.yaxis,title:'h-index'}},CFG);
+
+  // meters
+  const metr=[['h-index',me.h,'h'],['i10-index',me.i10,'i10'],['Citations',me.cites,'cites'],['Works',me.works,'works'],
+    ['m-quotient',m,p=>p.age==null?null:p.h/Math.max(1,p.age)]];
+  $('meters').innerHTML=metr.map(([l,v,k])=>{
+    const vals=stage.map(p=>typeof k==='function'?k(p):p[k]).filter(x=>x!=null),pc=pct(vals,v);
+    return `<div class="meter"><span>${esc(l)}</span><div class="track"><div class="fill" style="width:${pc==null?0:pc.toFixed(1)}%"></div></div><span class="pct">${pc==null?'–':ord(pc)}</span></div>`}).join('');
+
+  // table
+  const rows=stage.map(p=>({...p,me:false})).concat([{name:me.name+' (you)',inst:me.inst?.display_name||'',h:me.h,works:me.works,cites:me.cites,age,me:true}])
+    .sort((a,b)=>b.h-a.h||b.cites-a.cites);
+  const mi=rows.findIndex(r=>r.me),lo=Math.max(0,mi-8),view=rows.slice(lo,lo+17);
+  $('ptable').innerHTML=`<thead><tr><th class="n">Rank</th><th>Name</th><th>Institution</th><th class="n">Career</th><th class="n">h</th><th class="n">Works</th><th class="n">Citations</th></tr></thead><tbody>`+
+    view.map((r,i)=>`<tr class="${r.me?'me':''}"><td class="n">${lo+i+1}</td><td>${r.me?esc(r.name):`<a href="https://openalex.org/authors/${esc(r.id)}" target="_blank" rel="noopener">${esc(r.name)}</a>`}</td>
+      <td>${esc(r.inst)}</td><td class="n">${r.age==null?esc(EST()+'+ yrs'):esc(r.age+' yrs')}</td><td class="n">${esc(r.h)}</td><td class="n">${esc(r.works)}</td><td class="n">${esc((r.cites||0).toLocaleString())}</td></tr>`).join('')+'</tbody>';
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(S.me&&S.peers.length)render()});
+}
+</script>
+</body>
+</html>
