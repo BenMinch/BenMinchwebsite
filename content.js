@@ -236,6 +236,14 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
         htmlFile: 'interactive/capsid_viewer.html'
     },
     {
+        id: 'foodwebflorida',
+        type: 'interactive',
+        title: 'South Florida Food Webs',
+        date: '2025-06-27',
+        description: 'See how different food webs work in South Florida',
+        htmlFile: 'interactive/floridafoodweb.html'
+    },
+    {
         id: 'textguesser',
         type: 'interactive',
         title: 'TextGuesser',
