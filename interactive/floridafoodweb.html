@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>South Florida Food Webs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday learning: friendly field-guide tone with real species and real events
+   IDEA a living field guide card: who eats whom in four South Florida habitats, poke one species and watch the ripple
+   PICTURE the food web itself, species stacked by trophic level, energy flowing upward, ripples shown as up/down badges
+   COLOUR habitat colour fields (seagrass green, reef turquoise, mangrove olive, Gulf Stream blue); warm red for declines, deep blue for increases
+   TYPE Archivo 800 display + Source Sans 3 text
+   LAYOUT laptop: habitat tabs, then web (2/3) beside species card (1/3); phone: tabs, web, card stacked */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#08141b);--ink:light-dark(#0e1d24,#e7eff2);--muted:light-dark(#4d5e66,#9fb2ba);--rule:light-dark(#d5e1e4,#203741);--panel:light-dark(#f2f7f6,#0f222b);--hab:#2f7d4f;--habInk:#ffffff;--down:#d2462f;--up:#1f6fb8}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html{scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 "Source Sans 3",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Archivo,system-ui,sans-serif;letter-spacing:-.02em;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,4.6vw,52px);font-weight:800}
+h2{font-size:clamp(28px,3.4vw,40px);font-weight:800;margin-bottom:14px}
+h3{font-size:21px;font-weight:600;margin:0 0 6px}
+p{margin:0 0 12px;max-width:68ch}
+.band{padding:clamp(28px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.hero{background:var(--hab);color:var(--habInk);transition:background .4s}
+.hero p{opacity:.92}
+.lede{font-size:19px;max-width:64ch;margin-top:12px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 16px}
+button{font:600 15px "Source Sans 3",sans-serif;min-height:44px;padding:8px 14px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.hero button{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.35)}
+.hero button[aria-pressed=true]{background:#fff;color:#0e1d24;border-color:#fff}
+button:focus-visible,input:focus-visible{outline:3px solid #f2b134;outline-offset:2px}
+.webgrid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.fig{position:relative;min-height:340px;border-radius:12px;overflow:hidden;background:var(--bg)}
+.fig>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.fig.web{height:min(72vh,620px);min-height:440px}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:16px;color:var(--ink)}
+.hero .card{background:var(--bg)}
+.sci{font-style:italic;color:var(--muted);font-size:15px}
+.chip{display:inline-block;font-size:13px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--panel);border:1px solid var(--rule);margin:2px 4px 2px 0;white-space:nowrap}
+.lab{font-size:14px;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.effects{list-style:none;padding:0;margin:8px 0 0}
+.effects li{padding:6px 0;border-top:1px solid var(--rule);font-size:15px}
+.up{color:var(--up);font-weight:700}
+.down{color:var(--down);font-weight:700}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;margin-top:10px}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{width:12px;height:12px;border-radius:50%;display:inline-block}
+svg text{paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+.two{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(18px,3vw,40px);align-items:start}
+.alt{background:var(--panel)}
+label.ctl{display:block;font-size:15px;font-weight:600;margin-top:12px}
+label.ctl span{float:right;font-weight:400;white-space:nowrap}
+input[type=range]{width:100%;height:32px;accent-color:var(--hab);margin:2px 0 0}
+.pyr{display:flex;flex-direction:column-reverse;gap:6px;margin-top:6px}
+.pyr .lvl{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr) auto;gap:10px;align-items:center}
+.pyr .bar{height:42px;border-radius:6px;background:var(--hab);transition:width .3s;min-width:3px}
+.pyr .val{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right;min-width:6.5em}
+.pyr .nm{font-size:15px;line-height:1.2}
+.pyr .nm small{display:block;color:var(--muted);font-size:13px}
+.quiz{display:grid;grid-template-columns:repeat(auto-fit,minmax(16em,1fr));gap:12px}
+.quiz .card button{width:100%;text-align:left;margin-top:6px;font-weight:600}
+.quiz button.right{background:#dff1e4;border-color:#3f9d5a;color:#0e1d24}
+.quiz button.wrong{background:#fbe3dd;border-color:#d2462f;color:#0e1d24}
+.fb{font-size:15px;margin-top:8px;min-height:1.4em}
+ul.facts{padding-left:20px;margin:6px 0 12px}
+ul.facts li{margin-bottom:6px}
+footer{border-top:1px solid var(--rule)}
+@media(max-width:860px){.webgrid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.fig.web{height:520px}body{font-size:16px}.pyr .lvl{grid-template-columns:minmax(0,7em) minmax(0,1fr) auto}}
+@media(prefers-reduced-motion:reduce){.hero,.pyr .bar{transition:none}}
+</style>
+</head>
+<body>
+<header class="band hero" id="top">
+  <div class="wrap">
+    <h1>Who eats whom off South Florida</h1>
+    <p class="lede">A food web traces where the energy from sunlight goes. Pick a habitat, tap any species to see what it eats and what eats it, then remove or boost it and watch the ripple spread.</p>
+    <div class="tabs" id="habTabs" role="tablist" aria-label="Habitat"></div>
+    <div class="webgrid">
+      <div class="fig web"><svg id="web" role="img" aria-label="Food web diagram"></svg></div>
+      <div class="card" id="side" aria-live="polite"></div>
+    </div>
+    <div class="key" id="key"></div>
+  </div>
+</header>
+
+<section class="band" id="basics">
+  <div class="wrap two">
+    <div>
+      <h2>Reading a food web</h2>
+      <ul class="facts">
+        <li><b>Arrows point the way energy flows</b>, from the thing eaten to the thing that eats it.</li>
+        <li><b>Producers</b> (seagrass, algae, mangroves, phytoplankton) capture sunlight. Everything else runs on their energy.</li>
+        <li><b>Detritus</b> is dead plant material coated in bacteria and fungi. In seagrass beds and mangroves, more energy passes through this "brown" web than through animals eating live plants.</li>
+        <li><b>Trophic level</b> is how many steps a species sits above the producers. The web stacks species by it: producers at the bottom, top predators at the top.</li>
+        <li><b>Ripples</b> (trophic cascades): removing a predator lets its prey increase, which then eat more of <i>their</i> food. Effects can jump two or three links.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Try these real South Florida stories</h3>
+      <p>Each button loads a habitat and replays what happened, using the ripple model. The model is simple (it follows links and weakens with each step), so it shows directions, not exact amounts.</p>
+      <div class="row" id="stories"></div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="energy">
+  <div class="wrap two">
+    <div>
+      <h2>Why there are so few sharks</h2>
+      <p>Only a small share of the energy at one level becomes body mass at the next. The rest is burned for swimming, breathing and staying warm, or never eaten. Ecologists often use about 10% as a rule of thumb; real values run from roughly 5% to 20%.</p>
+      <p>The same stacking works in reverse for <b>mercury</b>. It is stored in tissue instead of being burned off, so it concentrates at each step. That is why Florida's fish-eating advisories focus on large predators such as sharks, king mackerel and big largemouth bass, not on mullet or shrimp.</p>
+      <div class="row" style="margin-top:8px"><button id="mEnergy" aria-pressed="true">Energy</button><button id="mMercury" aria-pressed="false">Mercury</button></div>
+      <label class="ctl" for="eff">Transfer efficiency <span id="effV"></span></label>
+      <input type="range" id="eff" min="5" max="20" step="1" value="10">
+      <label class="ctl" for="bmf">Mercury concentrating factor per step <span id="bmfV"></span></label>
+      <input type="range" id="bmf" min="2" max="10" step="0.5" value="5">
+    </div>
+    <div class="card">
+      <h3 id="pyrTitle">Energy left at each level</h3>
+      <p class="lab" id="pyrSub" style="margin:0"></p>
+      <div class="pyr" id="pyr"></div>
+      <p class="lab" style="margin:10px 0 0">Bars use a log scale so the top levels stay visible. A Florida Bay seagrass chain: turtle grass, pink shrimp, spotted seatrout, bottlenose dolphin.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="quiz">
+  <div class="wrap">
+    <h2>Check yourself</h2>
+    <div class="quiz" id="quizBox"></div>
+  </div>
+</section>
+
+<footer class="band">
+  <div class="wrap">
+    <h3>Sources and further reading</h3>
+    <ul>
+      <li>Fourqurean &amp; Robblee (1999) and later work on Florida Bay seagrass die-offs; Everglades National Park reports on the 2015 die-off.</li>
+      <li>Lessios (1988) on the 1983 Caribbean-wide <i>Diadema</i> die-off; NOAA and FWC material on lionfish in Florida.</li>
+      <li>Odum &amp; Heald (1975) on mangrove leaf-litter (detritus) food webs in South Florida.</li>
+      <li>Florida Department of Health fish consumption advisories (mercury).</li>
+    </ul>
+    <p class="lab">Species links are simplified to the main diet items. Ripple effects come from a teaching model, not a population forecast.</p>
+  </div>
+</footer>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const GROUP={prod:['#3f9d5a','Producer'],det:['#9a7b4f','Detritus and decomposers'],herb:['#c9a227','Grazer or filter feeder'],carn:['#e07a32','Predator'],top:['#c23b2a','Top predator'],hum:['#6b7a86','People']};
+
+const HABS={
+ seagrass:{name:'Seagrass meadow',where:'Florida Bay and Biscayne Bay',color:'#2f7d4f',
+  blurb:'Florida Bay holds one of the largest seagrass meadows on Earth. Turtle grass feeds grazers directly, but most of it ends up as detritus that feeds shrimp, crabs and small fish.',
+  sp:[
+   ['seagrass','Turtle grass','Thalassia testudinum','prod',[],'The dominant seagrass. Its roots hold the bottom in place and its blades shelter juvenile fish.',['phyto','epi']],
+   ['epi','Epiphyte algae','algae on grass blades','prod',[],'A thin coat of algae on the grass blades. A major food for small grazers. Too much shades the grass.',['seagrass']],
+   ['phyto','Phytoplankton','floating microalgae','prod',[],'Drifting single-celled algae. Nutrient pulses can trigger blooms that cloud the water.',['seagrass']],
+   ['det','Detritus','dead grass, bacteria, fungi','det',['seagrass','epi'],'Dead grass broken down by microbes. The base of the "brown" food web.'],
+   ['amph','Amphipods','tiny crustaceans','herb',['epi','det'],'Rice-sized crustaceans that graze algae and detritus, and feed almost every small fish.'],
+   ['shrimp','Pink shrimp','Penaeus duorarum','herb',['det','epi'],'Grow up in Florida Bay and migrate to the Dry Tortugas, supporting a major shrimp fishery.'],
+   ['urchin','Variegated urchin','Lytechinus variegatus','herb',['seagrass'],'Normally scarce, but in the late 1990s dense grazing fronts stripped seagrass in parts of Florida Bay.'],
+   ['pinfish','Pinfish','Lagodon rhomboides','herb',['epi','amph','seagrass'],'One of the most abundant fish in the grass, eating algae, small crustaceans and grass.'],
+   ['crab','Blue crab','Callinectes sapidus','carn',['det','amph'],'A scavenger and predator of small invertebrates.'],
+   ['manatee','Florida manatee','Trichechus manatus latirostris','herb',['seagrass'],'Eats about 10% of its body weight in plants a day. Seagrass loss has been linked to manatee starvation.'],
+   ['turtle','Green sea turtle','Chelonia mydas','herb',['seagrass'],'Adults graze seagrass, keeping it short and fast-growing.'],
+   ['trout','Spotted seatrout','Cynoscion nebulosus','carn',['shrimp','pinfish'],'A popular sport fish that hunts shrimp and small fish over the grass.'],
+   ['drum','Red drum','Sciaenops ocellatus','carn',['crab','shrimp'],'Roots for crabs and shrimp along the bottom.'],
+   ['osprey','Osprey','Pandion haliaetus','top',['trout','pinfish'],'A fish-eating hawk that plunges feet first.'],
+   ['dolphin','Bottlenose dolphin','Tursiops truncatus','top',['trout','drum','pinfish'],'Florida Bay dolphins herd fish into rings of mud to catch them.'],
+  ]},
+ reef:{name:'Coral reef',where:'Florida Keys',color:'#1a8a8c',
+  blurb:'The Florida Keys reef is the only nearshore barrier reef in the continental U.S. Corals and seaweed compete for space, and grazers decide who wins.',
+  sp:[
+   ['zoox','Zooxanthellae','symbiotic algae in coral','prod',[],'Algae living inside coral tissue, handing most of their sugar to the coral. Heat stress makes corals expel them: bleaching.'],
+   ['algae','Turf algae and seaweed','macroalgae','prod',[],'Fast-growing algae that overgrow coral when grazers are scarce.',['coral']],
+   ['phyto','Phytoplankton','floating microalgae','prod',[],'Base of the open-water food chain over the reef.'],
+   ['coral','Corals','stony coral polyps','herb',['zoox','zoopl'],'Get most energy from their zooxanthellae and catch zooplankton at night. They build the reef.',['algae']],
+   ['zoopl','Zooplankton','copepods, larvae','herb',['phyto'],'Tiny drifting animals; food for corals and planktivorous fish.'],
+   ['sponge','Sponges','filter feeders','herb',['phyto'],'Pump huge volumes of water, filtering bacteria and particles.'],
+   ['diadema','Long-spined urchin','Diadema antillarum','herb',['algae'],'A key algae grazer. A disease killed most of them in 1983, and algae took over many reefs.'],
+   ['parrot','Parrotfish','Scaridae','herb',['algae'],'Scrape algae off rock, clearing space for baby corals. Much of the white sand on Keys beaches passed through parrotfish.'],
+   ['small','Small reef fish','damselfish, wrasses, gobies','herb',['zoopl'],'Abundant small fish eating plankton and tiny invertebrates.'],
+   ['lobster','Spiny lobster','Panulirus argus','carn',['diadema'],'Eats urchins, snails and clams. Florida\'s most valuable fishery.'],
+   ['hawks','Hawksbill turtle','Eretmochelys imbricata','carn',['sponge'],'One of the few animals that eats sponges.'],
+   ['snapper','Snapper','yellowtail and gray snapper','carn',['small','zoopl'],'Schooling predators of small fish and plankton.'],
+   ['lionfish','Lionfish','Pterois volitans (invasive)','carn',['small','parrot'],'An Indo-Pacific invader established in Florida in the 2000s. Eats young reef fish, including young parrotfish.'],
+   ['grouper','Grouper','red, black and goliath grouper','top',['lobster','small','snapper'],'Ambush predators; goliath grouper can top 300 kg.'],
+   ['barra','Great barracuda','Sphyraena barracuda','top',['snapper','small','parrot'],'A fast, open-water hunter over the reef.'],
+   ['people','People','fishing and lionfish derbies','hum',['lobster','grouper','snapper','lionfish'],'Fishing is one of the strongest forces on the reef web. Lionfish derbies turn people into the invader\'s main predator.'],
+  ]},
+ mangrove:{name:'Mangrove shoreline',where:'Everglades coast, Biscayne Bay, the Keys',color:'#6b7d2a',
+  blurb:'Red mangrove leaves rarely get eaten alive. They fall, rot and feed a detritus web that nurses young snook, snapper and tarpon.',
+  sp:[
+   ['mangrove','Red mangrove','Rhizophora mangle','prod',[],'Prop roots shelter young fish; fallen leaves feed the whole system.'],
+   ['algae','Algae and microalgae','on roots and mud','prod',[],'Grows on prop roots and mud flats.'],
+   ['litter','Leaf litter','decomposing leaves','det',['mangrove'],'Leaves softened by fungi and bacteria. The 1970s Florida studies that made detritus famous were done here.'],
+   ['treecrab','Mangrove tree crab','Aratus pisonii','herb',['mangrove'],'One of the few animals that eats living mangrove leaves.'],
+   ['fiddler','Fiddler and mud crabs','Uca and others','herb',['litter','algae'],'Sift mud for detritus and algae.'],
+   ['worms','Amphipods and worms','small invertebrates','herb',['litter','algae'],'Shred leaf litter into smaller bits.'],
+   ['mullet','Striped mullet','Mugil cephalus','herb',['litter','algae'],'Eats detritus and algae off the bottom, then becomes food for almost everything.'],
+   ['shrimp','Grass and pink shrimp','Palaemonetes, Penaeus','herb',['litter','algae'],'Small shrimp that feed on detritus among the roots.'],
+   ['killi','Killifish','and mosquitofish','carn',['worms','shrimp'],'Small fish that are the main meal of wading birds.'],
+   ['snapper','Juvenile gray snapper','Lutjanus griseus','carn',['shrimp','fiddler','killi'],'Grow up among prop roots, then move out to the reef.'],
+   ['snook','Common snook','Centropomus undecimalis','carn',['killi','shrimp','mullet'],'Ambushes prey from the root edge.'],
+   ['tarpon','Tarpon','Megalops atlanticus','top',['mullet','fiddler','killi'],'Juveniles live in mangrove backwaters; adults are Florida\'s most famous sport fish.'],
+   ['spoon','Roseate spoonbill','Platalea ajaja','carn',['shrimp','killi'],'Sweeps its bill through shallow water. Its pink colour comes from carotenoids in crustaceans.'],
+   ['egret','Egrets and herons','wading birds','carn',['killi','fiddler'],'Stalk the shallows for small fish and crabs.'],
+   ['croc','American crocodile','Crocodylus acutus','top',['mullet','snook','egret'],'South Florida is the only place in the U.S. where it lives.'],
+  ]},
+ offshore:{name:'Gulf Stream and Sargassum',where:'Florida Current, off Miami and the Keys',color:'#1d5c96',
+  blurb:'Offshore, floating Sargassum rafts form islands of shelter in open water, and fast predators hunt the edges.',
+  sp:[
+   ['phyto','Phytoplankton','floating microalgae','prod',[],'The main producers of the open ocean.'],
+   ['sarg','Sargassum','floating seaweed','prod',[],'Mats of floating seaweed; recent years have brought record-sized blooms across the Atlantic.'],
+   ['cope','Copepods','zooplankton','herb',['phyto'],'Rice-grain crustaceans, the most numerous animals in the sea.'],
+   ['sargcom','Sargassum community','shrimp, crabs, small fish','herb',['sarg','cope'],'Animals that live only in the floating mats, many camouflaged to match.'],
+   ['flying','Flying fish','Exocoetidae','herb',['cope'],'Glide above the waves to escape predators.'],
+   ['bally','Ballyhoo and sardines','forage fish','herb',['cope'],'Schooling forage fish; also the classic bait off Miami.'],
+   ['logger','Young loggerheads','Caretta caretta','carn',['sargcom'],'Hatchlings from Florida beaches ride the Sargassum for their first years.'],
+   ['mahi','Mahi-mahi','Coryphaena hippurus','top',['flying','sargcom','bally'],'Hunt under weed lines; grow fast and live about 4–5 years.'],
+   ['tuna','Blackfin tuna','Thunnus atlanticus','carn',['flying','bally'],'Small tuna common along the Florida Current edge.'],
+   ['sail','Sailfish','Istiophorus platypterus','top',['bally','flying'],'Raise the sail to herd forage fish; mostly fished catch-and-release.'],
+   ['frigate','Frigatebird','Fregata magnificens','carn',['flying'],'Steals and snatches flying fish without landing on water.'],
+   ['people','People','sport and commercial fishing','hum',['mahi','tuna','sail'],'Fishing pressure on top predators can shift the whole web.'],
+  ]},
+};
+const STORIES=[
+ {hab:'seagrass',id:'seagrass',sign:-1,label:'2015 seagrass die-off'},
+ {hab:'seagrass',id:'phyto',sign:1,label:'Algae bloom'},
+ {hab:'reef',id:'diadema',sign:-1,label:'1983 urchin die-off'},
+ {hab:'reef',id:'lionfish',sign:1,label:'Lionfish invasion'},
+ {hab:'mangrove',id:'mangrove',sign:-1,label:'Mangroves cleared'},
+ {hab:'offshore',id:'people',sign:1,label:'More offshore fishing'},
+];
+
+let hab='seagrass',sel=null,pert=null,web=null;
+function build(key){const h=HABS[key];const sp=h.sp.map(a=>({id:a[0],name:a[1],sci:a[2],g:a[3],eats:a[4],info:a[5],comp:a[6]||[]}));const by=Object.fromEntries(sp.map(s=>[s.id,s]));
+  sp.forEach(s=>s.eatenBy=sp.filter(o=>o.eats.includes(s.id)).map(o=>o.id));
+  const tl={};const T=id=>{if(tl[id])return tl[id];const s=by[id];tl[id]=s.eats.length?1+s.eats.reduce((a,f)=>a+T(f),0)/s.eats.length:1;return tl[id];};sp.forEach(s=>s.tl=T(s.id));
+  sp.forEach(s=>s.band=Math.min(5,Math.round(s.tl)));return {h,sp,by};}
+function ripple(start,sign){const eff={[start]:sign},why={},q=[[start,0]];
+  while(q.length){const [id,d]=q.shift();if(d>=3)continue;const s=web.by[id],e=eff[id];
+    const push=(t,v,r)=>{if(t in eff||Math.abs(v)<0.2||web.by[t].g==='hum')return;eff[t]=v;why[t]=r;q.push([t,d+1]);};
+    s.eats.forEach(f=>push(f,-e*0.75,`${dir(e)} ${s.name.toLowerCase()} eating it`));
+    s.eatenBy.forEach(p=>push(p,e*0.75,`${e>0?'more':'less'} ${s.name.toLowerCase()} to eat`));
+    s.comp.forEach(cid=>push(cid,-e*0.6,`${e>0?'crowded out by':'less competition from'} ${s.name.toLowerCase()}`));
+    web.sp.filter(o=>o.comp.includes(id)).forEach(o=>push(o.id,-e*0.6,`${e>0?'crowded out by':'less competition from'} ${s.name.toLowerCase()}`));}
+  return {eff,why};}
+const dir=e=>e>0?'more':'fewer';
+
+function tabs(){$('habTabs').innerHTML=Object.entries(HABS).map(([k,h])=>`<button role="tab" data-h="${k}" aria-pressed="${k===hab}">${esc(h.name)}</button>`).join('');}
+$('habTabs').onclick=e=>{const b=e.target.closest('button');if(b)setHab(b.dataset.h);};
+function setHab(k,keepSel){hab=k;web=build(k);if(!keepSel){sel=null;pert=null;}document.documentElement.style.setProperty('--hab',HABS[k].color);tabs();draw();side();}
+$('key').innerHTML=Object.values(GROUP).map(([c,t])=>`<span><i style="background:${c}"></i>${t}</span>`).join('')+'<span><b class="up" style="color:#fff">▲</b>/<b style="color:#fff">▼</b> ripple after a change</span>';
+
+const svg=$('web');
+function layout(W,H){const bands={};web.sp.forEach(s=>(bands[s.band]=bands[s.band]||[]).push(s));const levels=Object.keys(bands).map(Number).sort((a,b)=>a-b);
+  const top=34,bot=46,usable=H-top-bot;const pos={};
+  levels.forEach((lv,i)=>{const y=H-bot-(levels.length===1?usable/2:usable*i/(levels.length-1));const arr=bands[lv];
+    if(i>0)arr.sort((a,b)=>bary(a,pos)-bary(b,pos));
+    const pad=W<520?28:56,stag=arr.length>4&&W<700;arr.forEach((s,j)=>{pos[s.id]={x:pad+(W-2*pad)*(arr.length===1?0.5:j/(arr.length-1)),y:y+(stag&&j%2?30:0),base:y};});
+    if(arr.length===1)pos[arr[0].id].x=W/2;});
+  for(let it=0;it<2;it++)levels.slice(1).forEach(lv=>{const arr=bands[lv];const xs=arr.map(s=>pos[s.id].x).sort((a,b)=>a-b);arr.sort((a,b)=>bary(a,pos)-bary(b,pos)).forEach((s,j)=>{pos[s.id].x=xs[j];if(arr.length>4&&W<700)pos[s.id].y=pos[s.id].base+(j%2?30:0);});});
+  return pos;}
+function bary(s,pos){const f=s.eats.filter(id=>pos[id]);return f.length?f.reduce((a,id)=>a+pos[id].x,0)/f.length:0;}
+function draw(){const W=svg.clientWidth,H=svg.clientHeight;if(!W||!H)return;const pos=layout(W,H),r=Math.max(11,Math.min(18,W/48)),narrow=W<560;
+  const rip=pert?ripple(pert.id,pert.sign):null;const hi=sel&&!pert?new Set([sel,...web.by[sel].eats,...web.by[sel].eatenBy]):null;
+  let s=`<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="context-stroke"/></marker></defs>`;
+  s+=`<rect width="${W}" height="${H}" fill="var(--bg)"/>`;
+  const lvNames=['','Level 1: producers','Level 2','Level 3','Level 4','Level 5'];const seen=new Set();
+  web.sp.forEach(sp=>{if(seen.has(sp.band))return;seen.add(sp.band);const y=pos[sp.id].base;s+=`<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="var(--rule)" stroke-dasharray="2 6"/>`;if(!narrow)s+=`<text x="8" y="${y-r-8}" font-size="12" fill="var(--muted)">${lvNames[sp.band]}</text>`;});
+  web.sp.forEach(e=>e.eats.forEach(f=>{const a=pos[f],b=pos[e.id];const on=hi&&(hi.has(f)&&hi.has(e.id))&&(f===sel||e.id===sel);const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1;
+    const x1=a.x+dx/L*(r+2),y1=a.y+dy/L*(r+2),x2=b.x-dx/L*(r+4),y2=b.y-dy/L*(r+4);const mx=(x1+x2)/2+(dy/L)*14,my=(y1+y2)/2-(dx/L)*14;
+    const col=on?'var(--ink)':'var(--muted)';s+=`<path d="M${x1},${y1}Q${mx},${my} ${x2},${y2}" fill="none" stroke="${col}" stroke-width="${on?2.4:1.1}" opacity="${hi&&!on?0.12:on?1:0.45}" marker-end="url(#ar)"/>`;}));
+  web.sp.forEach(sp=>{const p=pos[sp.id],c=GROUP[sp.g][0],dim=hi&&!hi.has(sp.id);const ef=rip?rip.eff[sp.id]:undefined;
+    s+=`<g data-id="${sp.id}" tabindex="0" role="button" aria-label="${esc(sp.name)}" style="cursor:pointer" opacity="${dim?0.3:1}">`;
+    s+=`<circle cx="${p.x}" cy="${p.y}" r="${r+12}" fill="transparent"/>`;
+    if(sp.id===sel)s+=`<circle cx="${p.x}" cy="${p.y}" r="${r+5}" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
+    const removed=pert&&pert.id===sp.id&&pert.sign<0;
+    s+=`<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${removed?'var(--bg)':c}" stroke="${c}" stroke-width="2.5" ${removed?'stroke-dasharray="4 3"':''}/>`;
+    const nm=narrow?short(sp.name):sp.name;s+=`<text x="${p.x}" y="${p.y+r+16}" font-size="${narrow?12:13}" font-weight="600" text-anchor="middle" fill="var(--ink)">${esc(nm)}</text>`;
+    if(ef!==undefined&&Math.abs(ef)>=0.2){const up=ef>0;s+=`<text x="${p.x+r*0.9}" y="${p.y-r*0.6}" font-size="${16}" font-weight="800" text-anchor="start" fill="${up?'var(--up)':'var(--down)'}">${up?'▲':'▼'}</text>`;}
+    s+='</g>';});
+  svg.innerHTML=s;}
+function short(n){const m={'Epiphyte algae':'Epiphytes','Variegated urchin':'Urchin','Florida manatee':'Manatee','Green sea turtle':'Green turtle','Spotted seatrout':'Seatrout','Bottlenose dolphin':'Dolphin','Turf algae and seaweed':'Seaweed','Long-spined urchin':'Diadema','Small reef fish':'Small fish','Hawksbill turtle':'Hawksbill','Great barracuda':'Barracuda','Algae and microalgae':'Algae','Mangrove tree crab':'Tree crab','Fiddler and mud crabs':'Fiddlers','Amphipods and worms':'Worms','Grass and pink shrimp':'Shrimp','Juvenile gray snapper':'Snapper','Roseate spoonbill':'Spoonbill','Egrets and herons':'Egrets','American crocodile':'Crocodile','Sargassum community':'Weed life','Ballyhoo and sardines':'Ballyhoo','Young loggerheads':'Loggerhead','Zooxanthellae':'Zoox','Phytoplankton':'Phyto','Striped mullet':'Mullet','Common snook':'Snook','Zooplankton':'Zooplankton'};return m[n]||n;}
+svg.addEventListener('click',e=>{const g=e.target.closest('g[data-id]');if(g){sel=g.dataset.id===sel?null:g.dataset.id;draw();side();}});
+svg.addEventListener('keydown',e=>{const g=e.target.closest('g[data-id]');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();sel=g.dataset.id;draw();side();svg.querySelector(`g[data-id="${sel}"]`)?.focus();}});
+function names(ids){return ids.length?ids.map(i=>`<span class="chip">${esc(web.by[i].name)}</span>`).join(''):'<span class="lab">nothing in this web</span>';}
+function side(){const h=web.h;let out='';
+  if(pert){const rip=ripple(pert.id,pert.sign),s=web.by[pert.id];const list=Object.entries(rip.eff).filter(([id,v])=>id!==pert.id&&Math.abs(v)>=0.2).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
+    out+=`<h3>${pert.sign<0?'Remove':'Boost'}: ${esc(s.name)}</h3><p class="lab" style="margin:0">${list.length} species respond</p><ul class="effects">`+list.map(([id,v])=>`<li><span class="${v>0?'up':'down'}">${v>0?'▲ More':'▼ Fewer'}</span> ${esc(web.by[id].name)}<br><span class="lab">${esc(rip.why[id])}</span></li>`).join('')+`</ul><div class="row" style="margin-top:10px"><button id="clr">Clear the change</button></div>`;}
+  else if(sel){const s=web.by[sel];out+=`<h3>${esc(s.name)}</h3><div class="sci">${esc(s.sci)}</div><p style="margin-top:8px">${esc(s.info)}</p>
+    <div class="lab">Eats</div><div>${names(s.eats)}</div><div class="lab" style="margin-top:6px">Eaten by</div><div>${names(s.eatenBy)}</div>
+    <div class="lab" style="margin-top:6px">Trophic level about ${s.tl.toFixed(1)}</div>
+    <div class="row" style="margin-top:12px"><button data-act="-1">Remove it</button><button data-act="1">Boost it</button></div>`;}
+  else out+=`<h3>${esc(h.name)}</h3><div class="sci">${esc(h.where)}</div><p style="margin-top:8px">${esc(h.blurb)}</p><p class="lab" style="margin:0">Tap any circle to see its diet and predators. ${web.sp.length} species and groups shown.</p>`;
+  $('side').innerHTML=out;}
+$('side').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='clr'){pert=null;}else if(b.dataset.act){pert={id:sel,sign:+b.dataset.act};}draw();side();});
+$('stories').innerHTML=STORIES.map((s,i)=>`<button data-s="${i}">${esc(s.label)}</button>`).join('');
+$('stories').onclick=e=>{const b=e.target.closest('button');if(!b)return;const st=STORIES[+b.dataset.s];setHab(st.hab);sel=st.id;pert={id:st.id,sign:st.sign};draw();side();$('top').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});};
+const ro=new ResizeObserver(()=>draw());ro.observe(svg);
+
+/* ---------- pyramid ---------- */
+let pmode='energy';const LV=[['Turtle grass','producer'],['Pink shrimp','eats detritus and algae'],['Spotted seatrout','eats shrimp'],['Bottlenose dolphin','eats seatrout']];
+function pyr(){const eff=+$('eff').value/100,bmf=+$('bmf').value;$('effV').textContent=Math.round(eff*100)+'%';$('bmfV').textContent='×'+bmf;
+  const vals=LV.map((_,i)=>pmode==='energy'?10000*eff**i:0.01*bmf**i);const lo=Math.log10(Math.min(...vals))-0.3,hi=Math.log10(Math.max(...vals));
+  $('pyrTitle').textContent=pmode==='energy'?'Energy left at each level':'Mercury in tissue at each level';
+  $('pyrSub').textContent=pmode==='energy'?'Starting from 10,000 kcal per square metre per year captured by the grass':'Starting from 0.01 ppm in grass; Florida advises limits above roughly 0.5 ppm';
+  $('pyr').innerHTML=LV.map(([n,d],i)=>{const v=vals[i],w=Math.max(1,(Math.log10(v)-lo)/(hi-lo)*100);const warn=pmode==='mercury'&&v>=0.5;
+    return `<div class="lvl"><div class="nm">${esc(n)}<small>${esc(d)}</small></div><div><div class="bar" style="width:${w.toFixed(1)}%;background:${warn?'var(--down)':pmode==='mercury'?'#6b7a86':'var(--hab)'}"></div></div><div class="val">${pmode==='energy'?fmt(v)+' kcal':v.toFixed(v<0.1?3:2)+' ppm'}</div></div>`;}).join('');}
+const fmt=v=>v>=100?Math.round(v).toLocaleString():v.toFixed(v<10?1:0);
+['eff','bmf'].forEach(id=>$(id).addEventListener('input',pyr));
+$('mEnergy').onclick=()=>{pmode='energy';$('mEnergy').setAttribute('aria-pressed','true');$('mMercury').setAttribute('aria-pressed','false');pyr();};
+$('mMercury').onclick=()=>{pmode='mercury';$('mEnergy').setAttribute('aria-pressed','false');$('mMercury').setAttribute('aria-pressed','true');pyr();};
+
+/* ---------- quiz ---------- */
+const QZ=[
+ ['Most of the energy in a Florida Bay seagrass meadow reaches animals through…',['Manatees eating live grass','Detritus from dead grass','Sunlight hitting the fish'],1,'Most turtle grass is never eaten alive; it dies, is broken down by microbes and feeds shrimp, crabs and small fish.'],
+ ['After Diadema urchins died off in 1983, Keys reefs saw…',['More coral','More algae','More lobsters'],1,'With their main grazer gone, algae overgrew many reefs and made it harder for coral to settle.'],
+ ['Which animal would you expect to carry the most mercury?',['Pink shrimp','Striped mullet','King mackerel'],2,'Mercury concentrates at each step up the web, so long-lived predators carry the most.'],
+ ['Why are mangroves called nurseries?',['Fish lay eggs on the leaves','Prop roots shelter young fish that later move to reefs','Mangroves produce fish food pellets'],1,'Juvenile gray snapper, snook and tarpon grow up among the roots, then move offshore.'],
+];
+$('quizBox').innerHTML=QZ.map((q,i)=>`<div class="card"><b>${esc(q[0])}</b>${q[1].map((o,j)=>`<button data-q="${i}" data-o="${j}">${esc(o)}</button>`).join('')}<div class="fb" id="fb${i}" aria-live="polite"></div></div>`).join('');
+$('quizBox').onclick=e=>{const b=e.target.closest('button');if(!b)return;const q=QZ[+b.dataset.q],ok=+b.dataset.o===q[2];
+  b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('right','wrong'));b.classList.add(ok?'right':'wrong');$('fb'+b.dataset.q).textContent=(ok?'Right. ':'Not quite. ')+q[3];};
+
+setHab('seagrass');pyr();
+}
+</script>
+</body>
+</html>
