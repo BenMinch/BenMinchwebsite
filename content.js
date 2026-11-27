@@ -212,6 +212,14 @@ The phylum Nucleocytoviricota includes the largest and most complex viruses know
         htmlFile: 'interactive/umap_viewer.html'
     },
     {
+        id: 'southflorida',
+        type: 'interactive',
+        title: 'South Florida Ocean Lab',
+        date: '2025-06-27',
+        description: 'Play around with South Florida Oceanography',
+        htmlFile: 'interactive/southfloridaocean.html'
+    },
+    {
         id: 'capsid_visual',
         type: 'interactive',
         title: 'Interactive Virus Viewer',
