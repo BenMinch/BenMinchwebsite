@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>South Florida Ocean Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday learning, for a curious reader who likes real numbers
+   IDEA an oceanographer's chart plate: deep-water blues, warm current in red, every panel a working instrument
+   PICTURE a live map of the Loop Current growing, shedding a warm eddy, and feeding the Florida Current
+   COLOUR deep sea #08283b fields, warm current #e8553b, cold upwelled water #2f8fd0, chlorophyll green only where things grow
+   TYPE Archivo 800 display + Source Sans 3 text
+   LAYOUT laptop: title strip over full-width map with a control rail; sections are text beside instrument; phone: title, map, controls */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#07141d);--ink:light-dark(#0d1c27,#e6eef3);--muted:light-dark(#4a5b68,#9db0bd);--rule:light-dark(#d6e0e7,#1f3442);--panel:light-dark(#f1f6f9,#0e2230);--sea:#08283b;--warm:#e8553b;--cool:#2f8fd0;--green:#3f9d5a;--accent:light-dark(#c63d24,#ff7a5c)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html{scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 "Source Sans 3",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Archivo,system-ui,sans-serif;letter-spacing:-.02em;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,4.6vw,52px);font-weight:800}
+h2{font-size:clamp(28px,3.4vw,40px);font-weight:800;margin-bottom:14px}
+h3{font-size:20px;font-weight:600;margin:18px 0 6px}
+p{margin:0 0 12px;max-width:68ch}
+a{color:var(--accent)}
+.band{padding:clamp(28px,4vw,60px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.hero{background:var(--sea);color:#e9f3f8}
+.hero p{color:#b9d0dc}
+.hero .lede{font-size:19px;max-width:62ch;margin-top:12px}
+nav.scroll{display:flex;gap:6px;overflow-x:auto;padding:10px max(5vw,16px);background:var(--sea);border-top:1px solid #16425c;position:sticky;top:0;z-index:5}
+nav.scroll a{flex:none;color:#d7e7f0;text-decoration:none;font-weight:600;font-size:15px;padding:8px 12px;border-radius:999px}
+nav.scroll a:hover,nav.scroll a:focus-visible{background:#16425c;outline:none}
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;margin-top:22px}
+.fig{position:relative;min-height:340px;border-radius:10px;overflow:hidden;background:#0a2b40}
+.fig>canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.fig.map{height:min(70vh,640px);min-height:380px}
+.rail{display:flex;flex-direction:column;gap:14px}
+.hero .rail .card{background:#0d3550;border:1px solid #1b4b68}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px 16px}
+.stat{font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(26px,3vw,34px);line-height:1;white-space:nowrap}
+.lab{font-size:14px;color:inherit;opacity:.8}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:600 15px "Source Sans 3",sans-serif;min-height:44px;padding:8px 14px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);cursor:pointer}
+button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.hero button{background:#0d3550;color:#e9f3f8;border-color:#2a5d7c}
+.hero button[aria-pressed=true]{background:#e9f3f8;color:#08283b}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
+label.ctl{display:block;font-size:15px;font-weight:600;margin-top:10px}
+label.ctl span{float:right;font-weight:400;white-space:nowrap}
+input[type=range]{width:100%;height:32px;accent-color:var(--warm);margin:2px 0 0}
+select{font:16px "Source Sans 3",sans-serif;min-height:44px;padding:6px 10px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);width:100%}
+.two{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(18px,3vw,40px);align-items:start}
+.alt{background:var(--panel)}
+.sub{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:12px}
+.fig.sm{min-height:240px;height:260px}
+.fig.md{height:380px}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(9em,1fr));gap:10px;margin-top:12px}
+.readout .card{padding:10px 12px}
+.readout .stat{font-size:26px}
+.note{font-size:14px;color:var(--muted)}
+.verdict{font-weight:700}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}
+.legend{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:8px}
+.legend i{display:block;height:10px;flex:1;border-radius:3px}
+ul.facts{padding-left:20px;margin:6px 0 12px}
+ul.facts li{margin-bottom:6px}
+footer{border-top:1px solid var(--rule)}
+footer li{margin-bottom:6px;font-size:15px}
+@media(max-width:900px){.mapgrid{grid-template-columns:minmax(0,1fr)}.rail{display:grid;grid-template-columns:repeat(auto-fit,minmax(14em,1fr))}}
+@media(max-width:760px){.two{grid-template-columns:minmax(0,1fr)}.sub{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.fig.map{height:440px}body{font-size:16px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="band hero">
+  <div class="wrap">
+    <h1>South Florida's ocean, running live</h1>
+    <p class="lede">A warm river of seawater loops through the Gulf, squeezes past the Keys and races up Miami's coast. Watch it grow, pinch off a hurricane-fuelling eddy, and see what it does to storms, reefs, bays and our streets.</p>
+    <div class="mapgrid">
+      <div class="fig map"><canvas id="map" aria-label="Animated map of the Loop Current, Florida Current and warm eddies"></canvas></div>
+      <div class="rail">
+        <div class="card">
+          <div class="lab">Loop Current, <span id="mLabel">month 0</span></div>
+          <div class="stat" id="mPhase">Retracted</div>
+          <p class="lab" id="mDesc" style="margin:8px 0 0"></p>
+        </div>
+        <div class="card">
+          <div class="row"><button id="play" aria-pressed="true">Pause</button><button id="reset">Restart cycle</button></div>
+          <label class="ctl" for="month">Months into the cycle <span id="monthV">0</span></label>
+          <input type="range" id="month" min="0" max="22" step="0.05" value="2">
+          <div class="lab" style="margin-top:8px">Colour the water by</div>
+          <div class="row" style="margin-top:6px"><button id="vTCHP" aria-pressed="true">Heat below surface</button><button id="vSST" aria-pressed="false">Surface temp</button></div>
+          <div class="legend"><span id="lgLo">0</span><i id="lgBar"></i><span id="lgHi">140 kJ/cm²</span></div>
+        </div>
+        <div class="card">
+          <div class="lab">Deepest warm layer on the map</div>
+          <div class="stat"><span id="maxD">–</span> m</div>
+          <div class="lab">depth of the 26 °C water, the fuel tank hurricanes draw on</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+<nav class="scroll" aria-label="Sections">
+  <a href="#loop">Loop Current</a><a href="#storms">Eddies and hurricanes</a><a href="#upwelling">Coastal upwelling</a><a href="#sealevel">Current and flooding</a><a href="#bay">Florida Bay salinity</a><a href="#reef">Reef heat stress</a><a href="#sources">Sources</a>
+</nav>
+
+<section class="band" id="loop">
+  <div class="wrap two">
+    <div>
+      <h2>The Loop Current is South Florida's water heater</h2>
+      <p>Caribbean water enters the Gulf through the 200-km-wide Yucatán Channel at speeds near 1.5–2 m/s. It swings north, loops clockwise, and leaves through the Florida Straits as the <b>Florida Current</b>, which carries roughly 30–32 million cubic metres per second (Sverdrups, Sv) past Miami before becoming the <b>Gulf Stream</b>.</p>
+      <p>Because that water arrives from the tropics, it keeps the Keys and southeast Florida mild in winter and stacks warm water deep below the surface year-round.</p>
+      <h3>The cycle in the map above</h3>
+      <ul class="facts">
+        <li><b>Retracted:</b> the current takes a short cut ("port to port") from Yucatán straight to the Straits.</li>
+        <li><b>Extended:</b> it bulges north, sometimes past 27–28°N, close to the Louisiana and Florida shelves.</li>
+        <li><b>Shedding:</b> the neck of the loop pinches off a <b>warm-core eddy</b> 200–400 km across, roughly every 3 to 18 months (about 8–11 on average).</li>
+        <li><b>Drift:</b> the eddy spins clockwise and creeps west at a few kilometres a day, staying warm for months.</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card">
+        <h3 style="margin-top:0">Why surface temperature hides it</h3>
+        <p>Flip the map to <b>Surface temp</b>. In late summer nearly the whole Gulf sits at 29–31 °C, so satellites see almost nothing. Flip back to <b>Heat below surface</b> and the Loop and its eddies glow: warm water reaches 100–150 m down instead of 40–60 m.</p>
+        <p style="margin:0">That buried heat is measured as <b>tropical cyclone heat potential</b> (TCHP), the heat stored in water warmer than 26 °C. Above roughly 50–60 kJ/cm², a storm can churn the ocean without cooling its own fuel supply.</p>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3 style="margin-top:0">Reading the map</h3>
+        <p style="margin:0">Moving streaks are water parcels; their speed is exaggerated for viewing. The red ring is a shed eddy. Pale areas are shallow banks and shelves, where there is simply not enough water to store much heat. The geometry is a teaching model, not a forecast.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="storms">
+  <div class="wrap">
+    <h2>Warm eddies don't start hurricanes. They feed them.</h2>
+    <div class="two">
+      <div>
+        <p>Hurricanes form from tropical disturbances, not from eddies. But once a storm exists, its winds stir the upper ocean. Over thin warm water, that stirring drags up cold water and the storm chokes its own fuel. Over a Loop Current eddy, the mixed water is still warm, so the storm can keep strengthening, sometimes rapidly.</p>
+        <p>Opal (1995) and Katrina and Rita (2005) intensified sharply over the Loop Current or its warm eddies; Michael (2018) also crossed unusually warm, deep Gulf water before landfall.</p>
+        <p><b>Try it:</b> pick a track, or tap the map twice to draw your own. The model reads the warm-layer depth from the Loop Current state you set above, so move the month slider and run it again.</p>
+        <div class="row" id="trackBtns"></div>
+        <div class="readout">
+          <div class="card"><div class="lab">Peak winds</div><div class="stat" id="sPeak">–</div></div>
+          <div class="card"><div class="lab">Peak category</div><div class="stat" id="sCat">–</div></div>
+          <div class="card"><div class="lab">Surface cooling under eye</div><div class="stat" id="sCool">–</div></div>
+        </div>
+        <p class="note" style="margin-top:10px">Model: winds relax toward a potential intensity set by the temperature of the water the storm mixes up (mixing depth grows with wind speed). Intensities are illustrative.</p>
+      </div>
+      <div>
+        <div class="fig md"><canvas id="stormMap" aria-label="Map with hurricane track and cold wake"></canvas></div>
+        <div class="sub">
+          <div class="fig sm" style="background:var(--bg);border:1px solid var(--rule)"><canvas id="stormChart" aria-label="Wind speed through the storm's life"></canvas></div>
+          <div class="fig sm" style="background:var(--bg);border:1px solid var(--rule)"><canvas id="profile" aria-label="Temperature profile under the storm"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="upwelling">
+  <div class="wrap">
+    <h2>Coastal upwelling: cold water from below</h2>
+    <div class="two">
+      <div>
+        <p>Wind blowing along a coast does not push surface water straight downwind. Earth's rotation turns the net transport of the top tens of metres 90° to the <b>right</b> of the wind in the Northern Hemisphere (Ekman transport). If that transport points offshore, deeper, colder, nutrient-rich water rises to replace it.</p>
+        <label class="ctl" for="coast">Coast</label>
+        <select id="coast"><option value="east">Southeast Florida, Atlantic side (sea to the east)</option><option value="west">West Florida Shelf, Gulf side (sea to the west)</option></select>
+        <label class="ctl" for="wdir">Wind from <span id="wdirV"></span></label>
+        <input type="range" id="wdir" min="0" max="359" step="1" value="180">
+        <label class="ctl" for="wspd">Wind speed <span id="wspdV"></span></label>
+        <input type="range" id="wspd" min="0" max="20" step="0.5" value="9">
+        <label class="ctl" style="display:flex;gap:10px;align-items:center;margin-top:14px;font-weight:600"><input type="checkbox" id="frontal" style="width:22px;height:22px"> Florida Current meander or frontal eddy offshore</label>
+        <div class="readout">
+          <div class="card"><div class="lab">Offshore Ekman transport</div><div class="stat" id="uM">–</div><div class="lab">m³/s per km of coast</div></div>
+          <div class="card"><div class="lab">Water at the coast</div><div class="stat" id="uT">–</div><div class="lab verdict" id="uV"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="fig md" style="background:#d9edf7"><canvas id="upw" aria-label="Cross-section of coastal upwelling"></canvas></div>
+        <p class="note" style="margin-top:8px">Cross-section looking along the coast: shore on the left, open sea on the right. Inset compass: wind (grey) and Ekman transport (red).</p>
+      </div>
+    </div>
+    <h3>What it means here</h3>
+    <ul class="facts">
+      <li><b>Southeast Florida and the Keys:</b> summer southerly and southeasterly winds, plus meanders and small frontal eddies on the edge of the Florida Current, can push water below 20 °C onto reefs off Miami and the Keys, a sudden summer chill divers notice.</li>
+      <li><b>West Florida Shelf:</b> northerly winds drive upwelling along the Gulf coast. The Loop Current touching the shelf edge can also lift nutrients onto the shelf; one leading hypothesis links those nutrient pulses to the mix of phytoplankton, including the red tide alga <i>Karenia brevis</i>.</li>
+      <li>Reverse the wind and you get <b>downwelling</b>: warm surface water piles against the coast and the cold layer is pushed down.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="band alt" id="more">
+  <div class="wrap">
+    <h2>More of South Florida's ocean</h2>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="t-sealevel" aria-pressed="true" data-p="sealevel">Florida Current and flooding</button>
+      <button role="tab" id="t-bay" aria-pressed="false" data-p="bay">Florida Bay salinity</button>
+      <button role="tab" id="t-reef" aria-pressed="false" data-p="reef">Reef heat stress</button>
+    </div>
+
+    <div class="panel two" id="sealevel">
+      <div>
+        <h3 style="margin-top:0">A slower current means higher water in Miami</h3>
+        <p>A current this strong is balanced by a tilted sea surface: across the Straits, the sea stands lower on the Florida side than at the Bahamas. When the Florida Current weakens, the tilt relaxes and water rises along Miami's coast, even on a sunny day. Add a king tide and decades of sea-level rise, and low streets flood.</p>
+        <label class="ctl" for="fcQ">Florida Current transport <span id="fcQV"></span></label>
+        <input type="range" id="fcQ" min="24" max="38" step="0.5" value="32">
+        <label class="ctl" for="tide">Tide</label>
+        <select id="tide"><option value="0">Ordinary high tide</option><option value="12">Spring tide</option><option value="30" selected>King tide (fall)</option></select>
+        <label class="ctl" for="slr">Sea-level rise added <span id="slrV"></span></label>
+        <input type="range" id="slr" min="0" max="60" step="1" value="10">
+        <div class="readout">
+          <div class="card"><div class="lab">Tilt across Straits</div><div class="stat" id="slTilt">–</div></div>
+          <div class="card"><div class="lab">Water vs. low street</div><div class="stat" id="slStreet">–</div><div class="lab verdict" id="slV"></div></div>
+        </div>
+        <p class="note" style="margin-top:10px">Geostrophic estimate with an effective current depth of 300 m; street set 45 cm above mean higher high water. Illustrative, not a flood forecast.</p>
+      </div>
+      <div class="fig md" style="background:#cfe6f2"><canvas id="slc" aria-label="Cross-section of the Florida Straits with tilted sea surface"></canvas></div>
+    </div>
+
+    <div class="panel two" id="bay" hidden>
+      <div>
+        <h3 style="margin-top:0">Florida Bay turns saltier than the sea</h3>
+        <p>Florida Bay averages only 1–2 m deep and is cut off from the open ocean by mud banks and the Keys. In the dry season and in droughts, evaporation beats rain and Everglades inflow, and salinity climbs above seawater's 35. Past about 40 seagrass is stressed; in 1987 and 2015 hypersaline, hot, low-oxygen water helped kill tens of thousands of acres of turtle grass.</p>
+        <label class="ctl" for="flow">Everglades freshwater flow <span id="flowV"></span></label>
+        <input type="range" id="flow" min="0" max="120" step="5" value="60">
+        <label class="ctl" for="rain">Rainfall <span id="rainV"></span></label>
+        <input type="range" id="rain" min="40" max="150" step="5" value="100">
+        <label class="ctl" for="heat">Evaporation <span id="heatV"></span></label>
+        <input type="range" id="heat" min="80" max="125" step="5" value="100">
+        <div class="row" style="margin-top:12px"><button data-bay="60,100,100">Typical year</button><button data-bay="100,100,100">More Everglades flow</button><button data-bay="25,60,115">2015-style drought</button></div>
+        <div class="readout">
+          <div class="card"><div class="lab">Peak salinity</div><div class="stat" id="bPeak">–</div></div>
+          <div class="card"><div class="lab">Months above 40</div><div class="stat" id="bMon">–</div><div class="lab verdict" id="bV"></div></div>
+        </div>
+      </div>
+      <div class="fig md" style="background:var(--bg);border:1px solid var(--rule)"><canvas id="bayc" aria-label="Monthly salinity in central Florida Bay"></canvas></div>
+    </div>
+
+    <div class="panel two" id="reef" hidden>
+      <div>
+        <h3 style="margin-top:0">How hot is too hot for the Keys reef?</h3>
+        <p>NOAA Coral Reef Watch tracks <b>Degree Heating Weeks</b> (DHW): every day the water is at least 1 °C above the warmest normal monthly mean adds heat stress, summed over 12 weeks. Around 4 DHW, bleaching is likely; at 8 and above, corals start dying. In summer 2023 the Florida Keys blew past those levels and saw mass bleaching.</p>
+        <label class="ctl" for="anom">Marine heatwave strength <span id="anomV"></span></label>
+        <input type="range" id="anom" min="0" max="3" step="0.1" value="1.2">
+        <label class="ctl" for="dur">Heatwave length <span id="durV"></span></label>
+        <input type="range" id="dur" min="2" max="16" step="1" value="8">
+        <div class="row" style="margin-top:12px"><button data-reef="0.3,6">Normal summer</button><button data-reef="1.2,8">Hot summer</button><button data-reef="2.3,12">2023-like</button></div>
+        <div class="readout">
+          <div class="card"><div class="lab">Peak heat stress</div><div class="stat" id="rDHW">–</div></div>
+          <div class="card"><div class="lab">Alert level</div><div class="stat" id="rLvl">–</div><div class="lab verdict" id="rV"></div></div>
+        </div>
+        <p class="note" style="margin-top:10px">Climatology: summer maximum monthly mean about 30.0 °C (it varies by reef). Alert levels follow Coral Reef Watch's 2023 scale.</p>
+      </div>
+      <div class="fig md" style="background:var(--bg);border:1px solid var(--rule)"><canvas id="reefc" aria-label="Sea temperature and degree heating weeks through summer"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<footer class="band" id="sources">
+  <div class="wrap">
+    <h2>Sources and further reading</h2>
+    <ul>
+      <li>NOAA AOML Western Boundary Time Series: Florida Current transport measured by cable since 1982 (<a href="https://www.aoml.noaa.gov/phod/floridacurrent/">aoml.noaa.gov</a>).</li>
+      <li>Shay, Goni &amp; Black (2000), effects of a warm oceanic feature on Hurricane Opal, <i>Monthly Weather Review</i>; Leipper &amp; Volgenau (1972) on hurricane heat potential.</li>
+      <li>Sturges &amp; Leben (2000) and later work on Loop Current eddy shedding periods.</li>
+      <li>Weisberg, Liu and colleagues (USF) on West Florida Shelf upwelling and red tide.</li>
+      <li>NOAA Coral Reef Watch Degree Heating Weeks and alert levels (<a href="https://coralreefwatch.noaa.gov/">coralreefwatch.noaa.gov</a>).</li>
+      <li>Everglades National Park and FIU studies of Florida Bay seagrass die-offs (1987, 2015).</li>
+    </ul>
+    <p class="note">The map uses the name "the Gulf" (the Gulf of Mexico, called the Gulf of America in U.S. federal usage since 2025). All demos are simplified teaching models built for this page.</p>
+  </div>
+</footer>
+
+<script>
+{
+const $ = id => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function fit(cv){const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);const w=Math.max(1,Math.round(r.width*d)),h=Math.max(1,Math.round(r.height*d));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}const c=cv.getContext('2d');c.setTransform(d,0,0,d,0,0);return {c,W:r.width,H:r.height};}
+const inkColor=()=>getComputedStyle(document.body).color;
+const mutedColor=()=>getComputedStyle(document.querySelector('.note')).color;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+
+/* ---------------- geography ---------------- */
+const COS=Math.cos(25.5*Math.PI/180);
+const MAIN=[[-98,33.5],[-80.8,33.5],[-80.8,32.3],[-81.1,31.8],[-81.4,31],[-81.4,30.4],[-81.0,29.4],[-80.6,28.8],[-80.6,28.4],[-80.2,27.4],[-80.05,26.7],[-80.1,26.0],[-80.3,25.6],[-80.4,25.2],[-80.9,25.15],[-81.3,25.6],[-81.8,26.1],[-82.2,26.9],[-82.7,27.9],[-82.8,28.9],[-83.4,29.5],[-84.0,30.0],[-84.6,29.8],[-85.4,29.9],[-86.5,30.4],[-87.5,30.3],[-88.6,30.3],[-89.7,30.1],[-89.4,29.0],[-90.2,29.1],[-91.5,29.5],[-93.0,29.7],[-94.0,29.6],[-95.0,29.2],[-96.6,28.4],[-97.4,27.8],[-97.2,26.0],[-97.7,24.5],[-97.6,22.3],[-96.1,19.2],[-94.5,18.2],[-92.5,18.6],[-91.2,18.7],[-90.6,19.8],[-90.4,21.0],[-89.6,21.3],[-88.2,21.6],[-87.0,21.5],[-86.8,20.8],[-87.4,19.6],[-87.8,18.3],[-88.3,17.6],[-88.6,16.2],[-98,16.2]];
+const CUBA=[[-84.95,21.85],[-84.3,22.0],[-83.4,22.2],[-82.6,22.7],[-81.7,23.1],[-80.6,23.1],[-79.6,22.6],[-78.3,22.4],[-77.1,21.6],[-75.8,21.1],[-74.2,20.25],[-74.1,19.95],[-75.8,19.9],[-77.7,19.85],[-77.2,20.6],[-78.6,21.5],[-80.4,21.8],[-81.5,22.1],[-82.8,22.4],[-83.9,22.0]];
+const JAM=[[-78.35,18.3],[-77.3,18.5],[-76.3,18.15],[-76.9,17.85],[-77.8,17.9]];
+const ISLES=[[[-78.95,26.68],[-78.0,26.75],[-77.95,26.55],[-78.7,26.5]],[[-77.3,26.95],[-77.0,26.5],[-77.15,25.9],[-77.4,26.3]],[[-78.2,25.2],[-77.6,24.7],[-77.8,23.95],[-78.3,24.3]],[[-76.75,25.55],[-76.2,25.1],[-76.15,24.6],[-76.55,25.2]],[[-75.8,24.7],[-75.3,24.1],[-75.6,23.9]]];
+const BANKS=[[[-79.3,25.8],[-78.9,25.2],[-79.2,24.0],[-78.4,23.2],[-77.0,22.9],[-75.8,22.9],[-76.0,23.8],[-77.4,24.7],[-77.9,25.3],[-78.3,25.9]],[[-79.1,26.85],[-78.0,26.55],[-77.0,26.4],[-76.9,27.3],[-78.4,27.05]]];
+const SHELF=[[[-85.9,30.2],[-86.2,29.6],[-85.3,29.0],[-84.6,28.2],[-84.0,27.2],[-83.6,26.2],[-83.2,25.3],[-82.5,24.55],[-81.6,24.35],[-80.9,24.5],[-80.8,25.2],[-81.5,25.8],[-82.0,26.5],[-82.7,27.8],[-82.9,29.0],[-84.0,30.0]],[[-97.4,26.8],[-96.6,27.6],[-95,28.2],[-93,28.6],[-91,28.5],[-89.9,28.8],[-89.4,29.6],[-94,30],[-97.6,28.6]],[[-91.8,21.0],[-91.6,22.3],[-90.2,22.9],[-88.2,22.5],[-87.0,21.9],[-86.8,21.3],[-88,21.4],[-90.4,20.9]]];
+const KEYS=[[-80.35,25.25],[-80.5,25.0],[-80.75,24.85],[-81.05,24.72],[-81.35,24.66],[-81.6,24.58],[-81.8,24.55],[-82.87,24.63]];
+function pip(p,poly){let ins=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0])ins=!ins;}return ins;}
+const onLand=p=>pip(p,MAIN)||pip(p,CUBA)||pip(p,JAM);
+const onShelf=p=>SHELF.some(s=>pip(p,s))||BANKS.some(s=>pip(p,s));
+
+function proj(W,H){const cLon=W<520?-84.6:-86.2,cLat=24.9;let s=Math.min(W/(23*COS),H/13.2);s=Math.max(s,W/(30*COS));if(W<520)s=Math.max(s,W/(15.5*COS));
+  return {s,f:(lon,lat)=>[W/2+(lon-cLon)*COS*s,H/2-(lat-cLat)*s],inv:(x,y)=>[cLon+(x-W/2)/(COS*s),cLat-(y-H/2)/s]};}
+
+/* ---------------- Loop Current model ---------------- */
+const P=11;
+function catmull(pts,n){const out=[];for(let i=0;i<pts.length-1;i++){const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+  for(let k=0;k<n;k++){const t=k/n,t2=t*t,t3=t2*t;out.push([0,1].map(d=>0.5*((2*p1[d])+(-p0[d]+p2[d])*t+(2*p0[d]-5*p1[d]+4*p2[d]-p3[d])*t2+(-p0[d]+3*p1[d]-3*p2[d]+p3[d])*t3)));}}
+  out.push(pts[pts.length-1]);return out;}
+function loopState(T){
+  const cyc=Math.floor(T/P),ph=(T-cyc*P)/P;
+  let L,neck=0,phase,desc;
+  if(ph<0.78){const g=smooth(ph/0.78);L=24.9+3.1*g;neck=smooth((ph-0.45)/0.33);
+    phase=ph<0.25?'Retracted':ph<0.55?'Growing north':'Extended';
+    desc=ph<0.25?'Taking the short cut from Yucatán to the Straits.':ph<0.55?'Bulging north into the Gulf, carrying deep warm water with it.':'Near its northern limit; the neck is narrowing.';}
+  else{const r=smooth((ph-0.78)/0.22);L=lerp(26.6,24.9,r);neck=1-r;phase='Shedding an eddy';desc='The loop has pinched off a warm ring and is retreating south.';}
+  const wx=-86.9-0.35*(L-24.9)+0.75*neck,ex=-84.4-0.75*neck;
+  const ctrl=[[-85.95,21.6],[-86.05,23.0],[wx,Math.max(23.6,L-1.7)],[-86.1+0.2*(L-24.9)*0,L],[ex+0.2,L-0.75],[ex+0.45,Math.max(24.5,L-2.2)],[-83.7,24.45],[-82.6,23.95],[-81.3,23.85],[-80.25,24.3],[-79.95,25.2],[-79.85,26.5],[-79.9,27.6],[-79.7,29.0],[-79.0,30.5],[-77.6,32.0],[-75.5,33.6]];
+  if(L<25.6){ctrl.splice(2,4,[-85.6,23.7],[-84.6,24.6],[-83.9,24.5]);}
+  const path=catmull(ctrl,10);
+  const eddies=[];
+  for(let k=cyc;k>=cyc-2;k--){const tb=k*P+0.78*P,age=T-tb;if(age<0)continue;
+    const lon=-86.7-1.05*age,lat=26.4-0.12*age,amp=clamp(1-age*0.03,0,1);
+    if(lon>-96&&amp>0.05)eddies.push({lon,lat,amp,age,R:115*(0.6+0.4*smooth(age/1.2))});}
+  if(ph>=0.65&&ph<0.78){const g=smooth((ph-0.65)/0.13);eddies.push({lon:-86.4,lat:L-1.25,amp:0.5*g,age:-1,R:90,forming:true});}
+  return {L,neck,phase,desc,path,eddies};}
+function segDistKm(lon,lat,path){let best=1e9;const kx=111*COS,ky=111;
+  for(let i=0;i<path.length-1;i++){const ax=path[i][0]*kx,ay=path[i][1]*ky,bx=path[i+1][0]*kx,by=path[i+1][1]*ky,px=lon*kx,py=lat*ky;
+    const dx=bx-ax,dy=by-ay,t=clamp(((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy||1),0,1),qx=ax+t*dx-px,qy=ay+t*dy-py,d=qx*qx+qy*qy;if(d<best)best=d;}
+  return Math.sqrt(best);}
+function d26(lon,lat,st){
+  const car=smooth((22.4-lat)/1.2),atl=smooth((lon+80.8)/1.0);
+  const base=48+37*car+24*atl*(1-car);
+  const d=segDistKm(lon,lat,st.path);const sig=lat>24.3&&lon>-81.5?35:70;
+  let v=base+110*Math.exp(-((d/sig)**2))*(lat>28.5?0.6:1);
+  for(const e of st.eddies){const kx=111*COS,dx=(lon-e.lon)*kx,dy=(lat-e.lat)*111;v+=125*e.amp*Math.exp(-((dx*dx+dy*dy)/(e.R*e.R)));}
+  if(onShelf([lon,lat]))v=Math.min(v,30);
+  return v;}
+const tchp=D=>{const m=Math.min(40,D*0.45);return 0.41*(m*3.5+(D-m)*1.75);};
+const RAMP=[[0,'#0c2c4a'],[25,'#185f8c'],[50,'#2f9aa6'],[75,'#9fd08a'],[95,'#f3d36b'],[115,'#ef8a3a'],[140,'#c8302a']];
+const SSTR=[[28.8,'#2f9aa6'],[29.6,'#9fd08a'],[30.2,'#f3d36b'],[30.8,'#ef8a3a']];
+function rampRGB(ramp,v){v=clamp(v,ramp[0][0],ramp[ramp.length-1][0]);for(let i=0;i<ramp.length-1;i++){if(v<=ramp[i+1][0]){const t=(v-ramp[i][0])/(ramp[i+1][0]-ramp[i][0]);const a=hex(ramp[i][1]),b=hex(ramp[i+1][1]);return a.map((x,k)=>Math.round(lerp(x,b[k],t)));}}return hex(ramp[ramp.length-1][1]);}
+function hex(h){return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16));}
+function gradCss(ramp){const a=ramp[0][0],b=ramp[ramp.length-1][0];return 'linear-gradient(90deg,'+ramp.map(r=>r[1]+' '+((r[0]-a)/(b-a)*100).toFixed(0)+'%').join(',')+')';}
+
+const off=document.createElement('canvas');
+function drawField(c,W,H,pr,st,mode){
+  const gw=Math.min(220,Math.round(W/4)),gh=Math.max(2,Math.round(gw*H/W));off.width=gw;off.height=gh;const oc=off.getContext('2d'),img=oc.createImageData(gw,gh);let maxD=0;
+  for(let j=0;j<gh;j++)for(let i=0;i<gw;i++){const [lon,lat]=pr.inv((i+0.5)*W/gw,(j+0.5)*H/gh);const D=d26(lon,lat,st);
+    if(!onLand([lon,lat])&&D>maxD)maxD=D;
+    const sst=29.4+0.9*clamp((D-40)/110,0,1)+(lat<23?0.3:0)-(lat>29?0.4:0);
+    const sh=onShelf([lon,lat]);const rgb=sh?(mode==='sst'?[183,226,220]:[178,214,222]):mode==='sst'?rampRGB(SSTR,sst):rampRGB(RAMP,tchp(D));const k=4*(j*gw+i);img.data[k]=rgb[0];img.data[k+1]=rgb[1];img.data[k+2]=rgb[2];img.data[k+3]=255;}
+  oc.putImageData(img,0,0);c.imageSmoothingEnabled=true;c.drawImage(off,0,0,W,H);return maxD;}
+function poly(c,pr,pts,fill,stroke){c.beginPath();pts.forEach((p,i)=>{const [x,y]=pr.f(p[0],p[1]);i?c.lineTo(x,y):c.moveTo(x,y);});c.closePath();if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.strokeStyle=stroke;c.lineWidth=1;c.stroke();}}
+function drawLand(c,pr,labels){
+  BANKS.forEach(b=>poly(c,pr,b,'rgba(190,232,236,.55)'));
+  [MAIN,CUBA,JAM].forEach(p=>poly(c,pr,p,'#e6dcc2','#b9a982'));ISLES.forEach(p=>poly(c,pr,p,'#e6dcc2','#b9a982'));
+  c.fillStyle='#e6dcc2';KEYS.forEach(k=>{const [x,y]=pr.f(k[0],k[1]);c.beginPath();c.arc(x,y,Math.max(1.6,pr.s*0.04),0,7);c.fill();});
+  const [mx,my]=pr.f(-80.19,25.77);c.fillStyle='#1b1b1b';c.beginPath();c.arc(mx,my,3.2,0,7);c.fill();
+  if(!labels)return;
+  const L=[['Florida',-81.6,27.9,'land'],['Cuba',-79.3,22.05,'land'],['Miami',-80.0,25.9,'city'],['The Gulf',-90.6,26.6,'sea'],['Caribbean Sea',-82.5,19.6,'sea'],['Atlantic',-76.2,28.8,'sea'],['Bahamas',-77.4,24.0,'land2'],['Yucatán',-89.3,19.6,'land'],['Louisiana',-92.2,30.6,'land'],['Texas',-97.0,30.2,'land'],['Florida Keys',-81.6,24.25,'sm']];
+  c.textAlign='center';c.textBaseline='middle';
+  for(const [t,lo,la,k] of L){const [x,y]=pr.f(lo,la);c.font=(k==='sea'?'italic 600 15px ':k==='city'?'700 13px ':k==='sm'?'600 12px ':'600 14px ')+'"Source Sans 3",sans-serif';
+    c.lineWidth=3;c.strokeStyle=k==='sea'?'rgba(8,40,59,.65)':'rgba(230,220,194,.9)';c.fillStyle=k==='sea'?'#e8f3f8':'#3b3424';
+    if(k==='city'){c.textAlign='left';c.strokeText(t,x+4,y);c.fillText(t,x+4,y);c.textAlign='center';}else{c.strokeText(t,x,y);c.fillText(t,x,y);}}}
+function pathLabel(c,pr,path,txt,frac,col){const i=Math.floor(frac*(path.length-2));const a=pr.f(...path[i]),b=pr.f(...path[i+1]);let ang=Math.atan2(b[1]-a[1],b[0]-a[0]);if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;
+  c.save();c.translate(a[0],a[1]);c.rotate(ang);c.font='700 13px "Source Sans 3",sans-serif';c.textAlign='center';c.lineWidth=3.5;c.strokeStyle='rgba(8,40,59,.8)';c.strokeText(txt,0,-12);c.fillStyle=col||'#fff';c.fillText(txt,0,-12);c.restore();}
+
+/* ---------------- hero map ---------------- */
+const mapCv=$('map');let T=2,playing=!reduce,mode='tchp',state=loopState(T),fieldCache=null,parts=[];
+for(let i=0;i<340;i++)parts.push({s:rnd(),o:(rnd()-0.5)*2,v:0.6+rnd()*0.6,e:rnd()});
+function resampled(path){const cum=[0];for(let i=1;i<path.length;i++){const dx=(path[i][0]-path[i-1][0])*COS,dy=path[i][1]-path[i-1][1];cum.push(cum[i-1]+Math.hypot(dx,dy));}return {path,cum,len:cum[cum.length-1]};}
+function along(rs,s){const target=s*rs.len;let i=1;while(i<rs.cum.length-1&&rs.cum[i]<target)i++;const t=(target-rs.cum[i-1])/(rs.cum[i]-rs.cum[i-1]||1);const a=rs.path[i-1],b=rs.path[i];return {p:[lerp(a[0],b[0],t),lerp(a[1],b[1],t)],d:[(b[0]-a[0])*COS,b[1]-a[1]]};}
+let lastField=-1,lastKey='';
+function drawMap(){
+  const {c,W,H}=fit(mapCv),pr=proj(W,H);
+  const key=W+'x'+H+mode+Math.round(T*4);
+  if(key!==lastKey){if(!fieldCache)fieldCache=document.createElement('canvas');const dd=Math.min(devicePixelRatio||1,2);fieldCache.width=Math.round(W*dd);fieldCache.height=Math.round(H*dd);const fc=fieldCache.getContext('2d');fc.setTransform(dd,0,0,dd,0,0);
+    const m=drawField(fc,W,H,pr,state,mode);drawLand(fc,pr,true);$('maxD').textContent=Math.round(m);lastKey=key;}
+  c.drawImage(fieldCache,0,0,W,H);
+  const rs=resampled(state.path);
+  c.lineCap='round';
+  for(const p of parts){const a=along(rs,p.s),n=Math.hypot(a.d[0],a.d[1])||1,nx=-a.d[1]/n,ny=a.d[0]/n,w=0.28*(a.p[1]>24.3&&a.p[0]>-81.5?0.55:1);
+    const lon=a.p[0]+nx*p.o*w/COS,lat=a.p[1]+ny*p.o*w;const [x,y]=pr.f(lon,lat);const sp=p.v*(1-0.5*Math.abs(p.o));const tx=a.d[0]/n,ty=-a.d[1]/n,len=5+9*sp;
+    c.strokeStyle='rgba(255,255,255,'+(0.35+0.55*sp)+')';c.lineWidth=1.6;c.beginPath();c.moveTo(x-tx*len,y-ty*len);c.lineTo(x,y);c.stroke();}
+  for(const e of state.eddies){const [x,y]=pr.f(e.lon,e.lat),r=e.R/111*pr.s*0.75;
+    c.strokeStyle='rgba(232,85,59,'+(0.4+0.5*e.amp)+')';c.lineWidth=2.5;c.setLineDash([6,5]);c.beginPath();c.arc(x,y,r,0,7);c.stroke();c.setLineDash([]);
+    for(let k=0;k<14;k++){const a0=(k/14)*Math.PI*2-(performance.now()/1000)*0.35*(reduce?0:1),rr=r*(0.35+0.55*((k*37)%10)/10);const px=x+rr*Math.cos(a0),py=y+rr*Math.sin(a0);
+      c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=1.5;c.beginPath();c.moveTo(px,py);c.lineTo(px+8*Math.sin(a0),py-8*Math.cos(a0));c.stroke();}
+    if(!e.forming&&r>18){c.font='700 13px "Source Sans 3",sans-serif';c.textAlign='center';c.lineWidth=3.5;c.strokeStyle='rgba(8,40,59,.8)';const t='Warm eddy, '+Math.max(0,e.age).toFixed(0)+' mo old';c.strokeText(t,x,y+r+14);c.fillStyle='#fff';c.fillText(t,x,y+r+14);}}
+  pathLabel(c,pr,state.path,'Loop Current',0.17);pathLabel(c,pr,state.path,'Florida Current',0.66);pathLabel(c,pr,state.path,'Gulf Stream',0.93);
+  if(W>520){const [yx,yy]=pr.f(-85.6,21.25);c.font='600 12px "Source Sans 3",sans-serif';c.fillStyle='#e8f3f8';c.textAlign='right';c.fillText('Yucatán Channel',yx-6,yy);}
+}
+function updateText(){state=loopState(T);$('mLabel').textContent='month '+T.toFixed(0);$('monthV').textContent=T.toFixed(1);$('mPhase').textContent=state.phase;$('mDesc').textContent=state.desc+' Northern edge near '+state.L.toFixed(1)+'°N.';}
+function setMode(m){mode=m;$('vTCHP').setAttribute('aria-pressed',m==='tchp');$('vSST').setAttribute('aria-pressed',m==='sst');
+  const r=m==='sst'?SSTR:RAMP;$('lgBar').style.background=gradCss(r);$('lgLo').textContent=m==='sst'?'28.8':'0';$('lgHi').textContent=m==='sst'?'30.8 °C':'140 kJ/cm²';lastKey='';}
+$('vTCHP').onclick=()=>setMode('tchp');$('vSST').onclick=()=>setMode('sst');
+$('month').oninput=e=>{T=+e.target.value;updateText();lastKey='';stormDirty=true;};
+$('month').onchange=()=>runStorm();
+$('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play';$('play').setAttribute('aria-pressed',playing);};
+$('reset').onclick=()=>{T=0;$('month').value=0;updateText();lastKey='';runStorm();};
+if(!playing){$('play').textContent='Play';$('play').setAttribute('aria-pressed','false');}
+setMode('tchp');updateText();
+
+/* ---------------- hurricane model ---------------- */
+const TRACKS=[
+ {id:'loop',name:'Up the Loop Current',pts:null},
+ {id:'eddy',name:'Through a warm eddy',pts:null},
+ {id:'cool',name:'Over cooler Gulf water',pts:[[-92.4,23.1],[-92.4,25.0],[-93.0,27.0],[-93.6,29.7]]},
+];
+let custom=[],trackId='loop',sim=null,simIdx=0,stormDirty=true;
+function eddyTrack(){const e=state.eddies.filter(x=>!x.forming).sort((a,b)=>a.age-b.age)[0];
+  if(!e)return [[-86.3,21.9],[-86.6,24.5],[-88.0,27.5],[-89.4,29.6]];
+  return [[e.lon+2.2,Math.max(21.9,e.lat-4.2)],[e.lon+0.6,e.lat-1.5],[e.lon,e.lat],[e.lon-0.8,e.lat+1.6],[e.lon-1.3,29.7]];}
+function loopTrack(){const p=state.path;let ai=0;for(let i=0;i<p.length/2;i++)if(p[i][1]>p[ai][1])ai=i;const mid=p[Math.floor(ai*0.55)];
+  return [[-84.9,19.9],[-85.9,21.7],mid,[p[ai][0]-0.3,p[ai][1]-0.1],[-88.7,29.6]];}
+function trackPts(){if(trackId==='custom')return custom.length>1?custom:loopTrack();if(trackId==='eddy')return eddyTrack();if(trackId==='loop')return loopTrack();return TRACKS.find(t=>t.id===trackId).pts;}
+function profileT(z,D){const m=Math.min(40,D*0.45);if(z<=m)return 29.5;const g=3.5/Math.max(5,D-m);return Math.max(19,29.5-g*(z-m));}
+function mixedSST(D,hm){let s=0,n=0;for(let z=0;z<=hm;z+=2){s+=profileT(z,D);n++;}return s/n;}
+function runStorm(){
+  state=loopState(T);const pts=catmull(trackPts(),12);const rs=resampled(pts);const out=[];let V=50;const hours=72,dt=0.5;
+  for(let h=0;h<=hours;h+=dt){const a=along(rs,h/hours),[lon,lat]=a.p;const land=onLand([lon,lat]);const D=d26(lon,lat,state);const hm=30+0.55*V;const sst=mixedSST(D,hm);
+    const Vp=land?20:clamp(15+36*(sst-26),10,165);const tau=Vp>V?24:(land?10:20);V+= (Vp-V)*dt/tau;out.push({lon,lat,V,D,hm,sst,cool:29.5-sst,land,h});}
+  sim={out,pts};simIdx=reduce?out.length-1:0;stormDirty=false;
+  const peak=Math.max(...out.map(o=>o.V));$('sPeak').textContent=Math.round(peak)+' kt';$('sCat').textContent=cat(peak);
+  $('sCool').textContent=Math.max(...out.filter(o=>!o.land).map(o=>o.cool),0).toFixed(1)+' °C';}
+function cat(v){return v>=137?'Cat 5':v>=113?'Cat 4':v>=96?'Cat 3':v>=83?'Cat 2':v>=64?'Cat 1':v>=34?'Trop. storm':'Depression';}
+const tb=$('trackBtns');tb.innerHTML=[...TRACKS,{id:'custom',name:'Draw your own'}].map(t=>`<button data-t="${t.id}" aria-pressed="${t.id===trackId}">${t.name}</button>`).join('');
+tb.onclick=e=>{const b=e.target.closest('button');if(!b)return;trackId=b.dataset.t;if(trackId==='custom')custom=[];[...tb.children].forEach(x=>x.setAttribute('aria-pressed',x===b));if(trackId!=='custom')runStorm();else{sim=null;$('sPeak').textContent='–';$('sCat').textContent='Tap twice';$('sCool').textContent='–';}};
+const sm=$('stormMap');
+sm.addEventListener('click',e=>{const r=sm.getBoundingClientRect(),pr=proj(r.width,r.height);const p=pr.inv(e.clientX-r.left,e.clientY-r.top);
+  if(trackId!=='custom'){trackId='custom';custom=[];[...tb.children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.t==='custom'));}
+  if(custom.length>=2)custom=[];custom.push(p);if(custom.length===2){const a=custom[0],b=custom[1];custom=[a,[lerp(a[0],b[0],.33),lerp(a[1],b[1],.33)],[lerp(a[0],b[0],.66),lerp(a[1],b[1],.66)],b];runStorm();}});
+let smKey='',smCache=document.createElement('canvas');
+function drawStormMap(){const {c,W,H}=fit(sm),pr=proj(W,H);const key=W+'x'+H+Math.round(T*4);
+  if(key!==smKey){const dd=Math.min(devicePixelRatio||1,2);smCache.width=Math.round(W*dd);smCache.height=Math.round(H*dd);const fc=smCache.getContext('2d');fc.setTransform(dd,0,0,dd,0,0);drawField(fc,W,H,pr,state,'tchp');drawLand(fc,pr,false);smKey=key;}
+  c.drawImage(smCache,0,0,W,H);
+  for(const e of state.eddies){if(e.forming)continue;const [x,y]=pr.f(e.lon,e.lat);c.strokeStyle='rgba(232,85,59,.85)';c.setLineDash([5,4]);c.lineWidth=2;c.beginPath();c.arc(x,y,e.R/111*pr.s*0.75,0,7);c.stroke();c.setLineDash([]);}
+  if(trackId==='custom'&&custom.length===1){const [x,y]=pr.f(...custom[0]);c.fillStyle='#fff';c.beginPath();c.arc(x,y,5,0,7);c.fill();c.font='600 13px "Source Sans 3"';c.fillText('now tap the end point',x+8,y-8);}
+  if(!sim)return;
+  const n=simIdx;c.lineCap='round';
+  for(let i=1;i<=n&&i<sim.out.length;i++){const a=sim.out[i-1],b=sim.out[i];const [x0,y0]=pr.f(a.lon,a.lat),[x1,y1]=pr.f(b.lon,b.lat);const cl=clamp(b.cool/3,0,1);
+    c.strokeStyle=`rgba(${Math.round(lerp(255,40,cl))},${Math.round(lerp(255,120,cl))},${Math.round(lerp(255,220,cl))},.95)`;c.lineWidth=lerp(3,10,cl);c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke();}
+  const o=sim.out[Math.min(n,sim.out.length-1)],[sx,sy]=pr.f(o.lon,o.lat),rot=performance.now()/300;
+  c.save();c.translate(sx,sy);c.rotate(-rot);c.strokeStyle='#fff';c.lineWidth=3;for(let k=0;k<2;k++){c.beginPath();c.arc(0,0,11,k*Math.PI,k*Math.PI+2.2);c.stroke();}c.fillStyle=o.V>=64?'#e8553b':'#fff';c.beginPath();c.arc(0,0,5,0,7);c.fill();c.restore();
+  c.font='700 13px "Source Sans 3",sans-serif';c.lineWidth=3.5;c.strokeStyle='rgba(8,40,59,.85)';c.fillStyle='#fff';c.textAlign='left';const t=cat(o.V)+', '+Math.round(o.V)+' kt';c.strokeText(t,sx+16,sy-12);c.fillText(t,sx+16,sy-12);
+  c.font='600 12px "Source Sans 3"';c.textAlign='left';c.strokeText('Cold wake: blue = ocean cooled by the storm',10,H-12);c.fillText('Cold wake: blue = ocean cooled by the storm',10,H-12);}
+function drawStormChart(){const {c,W,H}=fit($('stormChart'));c.clearRect(0,0,W,H);const ink=inkColor(),mu=mutedColor();const L=44,R=10,Tp=26,B=28;const y=v=>Tp+(H-Tp-B)*(1-v/165),x=h=>L+(W-L-R)*h/72;
+  const bands=[[64,'Cat 1'],[83,'2'],[96,'3'],[113,'4'],[137,'5']];c.font='12px "Source Sans 3"';
+  bands.forEach(([v,t],i)=>{c.fillStyle=`rgba(232,85,59,${0.05+i*0.04})`;const top=i<4?bands[i+1][0]:165;c.fillRect(L,y(top),W-L-R,y(v)-y(top));c.fillStyle=mu;c.textAlign='right';c.fillText(t,L-6,(y(v)+y(top))/2+4);});
+  c.strokeStyle=mu;c.lineWidth=1;c.beginPath();c.moveTo(L,H-B);c.lineTo(W-R,H-B);c.stroke();c.textAlign='center';[0,24,48,72].forEach(h=>c.fillText(h+' h',x(h),H-B+16));
+  c.fillStyle=ink;c.textAlign='left';c.font='600 14px "Source Sans 3"';c.fillText('Wind speed (kt)',L,16);
+  if(!sim)return;c.strokeStyle='#e8553b';c.lineWidth=2.5;c.beginPath();sim.out.slice(0,simIdx+1).forEach((o,i)=>{i?c.lineTo(x(o.h),y(o.V)):c.moveTo(x(o.h),y(o.V));});c.stroke();
+  const o=sim.out[Math.min(simIdx,sim.out.length-1)];c.fillStyle='#e8553b';c.beginPath();c.arc(x(o.h),y(o.V),4,0,7);c.fill();}
+function drawProfile(){const {c,W,H}=fit($('profile'));c.clearRect(0,0,W,H);const ink=inkColor(),mu=mutedColor();const L=46,R=12,Tp=26,B=28,zmax=200;const x=t=>L+(W-L-R)*(t-18)/(31-18),y=z=>Tp+(H-Tp-B)*z/zmax;
+  c.font='12px "Source Sans 3"';c.fillStyle=mu;c.textAlign='right';[0,50,100,150,200].forEach(z=>c.fillText(z+' m',L-6,y(z)+4));c.textAlign='center';[20,24,28].forEach(t=>c.fillText(t+'°',x(t),H-B+16));
+  c.fillStyle=ink;c.textAlign='left';c.font='600 14px "Source Sans 3"';c.fillText('Water under the eye',L,16);
+  const o=sim?sim.out[Math.min(simIdx,sim.out.length-1)]:{D:d26(-86,25,state),hm:60,sst:29};
+  c.fillStyle='rgba(232,85,59,.15)';c.beginPath();c.moveTo(x(26),y(0));for(let z=0;z<=o.D;z+=2)c.lineTo(x(profileT(z,o.D)),y(z));c.lineTo(x(26),y(o.D));c.closePath();c.fill();
+  c.strokeStyle='#e8553b';c.lineWidth=2.5;c.beginPath();for(let z=0;z<=zmax;z+=2){const X=x(profileT(z,o.D)),Y=y(z);z?c.lineTo(X,Y):c.moveTo(X,Y);}c.stroke();
+  c.strokeStyle=mu;c.setLineDash([3,3]);c.lineWidth=1;c.beginPath();c.moveTo(x(26),y(0));c.lineTo(x(26),H-B);c.stroke();c.setLineDash([]);
+  c.strokeStyle='#2f8fd0';c.lineWidth=2;c.beginPath();c.moveTo(L,y(o.hm));c.lineTo(W-R,y(o.hm));c.stroke();
+  c.fillStyle='#2f8fd0';c.font='600 12px "Source Sans 3"';c.textAlign='left';c.fillText('storm mixes to '+Math.round(o.hm)+' m',L+6,y(o.hm)+15);
+  c.fillStyle=mu;c.textAlign='right';c.fillText('26 °C line, reached at '+Math.round(o.D)+' m',W-R-2,H-B-8);}
+
+/* ---------------- upwelling ---------------- */
+const up=$('upw');let upParts=[];for(let i=0;i<160;i++)upParts.push({x:rnd(),y:rnd(),ph:rnd()});
+function upState(){const th=+$('wdir').value,U=+$('wspd').value,coast=$('coast').value,fr=$('frontal').checked;
+  const wx=-Math.sin(th*Math.PI/180),wy=-Math.cos(th*Math.PI/180);const ex=wy,ey=-wx;const offs=coast==='east'?1:-1;
+  const tau=1.22*1.3e-3*U*U,f=2*7.292e-5*Math.sin(25.8*Math.PI/180),M=tau/(1025*f);const Moff=M*ex*offs;
+  const A=clamp(Moff/3,-1,1)+(fr&&coast==='east'?0.55:0);return {th,U,coast,fr,wx,wy,ex,ey,offs,tau,M,Moff,A:clamp(A,-1,1.3)};}
+function dirName(d){return ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];}
+function updUp(){const s=upState();$('wdirV').textContent=dirName(s.th)+' ('+s.th+'°)';$('wspdV').textContent=s.U+' m/s ('+Math.round(s.U*1.944)+' kt)';
+  $('uM').textContent=(s.Moff>=0?'+':'')+Math.round(s.Moff*1000).toLocaleString();const Tc=29-6*Math.max(0,s.A)+0.6*Math.max(0,-s.A);$('uT').textContent=Tc.toFixed(1)+' °C';
+  $('uV').textContent=s.A>0.35?'Upwelling: cold, nutrient-rich water at the shore':s.A<-0.35?'Downwelling: warm water piles against the coast':'Weak: little vertical exchange';}
+['wdir','wspd','coast','frontal'].forEach(id=>$(id).addEventListener('input',updUp));updUp();
+function drawUp(t){const {c,W,H}=fit(up),s=upState();const sea=Math.max(120,H*0.3),bot=x=>sea+40+(H-sea-50)*Math.min(1,(x/W)*1.6),coastX=W*0.08;
+  const sky=c.createLinearGradient(0,0,0,sea);sky.addColorStop(0,'#bfe1f3');sky.addColorStop(1,'#e8f5fb');c.fillStyle=sky;c.fillRect(0,0,W,sea);
+  const thz=x=>{const base=sea+(H-sea)*0.3;const rise=s.A*(H-sea)*0.55*Math.exp(-(x-coastX)/(W*0.28));return base-rise;};
+  c.fillStyle='#2b7fb8';c.fillRect(0,sea,W,H-sea);
+  c.fillStyle='#e9704f';c.beginPath();c.moveTo(0,sea);for(let x=0;x<=W;x+=6)c.lineTo(x,Math.max(sea,Math.min(thz(x),bot(x))));c.lineTo(W,sea);c.closePath();c.fill();
+  const outc=s.A>0.35;if(outc){const g=c.createLinearGradient(coastX,0,coastX+W*0.4,0);g.addColorStop(0,'rgba(63,157,90,.75)');g.addColorStop(1,'rgba(63,157,90,0)');c.fillStyle=g;c.fillRect(coastX,sea,W*0.4,18);}
+  c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=1.5;c.setLineDash([5,4]);c.beginPath();for(let x=0;x<=W;x+=6){const yy=Math.min(Math.max(thz(x),sea),bot(x));x?c.lineTo(x,yy):c.moveTo(x,yy);}c.stroke();c.setLineDash([]);
+  c.fillStyle='#d9c79e';c.beginPath();c.moveTo(0,sea-14);c.lineTo(coastX,sea-2);for(let x=coastX;x<=W;x+=8)c.lineTo(x,bot(x));c.lineTo(W,H);c.lineTo(0,H);c.closePath();c.fill();
+  c.fillStyle='#7c6a45';c.fillRect(coastX*0.3,sea-30,4,16);c.beginPath();c.arc(coastX*0.3+2,sea-32,9,Math.PI,0);c.fill();
+  const sp=s.A;for(const p of upParts){const lane=p.y;let x=p.x*W,y;
+    if(lane<0.45){y=sea+8+lane*40;p.x+=0.0018*sp*(reduce?0:1);}else{y=bot(p.x*W)-12-(lane-0.45)*30;p.x-=0.0012*sp*(reduce?0:1);}
+    if(p.x>1)p.x=0.12;if(p.x<0.1)p.x=0.98;x=p.x*W;if(y>bot(x)-4)continue;c.fillStyle='rgba(255,255,255,.75)';c.beginPath();c.arc(x,y,1.8,0,7);c.fill();}
+  if(Math.abs(sp)>0.2){c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=2;const x0=coastX+24,yT=sea+60,yB=sea+16;c.beginPath();if(sp>0){c.moveTo(x0,yT+40);c.lineTo(x0,yB);c.lineTo(x0-6,yB+10);c.moveTo(x0,yB);c.lineTo(x0+6,yB+10);}else{c.moveTo(x0,yB);c.lineTo(x0,yT+40);c.lineTo(x0-6,yT+30);c.moveTo(x0,yT+40);c.lineTo(x0+6,yT+30);}c.stroke();}
+  c.font='600 13px "Source Sans 3",sans-serif';c.fillStyle='#0b2d42';c.textAlign='left';c.fillText(s.coast==='east'?'Florida (shore)':'Florida (shore)',8,sea-38);c.textAlign='right';c.fillText('open sea →',W-130,sea-10);
+  c.fillStyle='#fff';c.textAlign='right';c.fillText('warm surface layer ~29 °C',W-10,sea+20);c.fillText('cold deep water ~18–20 °C',W-10,Math.min(H-14,thz(W)+30));
+  const cx=W-62,cy=sea/2,r=Math.min(40,sea/2-12);c.fillStyle='rgba(255,255,255,.92)';c.beginPath();c.arc(cx,cy,r+8,0,7);c.fill();c.strokeStyle='#8aa';c.lineWidth=1;c.beginPath();c.arc(cx,cy,r,0,7);c.stroke();
+  c.fillStyle='#d9c79e';c.fillRect(s.coast==='east'?cx-r:cx+r*0.35,cy-r,r*0.65,2*r);c.fillStyle='#0b2d42';c.font='700 11px "Source Sans 3"';c.textAlign='center';c.fillText('N',cx,cy-r+11);
+  const arr=(dx,dy,len,col,w)=>{c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;const x1=cx+dx*len,y1=cy-dy*len;c.beginPath();c.moveTo(cx-dx*len*0.6,cy+dy*len*0.6);c.lineTo(x1,y1);c.stroke();const a=Math.atan2(-dy,dx);c.beginPath();c.moveTo(x1,y1);c.lineTo(x1-9*Math.cos(a-0.4),y1-9*Math.sin(a-0.4));c.lineTo(x1-9*Math.cos(a+0.4),y1-9*Math.sin(a+0.4));c.fill();};
+  if(s.U>0){arr(s.wx,s.wy,r*0.7,'#555',2.5);arr(s.ex,s.ey,r*0.55,'#e8553b',3);}}
+
+/* ---------------- sea level ---------------- */
+function drawSL(){const {c,W,H}=fit($('slc'));const Q=+$('fcQ').value,tide=+$('tide').value,slr=+$('slr').value;
+  const f=2*7.292e-5*Math.sin(25.8*Math.PI/180),dEta=f*Q*1e6/(9.81*300),anom=-(f*(Q-32)*1e6/(9.81*300))/2*100;const water=tide+slr+anom,street=45;
+  $('fcQV').textContent=Q.toFixed(1)+' Sv';$('slrV').textContent=slr+' cm';$('slTilt').textContent=Math.round(dEta*100)+' cm';
+  const diff=water-street;$('slStreet').textContent=(diff>=0?'+':'')+Math.round(diff)+' cm';$('slV').textContent=diff>=0?'Street floods with seawater':diff>-15?'Water just below the curb':'Street dry';
+  const sea=H*0.42,ex=1.6;const ys=x=>sea-(water/100)*ex*60-((x/W)-0.12)*dEta*ex*60;
+  c.fillStyle='#e7f3fa';c.fillRect(0,0,W,H);
+  c.fillStyle='#2a79ad';c.beginPath();c.moveTo(0,ys(0));for(let x=0;x<=W;x+=8)c.lineTo(x,ys(x));c.lineTo(W,H);c.lineTo(0,H);c.closePath();c.fill();
+  const g=c.createRadialGradient(W*0.38,sea+H*0.2,4,W*0.38,sea+H*0.2,H*0.28);g.addColorStop(0,'rgba(232,85,59,.85)');g.addColorStop(1,'rgba(232,85,59,0)');c.fillStyle=g;c.beginPath();c.ellipse(W*0.38,sea+H*0.2,W*0.2,H*0.17,0,0,7);c.fill();
+  c.fillStyle='#fff';c.beginPath();c.arc(W*0.38,sea+H*0.2,9,0,7);c.fill();c.fillStyle='#e8553b';c.beginPath();c.arc(W*0.38,sea+H*0.2,3.5,0,7);c.fill();
+  c.font='600 13px "Source Sans 3",sans-serif';c.fillStyle='#fff';c.textAlign='center';c.fillText('Florida Current, flowing north (out of page)',W*0.5,sea+H*0.2+44);
+  c.fillStyle='#d9c79e';c.beginPath();c.moveTo(0,H);c.lineTo(0,sea-24);c.lineTo(W*0.14,sea-6);c.lineTo(W*0.2,H*0.75);c.quadraticCurveTo(W*0.5,H*1.02,W*0.82,H*0.8);c.lineTo(W*0.9,sea+2);c.lineTo(W,sea);c.lineTo(W,H);c.closePath();c.fill();
+  const stY=sea-(street/100)*ex*60;c.fillStyle='#8f8a7a';c.fillRect(0,stY,W*0.13,4);
+  [[0.02,46],[0.055,70],[0.09,38]].forEach(([fx,h])=>{c.fillStyle='#c9c2b0';c.fillRect(W*fx,stY-h,W*0.028,h);});
+  const wl=ys(W*0.12);if(wl<stY+2){c.fillStyle='rgba(42,121,173,.85)';c.fillRect(0,wl,W*0.135,stY-wl+4);}
+  c.fillStyle='#0b2d42';c.textAlign='left';c.font='600 13px "Source Sans 3"';c.fillText('Miami Beach',6,stY-80);c.textAlign='right';c.fillText('Bahamas',W-8,sea-16);
+  c.font='12px "Source Sans 3"';c.fillStyle='#0b2d42';c.textAlign='center';c.fillText('Sea surface slope exaggerated ~10,000×',W*0.55,24);}
+['fcQ','tide','slr'].forEach(id=>$(id).addEventListener('input',drawSL));
+
+/* ---------------- Florida Bay ---------------- */
+function bayRun(){const flow=+$('flow').value/100,rain=+$('rain').value/100,heat=+$('heat').value/100;let S=34,out=[];
+  for(let y=0;y<3;y++)for(let m=0;m<12;m++){const wet=m>=4&&m<=9;const Pm=(wet?0.19:0.04)*rain,E=(0.14+0.045*Math.cos(2*Math.PI*(m-4.5)/12))*heat,Qm=flow*(wet?0.11:0.035);
+    S+=S*(E-Pm-Qm)/1.5+0.10*(36-S);S=Math.max(5,S);if(y===2)out.push(S);}
+  return out;}
+function drawBay(){$('flowV').textContent=$('flow').value+'% of today';$('rainV').textContent=$('rain').value+'% of normal';$('heatV').textContent=$('heat').value+'% of normal';
+  const s=bayRun(),{c,W,H}=fit($('bayc'));c.clearRect(0,0,W,H);const ink=inkColor(),mu=mutedColor();const L=44,R=12,Tp=34,B=30,ymax=70;const x=i=>L+(W-L-R)*(i+0.5)/12,y=v=>Tp+(H-Tp-B)*(1-v/ymax);
+  c.fillStyle='rgba(232,85,59,.10)';c.fillRect(L,y(ymax),W-L-R,y(50)-y(ymax));c.fillStyle='rgba(232,85,59,.05)';c.fillRect(L,y(50),W-L-R,y(40)-y(50));
+  c.font='12px "Source Sans 3"';c.fillStyle=mu;c.textAlign='right';[0,10,20,30,40,50,60,70].forEach(v=>{c.fillText(v,L-6,y(v)+4);});
+  c.strokeStyle=mu;c.setLineDash([4,4]);c.beginPath();c.moveTo(L,y(35));c.lineTo(W-R,y(35));c.stroke();c.setLineDash([]);c.textAlign='left';c.fillText('seawater 35',L+4,y(35)-5);c.fillText('seagrass stress >40',L+4,y(40)-5);c.fillText('severe >50',L+4,y(50)-5);
+  const mn='JFMAMJJASOND';c.textAlign='center';for(let i=0;i<12;i++)c.fillText(W<420?mn[i]:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i],x(i),H-B+16);
+  c.fillStyle='rgba(47,143,208,.12)';c.fillRect(x(4)-(W-L-R)/24,Tp,(W-L-R)/2,H-Tp-B);c.fillStyle=mu;c.fillText('wet season',x(6.5),Tp-6);
+  c.strokeStyle='#e8553b';c.lineWidth=2.5;c.beginPath();s.forEach((v,i)=>i?c.lineTo(x(i),y(v)):c.moveTo(x(i),y(v)));c.stroke();s.forEach((v,i)=>{c.fillStyle=v>40?'#e8553b':'#2f8fd0';c.beginPath();c.arc(x(i),y(v),3.5,0,7);c.fill();});
+  c.fillStyle=ink;c.font='600 14px "Source Sans 3"';c.textAlign='left';c.fillText('Salinity in central Florida Bay',L,16);
+  const pk=Math.max(...s),mon=s.filter(v=>v>40).length;$('bPeak').textContent=pk.toFixed(0);$('bMon').textContent=mon;$('bV').textContent=pk>50?'Die-off risk for seagrass':pk>40?'Seagrass stressed':'Healthy range';}
+['flow','rain','heat'].forEach(id=>$(id).addEventListener('input',drawBay));
+document.querySelectorAll('[data-bay]').forEach(b=>b.onclick=()=>{const [f,r,h]=b.dataset.bay.split(',');$('flow').value=f;$('rain').value=r;$('heat').value=h;drawBay();});
+
+/* ---------------- reef DHW ---------------- */
+function reefRun(){const A=+$('anom').value,Lw=+$('dur').value;const start=182,end=start+Lw*7,MMM=30.0;let s2=11;const nz=()=>((s2=s2*16807%2147483647)/2147483647-0.5)*0.35;
+  const days=[];for(let d=120;d<=305;d++){const clim=29.0+1.5*Math.cos(2*Math.PI*(d-232)/365);const ramp=smooth((d-start+10)/10)*smooth((end+10-d)/10);const sst=clim+A*ramp+nz();days.push({d,sst,hs:sst>=MMM+1?sst-MMM:0});}
+  days.forEach((o,i)=>{let s=0;for(let k=Math.max(0,i-83);k<=i;k++)s+=days[k].hs;o.dhw=s/7;});return {days:days.filter(o=>o.d>=152),MMM};}
+function lvl(v){return v>=20?['Level 5','Near-complete mortality likely']:v>=16?['Level 4','Severe, widespread mortality']:v>=12?['Level 3','Multi-species mortality']:v>=8?['Level 2','Bleaching and some mortality']:v>=4?['Level 1','Significant bleaching likely']:['Watch','Little or no bleaching'];}
+function drawReef(){$('anomV').textContent='+'+(+$('anom').value).toFixed(1)+' °C';$('durV').textContent=$('dur').value+' weeks';
+  const {days,MMM}=reefRun(),{c,W,H}=fit($('reefc'));c.clearRect(0,0,W,H);const ink=inkColor(),mu=mutedColor();const L=46,R=46,Tp=34,B=30;const x=d=>L+(W-L-R)*(d-152)/(305-152),y=t=>Tp+(H-Tp-B)*(1-(t-28)/(34-28)),yd=v=>Tp+(H-Tp-B)*(1-v/24);
+  c.fillStyle='rgba(232,85,59,.18)';c.beginPath();c.moveTo(x(152),yd(0));days.forEach(o=>c.lineTo(x(o.d),yd(o.dhw)));c.lineTo(x(305),yd(0));c.closePath();c.fill();
+  c.font='12px "Source Sans 3"';c.fillStyle=mu;c.textAlign='right';[28,30,32,34].forEach(t=>c.fillText(t+'°',L-6,y(t)+4));c.textAlign='left';[0,8,16,24].forEach(v=>c.fillText(v,W-R+6,yd(v)+4));
+  c.strokeStyle=mu;c.setLineDash([4,4]);c.lineWidth=1;[MMM,MMM+1].forEach(t=>{c.beginPath();c.moveTo(L,y(t));c.lineTo(W-R,y(t));c.stroke();});c.setLineDash([]);
+  c.fillStyle=mu;c.fillText('normal summer max ≈30°',L+4,y(MMM)+14);c.fillText('bleaching threshold 31°',L+4,y(MMM+1)-5);
+  const ms=[[152,'Jun'],[182,'Jul'],[213,'Aug'],[244,'Sep'],[274,'Oct']];c.textAlign='center';ms.forEach(([d,t])=>c.fillText(t,x(d+15),H-B+16));
+  c.strokeStyle='#2f8fd0';c.lineWidth=2;c.beginPath();days.forEach((o,i)=>i?c.lineTo(x(o.d),y(o.sst)):c.moveTo(x(o.d),y(o.sst)));c.stroke();
+  c.fillStyle=ink;c.font='600 14px "Source Sans 3"';c.textAlign='left';c.fillText('Water temperature (blue, left) and heat stress in DHW (red, right)',L,16);
+  const pk=Math.max(...days.map(o=>o.dhw));$('rDHW').textContent=pk.toFixed(1)+' DHW';const [lv,tx]=lvl(pk);$('rLvl').textContent=lv;$('rV').textContent=tx;}
+['anom','dur'].forEach(id=>$(id).addEventListener('input',drawReef));
+document.querySelectorAll('[data-reef]').forEach(b=>b.onclick=()=>{const [a,d]=b.dataset.reef.split(',');$('anom').value=a;$('dur').value=d;drawReef();});
+
+/* ---------------- tabs ---------------- */
+const tabs=[...document.querySelectorAll('[role=tab]')];
+function showTab(p){tabs.forEach(t=>t.setAttribute('aria-pressed',t.dataset.p===p));['sealevel','bay','reef'].forEach(id=>$(id).hidden=id!==p);requestAnimationFrame(()=>{drawSL();drawBay();drawReef();});}
+tabs.forEach(t=>t.onclick=()=>showTab(t.dataset.p));
+function fromHash(){const h=location.hash.slice(1);if(['sealevel','bay','reef'].includes(h)){showTab(h);}}
+addEventListener('hashchange',fromHash);
+
+/* ---------------- loop ---------------- */
+const visible=new Set();const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting?visible.add(e.target.id):visible.delete(e.target.id)));
+['map','stormMap','upw'].forEach(id=>io.observe($(id)));
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(playing){T+=dt*0.45;if(T>22)T=0;$('month').value=T;const prevPhase=state.phase;updateText();if(state.phase!==prevPhase)stormDirty=true;}
+  for(const p of parts){p.s+=dt*0.018*p.v*(1-0.5*Math.abs(p.o));if(p.s>1)p.s-=1;}
+  if(visible.has('map'))drawMap();
+  if(visible.has('stormMap')){if(sim&&simIdx<sim.out.length-1)simIdx=Math.min(sim.out.length-1,simIdx+2);drawStormMap();drawStormChart();drawProfile();}
+  if(visible.has('upw'))drawUp(now);
+  requestAnimationFrame(frame);}
+runStorm();
+const ro=new ResizeObserver(()=>{lastKey='';smKey='';drawSL();drawBay();drawReef();drawStormChart();drawProfile();});
+['sealevel','bay','reef','stormChart','profile'].forEach(id=>ro.observe($(id)));
+drawSL();drawBay();drawReef();fromHash();
+requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
